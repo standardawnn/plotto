@@ -182,3 +182,5 @@ body { background: #e8ebf4; }
 @media (prefers-reduced-motion: reduce) { .offering .handoff-sprite, .result-intro.revealing::after { animation: none; } .message-launch-icon { display: none; } }
 
 @font-face{font-family:"Noto Sans KR";src:url('/fonts/PretendardVariable.woff2')}
+
+.idle-character{display:block!important;object-fit:contain!important;opacity:1!important}.analysis-animation{display:block;opacity:1}.handoff-character{display:block;opacity:1;visibility:visible}

@@ -512,6 +512,7 @@ const DEADLINES = [
 ];
 
 function Home({ onBriefing }: { onBriefing: () => void }) {
+ const [selectedProject,setSelectedProject]=useState(0);
   return (
     <div className="relative w-full h-full bg-[#f4f7fd] font-['Pretendard'] not-italic">
       <DeviceChrome/>
@@ -563,8 +564,8 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
               {["마케팅 공모전", "청년 도움 프로젝트", "자원순환프로젝트", "아동자립캠프"].map((c, i) => (
                 <div
                   key={c}
-                  {...(i === 0 ? { role: "button", tabIndex: 0, onClick: () => go("intervention", "project"), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") go("intervention", "project"); } } : {})}
-                  className={`shrink-0 flex items-center justify-center px-3 py-1 rounded-[23px] border-[1.5px] border-solid ${i === 0 ? "bg-[rgba(83,111,250,0.2)] border-[#536ffa]" : "bg-[#ebedf6] border-[#c2c5cf]"}`}
+                  {...{role: "button", tabIndex: 0, onClick: () => setSelectedProject(i), onKeyDown: (e: React.KeyboardEvent) => { if(e.key === "Enter" || e.key === " ")setSelectedProject(i); }}}
+                  className={`shrink-0 flex items-center justify-center px-3 py-1 rounded-[23px] border-[1.5px] border-solid ${i === selectedProject ? "bg-[rgba(83,111,250,0.2)] border-[#536ffa]" : "bg-[#ebedf6] border-[#c2c5cf]"}`}
                 >
                   <p className="font-medium text-[14px] leading-[22px] text-black whitespace-nowrap">{c}</p>
                 </div>
@@ -572,7 +573,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
             </div>
             <div className="flex gap-4 mt-5 pl-[23.6px] pr-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {PROGRESS.map((p) => (
-                <div key={p.title} className="relative shrink-0 h-[210.6px] w-[168.3px]">
+                <div key={`${selectedProject}-${p.title}`} role="button" tabIndex={0} onClick={()=>go("project")} onKeyDown={e=>{if(e.key==="Enter")go("project");}} className="progress-click relative shrink-0 h-[210.6px] w-[168.3px]">
                   <div className="absolute bg-white h-[158px] left-0 rounded-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.2)] top-[34px] w-[168px]" />
                   <div className="absolute bg-[#1c1a3c] h-[35.1px] left-0 rounded-bl-[20.7px] rounded-br-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.15)] top-[157px] w-[168.3px]" />
                   <p className="absolute left-1/2 -translate-x-1/2 top-[97px] font-semibold text-[16.2px] leading-[1.445] text-black whitespace-nowrap">{p.title}</p>

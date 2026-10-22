@@ -130,3 +130,5 @@ h2 { color: #111; font-size: 18px; font-weight: 600; line-height: 1.445; letter-
 @font-face{font-family:"Noto Sans KR";src:url('/fonts/PretendardVariable.woff2')}
 
 .bottom-nav{bottom:max(24px,env(safe-area-inset-bottom));z-index:100}.bottom-nav img{width:24px;height:24px;object-fit:contain}.bottom-nav button{transition:transform .16s ease,background-color .16s ease;border-radius:50%}.bottom-nav button:active{transform:scale(.87);background:#edf0ff}.bottom-nav button:focus-visible{outline:2px solid #536ffa;outline-offset:3px}.activity-card,.continue-button,.task{transition:transform .18s ease,box-shadow .18s ease}.activity-card:active,.continue-button:active,.task:active{transform:scale(.98)}
+
+.bottom-nav{width:208px;height:56px;padding:8px 12px;gap:8px}.bottom-nav button{width:40px;height:40px;flex:0 0 40px}.bottom-nav .home-icon>img:first-child{width:21px;height:23px}.bottom-nav .home-icon>.home-detail{width:6px;height:8px;left:10px;top:15px}
