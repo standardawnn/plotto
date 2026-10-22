@@ -1,7 +1,6 @@
-import { go } from '../../journey'
 import { useEffect, useState } from 'react'
 
-const asset = (name: string) => `/assets/proposal/${name}`
+const asset = (name: string) => `/stage3/assets/${name}`
 
 export default function App() {
   const [phase, setPhase] = useState<'idle' | 'pull' | 'reveal'>('idle')
@@ -47,14 +46,14 @@ export default function App() {
       <div className="scrim" aria-hidden="true" />
       <div className="panel-motion">
         <section className="gradient-panel" aria-label="공동세션 제안" aria-hidden={phase !== 'reveal'}>
-          <div className="header-content"><button aria-label="뒤로 가기" type="button" onClick={() => go("intervention","chat")}><img src={asset('c75a5.svg')} alt="" /></button><p>AI 서비스 시장 현황 분석</p></div>
+          <div className="header-content"><button aria-label="뒤로 가기" type="button"><img src={asset('c75a5.svg')} alt="" /></button><p>AI 서비스 시장 현황 분석</p></div>
           <div className="panel-light right"><img src={asset('da14a.png')} alt="" /></div>
           <div className="panel-light bottom"><img src={asset('d130c.png')} alt="" /></div>
           <div className="panel-light left"><img src={asset('da14a.png')} alt="" /></div>
           <div className="final-character"><img src={asset('b021f.png')} alt="의문이 생긴 플로토 캐릭터" /></div>
           <h1 className="reveal-title">해당 작업에 대한 의문이 생겼어요.</h1>
           <p className="reveal-description">자료를 전달한 태훈님과 함께<br />추후에 공동세션을 진행할까요?</p>
-          <button className="reserve-button flex items-center justify-center" onClick={() => go("booking")}>공동세션 예약하기</button>
+          <button className="reserve-button flex items-center justify-center" onClick={() => window.parent.postMessage({type: 'plotto:navigate', stage: 4}, '*')}>공동세션 하러가기</button>
         </section>
         <img className="pull-character" src={asset('c40a6.png')} alt="상단 박스를 잡아 끌어내리는 플로토 캐릭터" />
       </div>

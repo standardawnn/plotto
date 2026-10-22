@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: 'Pretendard Variable';
-  src: url('/fonts/PretendardVariable.woff2') format('woff2');
+  src: url('/fonts/PretendardVariable.woff2') format('truetype');
   font-style: normal;
   font-weight: 45 930;
   font-display: swap;
@@ -10,7 +10,7 @@
 
 @font-face {
   font-family: 'SF Pro:Semibold';
-  src: url('https://static.figma.com/font/SF-Pro_1') format('woff2');
+  src: url('/fonts/PretendardVariable.woff2') format('woff2');
   font-style: normal;
   font-weight: 590;
   font-display: swap;
@@ -126,3 +126,5 @@ h2 { color: #111; font-size: 18px; font-weight: 600; line-height: 1.445; letter-
   .hero-art img { position: absolute; width: 305.18%; height: 127.4%; max-width: none; left: -99.04%; top: -17.31%; }
   *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; }
 }
+
+@font-face{font-family:"Noto Sans KR";src:url('/fonts/PretendardVariable.woff2')}

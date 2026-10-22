@@ -1,7 +1,6 @@
-import { go, recordJourney } from '../../journey';
 import { useEffect, useRef, useState } from 'react';
-const imgImage3470 = '/assets/feedback/546e2.png';
-const imgChatBubble = '/assets/feedback/279da.svg';
+const imgImage3470 = '/assets/screen2/546e2.png';
+const imgChatBubble = '/assets/screen2/279da.svg';
 
 export default function OpinionReview({ text, onClose }: { text: string; onClose: () => void }) {
   const [arrived, setArrived] = useState(false);
@@ -15,7 +14,7 @@ export default function OpinionReview({ text, onClose }: { text: string; onClose
     document.documentElement.style.overflow = 'hidden';
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
-      
+      if (event.key === 'Tab') { event.preventDefault(); cardRef.current?.querySelector<HTMLButtonElement>('.review-forward')?.focus(); }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => { document.body.style.overflow = previousOverflow; document.documentElement.style.overflow = previousRootOverflow; window.removeEventListener('keydown', onKeyDown); };
@@ -34,11 +33,11 @@ export default function OpinionReview({ text, onClose }: { text: string; onClose
           <p className="leading-[1.4] mb-0">해당 의견을 팀원의 역할에 맞게</p>
           <p className="leading-[1.4]">분석하여 전달할 수 있어요</p>
         </div>
-        <div className="review-forward" role="button" tabIndex={0} onClick={() => {recordJourney({opinionText:text});go("classification");}} onKeyDown={e => {if(e.key === "Enter" || e.key === " "){e.preventDefault();recordJourney({opinionText:text});go("classification");}}} data-node-id="1:2617" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 302 54' preserveAspectRatio='none'><g transform='matrix(-11.902 2.3786 -13.302 -3.4255 151 27)'><foreignObject x='-178.56' y='-178.56' width='357.12' height='357.12'><div xmlns='http://www.w3.org/1999/xhtml' style='background-image: conic-gradient(from 90deg, rgb(220, 223, 255) 0%, rgb(220, 223, 255) 6.7308%, rgb(245, 234, 255) 26.923%, rgb(220, 223, 255) 53.846%, rgb(245, 234, 255) 80.769%, rgb(220, 223, 255) 100%); opacity:1; height: 100%; width: 100%;'></div></foreignObject></g></svg>\")" }} data-name="BTN">
+        <button type="button" onClick={() => window.parent.postMessage({ type: "plotto:navigate", screen: 3 }, window.location.origin)} className="review-forward" data-node-id="1:2617" style={{ backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 302 54' preserveAspectRatio='none'><g transform='matrix(-11.902 2.3786 -13.302 -3.4255 151 27)'><foreignObject x='-178.56' y='-178.56' width='357.12' height='357.12'><div xmlns='http://www.w3.org/1999/xhtml' style='background-image: conic-gradient(from 90deg, rgb(220, 223, 255) 0%, rgb(220, 223, 255) 6.7308%, rgb(245, 234, 255) 26.923%, rgb(220, 223, 255) 53.846%, rgb(245, 234, 255) 80.769%, rgb(220, 223, 255) 100%); opacity:1; height: 100%; width: 100%;'></div></foreignObject></g></svg>\")" }} data-name="BTN">
           <p className="[word-break:break-word] font-['Pretendard'] leading-[1.5] not-italic relative shrink-0 text-[#111] text-[16px] tracking-[0.0912px] whitespace-nowrap" data-node-id="I1:2617;7098:8989">
             팀원에게 전달하기
           </p>
-        </div>
+        </button>
         <div className="absolute content-stretch flex gap-[6px] items-center left-[16px] top-[174px]" data-node-id="1:2618">
           <div className="relative shrink-0 size-[16px]" data-node-id="1:2619" data-name="chat_bubble">
             <img alt="" className="block max-w-none" src={imgChatBubble} />
@@ -50,5 +49,3 @@ export default function OpinionReview({ text, onClose }: { text: string; onClose
       </div>
 </div>;
 }
-
-

@@ -3,7 +3,7 @@
 @font-face { font-family: 'Pretendard'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-weight: 400; font-display: swap; }
 @font-face { font-family: 'Pretendard'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-weight: 500; font-display: swap; }
 @font-face { font-family: 'Pretendard'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-weight: 600; font-display: swap; }
-@font-face { font-family: 'Pretendard Variable'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-style: normal; font-weight: 45 930; font-display: swap; }
+@font-face { font-family: 'Pretendard Variable'; src: url('/fonts/PretendardVariable.woff2') format('truetype'); font-style: normal; font-weight: 45 930; font-display: swap; }
 
 @theme { --font-sans: 'Pretendard Variable', sans-serif; }
 
@@ -86,3 +86,5 @@ button:focus-visible, input:focus-visible { outline: 3px solid #635bff; outline-
 @media (min-width: 1000px) { .recommendation p { max-width: 660px; } .recommendation { justify-content: flex-start; } .reveal-title { font-size: 28px; } .final-character { right: 8%; } .pull-character { right: 8%; } }
 @media (prefers-reduced-motion: reduce) { .experience *, .experience *::before { animation-duration: .01ms !important; animation-delay: .01ms !important; transition-duration: .01ms !important; } }
 @media (prefers-reduced-motion: reduce) { .phase-reveal .reserve-button { animation-name: appear; animation-iteration-count: 1; } }
+
+@font-face{font-family:"Noto Sans KR";src:url('/fonts/PretendardVariable.woff2')}

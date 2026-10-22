@@ -6,7 +6,7 @@ const query = new URLSearchParams(location.search);
 let flow = (flows as readonly string[]).includes(query.get('flow') || '') ? query.get('flow')! : 'briefing';
 const baseline = import.meta.env.DEV && query.has('baseline');
 if (!baseline) {
-  if(flow === 'intervention' && (!query.get('entry') || query.get('entry') === 'project')) flow = 'project';
+  if(flow === 'intervention' && query.get('entry') === 'project') flow = 'project';
   else if(flow === 'intervention' && query.get('entry') === 'booking') flow = 'booking';
   else if(flow === 'intervention' && query.get('entry') === 'session') flow = 'proposal';
   else if(flow === 'opinion') flow = 'feedback';
@@ -32,3 +32,5 @@ window.addEventListener('keydown', event => {
     window.parent.postMessage({ type: 'plotto:toggle' }, location.origin);
   }
 });
+
+window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window||e.data?.type!=='plotto:navigate')return;});

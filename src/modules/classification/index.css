@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
-@font-face { font-family: 'SF Pro:Semibold'; src: url('https://static.figma.com/font/SF-Pro_1') format('woff2'); font-style: normal; font-weight: 590; }
-@font-face { font-family: 'Pretendard'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-style: normal; font-weight: 45 930; font-display: swap; }
+
+@font-face { font-family: 'Pretendard'; src: url('/fonts/PretendardVariable.woff2') format('truetype'); font-style: normal; font-weight: 45 930; font-display: swap; }
 
 @theme { --font-sans: 'Pretendard', sans-serif; }
 
@@ -83,3 +83,7 @@ strong { color: #536ffa; font-weight: 700; }
 }
 @media (max-width: 370px) { .comment { padding: 16px; } .comment-copy { font-size: 13px; } .message p, .message textarea { font-size: 13px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* The prototype viewport always remains exactly 402 × 874 CSS px. */
+html,body,#root {width:402px;height:874px;min-height:874px;overflow:hidden;}
+.experience {height:874px;min-height:874px;} .actions {position:absolute;top:786px;left:0;right:0;margin:0;} .sent-message {margin-top:4px;}

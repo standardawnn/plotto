@@ -1,9 +1,8 @@
-import { go } from '../../journey'
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent } from 'react'
 import { dayDifference, getScheduleDates, projectToday, shiftDate } from './scheduleDates'
 
-const assets = '/assets/project'
+const assets = '/stage1/assets'
 const portraits: Record<string, string> = {
   me: 'c79f2.png',
   tae: 'e8f4a.png',
@@ -55,7 +54,7 @@ export default function App() {
   return (
     <main className="app" lang="ko">
       <header className="hero">
-        <div className="project-label">마케팅 공모전<img src={`${assets}/57b8b.svg`} alt="" /></div>
+        <div className="project-label">AI분석프로젝트<img src={`${assets}/57b8b.svg`} alt="" /></div>
         <h1>AI 서비스 시장의<br />현황 분석을 이어서 해요.</h1>
         <p className="last-active"><img src={`${assets}/de2c6.svg`} alt="" />3시간 전 중단</p>
         <div className="hero-art" aria-hidden="true">
@@ -65,13 +64,13 @@ export default function App() {
           </picture>
         </div>
         <button className="continue-button" onClick={() => {
-          go('intervention', 'chat')
+          window.parent.postMessage({type: 'plotto:navigate', stage: 2}, '*')
         }}>이어서 하기</button>
       </header>
 
       <section className="activity" aria-labelledby="activity-title">
         <h2 id="activity-title">새로운 활동 <span>1</span></h2>
-        <button className="activity-card" onClick={() => go('feedback')} aria-label="태훈님이 전달한 파일 2개 보기">
+        <button className="activity-card" onClick={() => setShowFiles(true)} aria-label="태훈님이 전달한 파일 2개 보기">
           <Avatar name="태훈" kind="tae" />
           <p className="activity-copy">태훈님이<br /><span>2개의 파일</span>을 전달했어요.</p>
           <p className="activity-time">1시간 전</p>
@@ -171,13 +170,13 @@ export default function App() {
 
       <div className="bottom-fade" aria-hidden="true" />
       <nav className="bottom-nav" aria-label="주 메뉴">
-        <button aria-label="홈" onClick={() => go('briefing')}>
+        <button aria-label="홈" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
           <span className="home-icon"><img src={`${assets}/ee9b8.svg`} alt="" /><img className="home-detail" src={`${assets}/49e20.svg`} alt="" /></span>
         </button>
         <button aria-label="프로젝트" aria-current="page" onClick={() => schedule.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
           <img src={`${assets}/5b188.svg`} alt="" />
         </button>
-        <button aria-label="채팅" onClick={() => go('intervention','chat')}>
+        <button aria-label="채팅" onClick={() => setNotice('아직 새로운 대화가 없어요.')}>
           <img src={`${assets}/08642.svg`} alt="" />
         </button>
         <button aria-label="내 정보" onClick={() => setNotice('현재 프로젝트에서 기획을 담당하고 있어요.')}>

@@ -1,8 +1,9 @@
-
 @import 'tailwindcss';
 
-@font-face { font-family: 'Inter:Regular'; src: url('https://static.figma.com/font/Inter_1') format('woff2'); font-weight: 400; font-style: normal; }
-@font-face { font-family: 'SF Pro:Semibold'; src: url('https://static.figma.com/font/SF-Pro_1') format('woff2'); font-weight: 590; font-style: normal; }
+@font-face {font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2');font-weight:100 900;font-display:swap;}
+
+@font-face { font-family: 'Inter:Regular'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-weight: 400; font-style: normal; }
+@font-face { font-family: 'SF Pro:Semibold'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-weight: 590; font-style: normal; }
 :root { font-family: 'Pretendard', sans-serif; color: #000; background: #f5f6f9; font-synthesis: none; }
 body { margin: 0; }
 button, input { font: inherit; }
@@ -88,3 +89,5 @@ html:has(.is-message-loading)::-webkit-scrollbar, body:has(.is-message-loading):
 @media (min-width: 1000px) { .hero h1 { left: 7%; } .character { left: 7%; } .back-button { left: calc(7% - 7px); } .topic-content, .review-content { padding-left: 7%; padding-right: 7%; } .panel-footer { padding-left: 7%; padding-right: 7%; } .time-card { margin-left: 20%; margin-right: 20%; } .time-wheels { margin-left: 25%; margin-right: 25%; } }
 @media (max-width: 370px) { .time-wheels { margin-left: 20px; margin-right: 20px; gap: 12px; } .time-card { margin-left: 30px; margin-right: 30px; } .suggestion { font-size: 13px; } }
 @media (prefers-reduced-motion: reduce) { .character-layer, .clock-character, .reveal, h1, .suggestion, .writing-character, .message-bubble { animation: none; } }
+
+@font-face{font-family:"Noto Sans KR";src:url('/fonts/PretendardVariable.woff2')}

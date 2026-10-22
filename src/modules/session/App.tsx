@@ -1,7 +1,6 @@
-import { go, readJourney, recordJourney } from '../../journey'
 import { useEffect, useRef, useState, type ReactNode } from "react"
 
-const assetPathPrefix = "/assets/session"
+const assetPathPrefix = "/stage5/assets"
 
 function Asset({ name, className = "" }: { name: string; className?: string }) {
   return (
@@ -463,6 +462,22 @@ function SessionRecommendations({
 }) {
   return (
     <div className="session-recommendations" data-node-id="14:2133">
+      <svg width="0" height="0" aria-hidden="true" className="walk-filter-definitions">
+        <defs>
+          <filter id="walk-without-ground-shadow" colorInterpolationFilters="sRGB" x="0" y="0" width="100%" height="100%">
+            <feFlood floodColor="white" x="0" y="110" width="108" height="15" result="ground" />
+            <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0.2126 0.7152 0.0722 0 0" result="brightness" />
+            <feComposite in="brightness" in2="SourceAlpha" operator="in" result="visibleBrightness" />
+            <feComponentTransfer in="visibleBrightness" result="feetMask">
+              <feFuncA type="discrete" tableValues="0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1" />
+            </feComponentTransfer>
+            <feComposite in="SourceGraphic" in2="feetMask" operator="in" result="feet" />
+            <feComposite in="feet" in2="ground" operator="in" result="cleanGround" />
+            <feComposite in="SourceGraphic" in2="ground" operator="out" result="body" />
+            <feMerge><feMergeNode in="body" /><feMergeNode in="cleanGround" /></feMerge>
+          </filter>
+        </defs>
+      </svg>
       <SessionFileScroller
         className="recommendation-folders"
         label="공동세션 추천 폴더, 좌우로 스크롤하여 다른 폴더 보기"
@@ -665,7 +680,7 @@ function Session({ onBack }: { onBack: () => void }) {
           <div className="topic-content-inner">
             <div className="topic-group">
               <h2>주제</h2>
-              <p>{readJourney().sessionTopic || '브랜딩에서 쓰이는 AI 서비스 사례를 알고 싶음'}</p>
+              <p>브랜딩에서 쓰이는 AI 서비스 사례를 알고 싶음</p>
             </div>
             {(expanded || deliveryStarted) && (
               <div className="topic-group" id="session-topic-details">
@@ -870,15 +885,15 @@ export default function App() {
         <Home
           onReminder={() => setReminderOpen(true)}
           reminderOpen={reminderOpen}
-          onBriefing={() => go('briefing')}
+          onBriefing={() => setBriefingOpen(true)}
         />
       ) : (
-        <Session onBack={() => {recordJourney({sessionFinished:true});go("project");}} />
+        <Session onBack={() => navigate("home")} />
       )}
       {reminderOpen && (
         <SessionReminder
           onJoin={() => navigate("session")}
-          onPostpone={() => go('booking')}
+          onPostpone={() => setReminderOpen(false)}
         />
       )}
       {briefingOpen && (

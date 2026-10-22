@@ -26,7 +26,7 @@
 
 @font-face {
   font-family: 'SF Pro:Semibold';
-  src: url('https://static.figma.com/font/SF-Pro_1') format('woff2');
+  src: url('/fonts/PretendardVariable.woff2') format('woff2');
   font-weight: 590;
   font-style: normal;
   font-display: swap;
@@ -34,7 +34,7 @@
 
 @font-face {
   font-family: 'Poppins:Bold';
-  src: url('https://static.figma.com/font/Poppins-Bold_6') format('woff2');
+  src: url('/fonts/PretendardVariable.woff2') format('woff2');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -272,7 +272,9 @@ button { border: 0; padding: 0; background: none; color: inherit; }
 .review-folder .delivery-folder-copy p:last-child { color: rgb(0 0 0 / 60%); }
 .recommendation-character { z-index: 1; top: 28px; left: calc(50% + 74px); width: 108px; height: 125px; transform: translateY(12px) scale(.96); transition: opacity .55s ease, transform .55s cubic-bezier(.22, .8, .25, 1); }
 .recommendation-character.is-visible { transform: translateY(0) scale(1); }
-.recommendation-character-motion { width: 100%; height: 100%; background-image: url('/assets/session/plotto-character-walk-sprite.webp'); background-size: 1296px 1000px; background-repeat: no-repeat; }
+.walk-filter-definitions { position: absolute; pointer-events: none; }
+/* Remove the dark ground pixels while retaining the pale feet in every walking frame. */
+.recommendation-character-motion { width: 100%; height: 100%; background-image: url('/stage5/assets/plotto-character-walk-sprite.webp'); background-size: 1296px 1000px; background-repeat: no-repeat; filter: url('#walk-without-ground-shadow'); }
 /* The reference clip supplies 96 frames, arranged as 12 columns by 8 rows. */
 .recommendation-character.is-visible .recommendation-character-motion { animation: plotto-character-columns .5s steps(12, end) infinite, plotto-character-rows 4s steps(8, end) infinite; }
 .recommendation-bubble { position: absolute; z-index: 0; top: 0; height: 90px; padding-block: 11px; transform: translateY(6px); transition: opacity .45s ease, transform .45s ease; }
@@ -402,3 +404,5 @@ button { border: 0; padding: 0; background: none; color: inherit; }
   .recommendation-character, .recommendation-bubble { transform: none; }
   .recommendation-character.is-visible .recommendation-character-motion { animation: none; }
 }
+
+@font-face{font-family:"Noto Sans KR";src:url('/fonts/PretendardVariable.woff2')}

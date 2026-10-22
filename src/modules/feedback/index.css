@@ -1,7 +1,7 @@
 @import 'tailwindcss';
-@font-face { font-family: 'Pretendard'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-style: normal; font-weight: 45 930; font-display: swap; }
+@font-face { font-family: 'Pretendard'; src: url('/fonts/PretendardVariable.woff2') format('truetype'); font-style: normal; font-weight: 45 930; font-display: swap; }
 @theme { --font-sans: 'Pretendard', sans-serif; }
-@font-face { font-family: 'SF Pro:Semibold'; src: url('https://static.figma.com/font/SF-Pro_1') format('woff2'); font-style: normal; font-weight: 590; }
+
 :root { font-family: 'Pretendard', sans-serif; color: #111; background: #f4f7fd; font-synthesis: none; }
 * { box-sizing: border-box; }
 body { margin: 0; }
@@ -150,3 +150,7 @@ button:focus-visible, [role='button']:focus-visible { outline: 2px solid #536ffa
 @media (prefers-reduced-motion: reduce) { .keyboard { animation-duration: 1ms; } .composer.is-ready { animation-duration: 1ms; } }
 [data-node-id='1:1824'] { left: 20px; }
 @media (max-width: 380px) { [data-node-id='1:1813'] { font-size: 0; left: 16px; } [data-node-id='1:1813'] p { font-size: 13px; } .file-card { padding-left: 8px; padding-right: 8px; } .file-card p { font-size: 14px; } }
+
+/* The prototype viewport always remains exactly 402 × 874 CSS px. */
+html,body,#root {width:402px;height:874px;min-height:874px;overflow:hidden;}
+.page,.page.is-reviewing,.review-layer {height:874px;min-height:874px;} .review-forward {border:0;font:inherit;}

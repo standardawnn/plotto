@@ -1,7 +1,6 @@
-import { go, recordJourney } from '../../journey';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import OpinionReview from './OpinionReview';
-const assetPathPrefix = "/assets/feedback";
+const assetPathPrefix = "/assets/screen2";
 const imgSend = `${assetPathPrefix}/c578c.svg`;
 const imgSendActive = `${assetPathPrefix}/f5a38.svg`;
 const imgFrame = `${assetPathPrefix}/8b917.svg`;
@@ -45,7 +44,6 @@ export default function App() {
   const showComposer = () => { setReady(false); setOpen(true); };
   const close = () => { setTyping(false); setOpen(false); setReady(false); };
   const previewOpinion = () => {
-    if (!isSendActive) return;
     close();
     setReviewing(true);
   };
@@ -281,7 +279,7 @@ export default function App() {
           </div>
         </div>
       </div>
-      <button className="back-button" aria-label="뒤로 가기" onClick={() => { if (open) close(); else go('project'); }}><img src={imgIconNormalChevronLeft} alt="" /></button>
+      <button className="back-button" aria-label="뒤로 가기" onClick={() => { if (open) close(); else window.parent.postMessage({ type: "plotto:navigate", screen: 1 }, window.location.origin); }}><img src={imgIconNormalChevronLeft} alt="" /></button>
       <div className="absolute h-[31px] left-[calc(50%+57px)] top-[773px] w-[41px]" data-node-id="1:1823" data-name="Subtract">
         <img alt="" className="absolute block inset-0 max-w-none size-full" height="31" src={imgSubtract} width="41" />
       </div>

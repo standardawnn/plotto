@@ -1,7 +1,6 @@
-import { go, readJourney, recordJourney } from '../../journey'
 import { useEffect, useState } from 'react'
 
-const assets = '/assets/classification'
+const assets = '/assets/screen3'
 const schedule = [0, 600, 1150, 1750, 2700, 6500, 7300, 8300, 11600, 12500, 13500, 14200]
 
 function Character({ className = '' }: { className?: string }) {
@@ -9,7 +8,6 @@ function Character({ className = '' }: { className?: string }) {
 }
 
 export default function App() {
-  const originalOpinion = readJourney().opinionText || '경쟁 서비스의 차이가 잘 보이는 문서와 이미지를 첨부하면 좋을 거 같아. 한번 찾아봐 주면 좋겠어.'
   const [step, setStep] = useState(0)
   const [run, setRun] = useState(0)
   const [sent, setSent] = useState(false)
@@ -24,8 +22,6 @@ export default function App() {
     const timers = schedule.slice(1).map((time, i) => window.setTimeout(() => setStep(i + 1), time))
     return () => timers.forEach(window.clearTimeout)
   }, [run])
-
-  useEffect(() => {if (!sent) return; const timer=setTimeout(()=>go('project'),1800);return ()=>clearTimeout(timer);}, [sent])
 
   const restart = () => {
     setStep(0)
@@ -47,7 +43,7 @@ export default function App() {
         <h1 className={step >= 2 ? 'visible' : ''}>{step >= 8 ? <>공유할 의견을<br />작성했어요.</> : '분석중이에요...'}</h1>
         <section className={`comment ${step >= 3 ? 'visible' : ''}`}>
           <p className="comment-label">서연님이 남긴 의견</p>
-          <p className="comment-copy">{originalOpinion.split(/(문서|이미지)/).map((part,i) => part === "문서" || part === "이미지" ? <strong key={i}>{part}</strong> : part)}</p>
+          <p className="comment-copy">경쟁 서비스의 차이가 잘 보이는 <strong>문서</strong>와 <strong>이미지를 </strong>첨부하면 좋을 거 같아. 한번 찾아봐 주면 좋겠어.</p>
         </section>
       </header>
 
@@ -81,7 +77,7 @@ export default function App() {
               <span className="tag">{index === 0 ? '자료조사' : 'PPT 그래픽 제작'}</span>
               <div className="message">
                 {editing === index ? <textarea autoFocus aria-label={`${name}에게 전달할 의견 수정`} value={messages[index]} onChange={event => setMessages(previous => previous.map((text, i) => i === index ? event.target.value : text))} onBlur={() => setEditing(null)} /> :
-                  <p style={{whiteSpace:'pre-wrap'}}>{messages[index].split(/(시각 자료|자료 이미지)/).map((part, i) => part === '시각 자료' || part === '자료 이미지' ? <em key={i}>{part}</em> : part)}</p>}
+                  <p>{messages[index].split('\n').map((line, i) => <span key={i}>{i === 1 ? <><em>{index === 0 ? '시각 자료' : '자료 이미지'}</em>{line.replace(index === 0 ? '시각 자료' : '자료 이미지', '')}</> : line}{i === 0 && <br />}</span>)}</p>}
                 <button className="edit" aria-label={`${name}에게 전달할 의견 수정`} onClick={() => setEditing(index)}><img src={`${assets}/32d88.svg`} alt="" /></button>
               </div>
             </div>
@@ -89,7 +85,7 @@ export default function App() {
         })}
       </section>
       {step >= 10 && <footer className="actions">
-        <button className="send" disabled={sent} onClick={() => {recordJourney({opinionSent:true,recipientMessages:messages});setSent(true);}}>{sent ? '전달했어요' : '전달하기'}</button>
+        <button className="send" onClick={() => sent ? restart() : setSent(true)}>{sent ? '다시 보기' : '전달하기'}</button>
         {sent && <p role="status" className="sent-message">태훈님과 유진님께 의견을 전달했어요.</p>}
       </footer>}
       <span className="sr-only" role="status">{step < 5 ? '의견을 분석하고 있어요.' : step < 10 ? '전달할 의견을 작성하고 있어요.' : '의견 작성이 완료되었어요.'}</span>
