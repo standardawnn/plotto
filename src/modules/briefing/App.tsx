@@ -513,6 +513,7 @@ const DEADLINES = [
 
 function Home({ onBriefing }: { onBriefing: () => void }) {
  const [selectedProject,setSelectedProject]=useState(0);
+ const [selectedTask,setSelectedTask]=useState<string|null>(null);
   return (
     <div className="relative w-full h-full bg-[#f4f7fd] font-['Pretendard'] not-italic">
       <DeviceChrome/>
@@ -573,7 +574,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
             </div>
             <div className="flex gap-4 mt-5 pl-[23.6px] pr-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {PROGRESS.map((p) => (
-                <div key={`${selectedProject}-${p.title}`} role="button" tabIndex={0} onClick={()=>go("project")} onKeyDown={e=>{if(e.key==="Enter")go("project");}} className="progress-click relative shrink-0 h-[210.6px] w-[168.3px]">
+                <div key={p.title} role="button" tabIndex={0} aria-pressed={selectedTask===p.title} onClick={()=>setSelectedTask(selectedTask===p.title?null:p.title)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setSelectedTask(p.title);}}} className="progress-click relative shrink-0 h-[210.6px] w-[168.3px]">
                   <div className="absolute bg-white h-[158px] left-0 rounded-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.2)] top-[34px] w-[168px]" />
                   <div className="absolute bg-[#1c1a3c] h-[35.1px] left-0 rounded-bl-[20.7px] rounded-br-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.15)] top-[157px] w-[168.3px]" />
                   <p className="absolute left-1/2 -translate-x-1/2 top-[97px] font-semibold text-[16.2px] leading-[1.445] text-black whitespace-nowrap">{p.title}</p>
