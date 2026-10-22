@@ -23,7 +23,7 @@ const imgHand = `${A}/57972.png`;
 const imgClock = `${A}/9bfb2.svg`;
 const imgWarning = `${A}/c3f48.svg`;
 // Home
-const imgPlotto = `${A}/7adea.svg`;
+const imgPlotto = "/brand/logotype.svg";
 const imgBell = `${A}/3325d.svg`;
 const imgBellDot = `${A}/ef6d0.svg`;
 const imgChars = `${A}/2b675.png`;
