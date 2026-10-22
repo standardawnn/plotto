@@ -1,3 +1,4 @@
+import { installIdentity } from './identity';
 import { createRoot } from 'react-dom/client';
 import type { ComponentType } from 'react';
 import { flows } from './journey';
@@ -26,6 +27,7 @@ const chrome = ['project','proposal','booking','classification','session','inter
 createRoot(document.getElementById('root')!).render(<><App />{chrome && <div className={`integration-status ${['project','proposal','classification','intervention'].includes(flow)?'light':''}`} aria-hidden="true"><span>9:41</span><i/><img src="/assets/intervention/8b917.svg" alt=""/></div>}{chrome && <div className="integration-home-indicator" aria-hidden="true"/>}</>);
 if (window.parent !== window) window.parent.postMessage({ type: 'plotto:route', flow, entry: query.get('entry') || '' }, location.origin);
 }
+installIdentity();
 void boot();
 window.addEventListener('keydown', event => {
   if (event.key.toLowerCase() === 'f' && !(event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable=true]'))) {

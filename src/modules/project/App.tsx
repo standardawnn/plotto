@@ -183,7 +183,7 @@ export default function App() {
           <img src={`${assets}/935f9.svg`} alt="" />
         </button>
       </nav>
-      {notice && <div className="toast" role="status" onClick={() => setNotice('')}>{notice}<button aria-label="알림 닫기" onClick={() => setNotice('')}>×</button></div>}
+      {notice && <div className="toast" role="status" onClick={() => setNotice('')}>{notice}<button aria-label="알림 닫기" onClick={() => setNotice('')}><img src="/brand/icon-close.svg" width="24" height="24" alt="" /></button></div>}
       {showFiles && <div className="modal-backdrop" onClick={() => setShowFiles(false)}>
         <section className="file-dialog" role="dialog" aria-modal="true" aria-labelledby="files-title" onClick={(event) => event.stopPropagation()}>
           <h2 id="files-title">태훈님이 전달한 파일</h2>

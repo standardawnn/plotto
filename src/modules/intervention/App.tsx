@@ -240,7 +240,7 @@ export default function App() {
                 { title: "협업 변화 중심", description: "최근 AI 서비스는 개인의 작업 지원을 넘어 협업 과정의 정보와 업무를 연결하는 방향으로 발전하고 있다." },
               ].map((topic, index) => (
                 <button type="button" className="topic-card" role="radio" aria-checked={selectedTopic === index} key={topic.title} onClick={() => setSelectedTopic(index)} onKeyDown={(event) => { if (event.key.startsWith('Arrow')) { event.preventDefault(); setSelectedTopic(index === 0 ? 1 : 0); (event.currentTarget.parentElement?.children[index === 0 ? 1 : 0] as HTMLButtonElement)?.focus() } }}>
-                  <span className="topic-check" aria-hidden="true">✓</span>
+                  <span className="topic-check" aria-hidden="true"><img src="/brand/icon-check.svg" width="20" height="20" alt="" /></span>
                   <span><strong>{topic.title}</strong><span className="topic-description">“{topic.description}”</span></span>
                 </button>
               ))}
