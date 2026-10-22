@@ -1,3 +1,4 @@
+import { go } from '../../journey';
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent } from 'react'
 import { dayDifference, getScheduleDates, projectToday, shiftDate } from './scheduleDates'
@@ -70,7 +71,7 @@ export default function App() {
 
       <section className="activity" aria-labelledby="activity-title">
         <h2 id="activity-title">새로운 활동 <span>1</span></h2>
-        <button className="activity-card" onClick={() => setShowFiles(true)} aria-label="태훈님이 전달한 파일 2개 보기">
+        <button className="activity-card" onClick={() => go('feedback')} aria-label="태훈님이 전달한 파일 2개 보기">
           <Avatar name="태훈" kind="tae" />
           <p className="activity-copy">태훈님이<br /><span>2개의 파일</span>을 전달했어요.</p>
           <p className="activity-time">1시간 전</p>
@@ -170,16 +171,16 @@ export default function App() {
 
       <div className="bottom-fade" aria-hidden="true" />
       <nav className="bottom-nav" aria-label="주 메뉴">
-        <button aria-label="홈" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <button aria-label="홈" onClick={() => go('briefing')}>
           <span className="home-icon"><img src={`${assets}/ee9b8.svg`} alt="" /><img className="home-detail" src={`${assets}/49e20.svg`} alt="" /></span>
         </button>
         <button aria-label="프로젝트" aria-current="page" onClick={() => schedule.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
           <img src={`${assets}/5b188.svg`} alt="" />
         </button>
-        <button aria-label="채팅" onClick={() => setNotice('아직 새로운 대화가 없어요.')}>
+        <button aria-label="채팅" onClick={() => go('intervention','chat')}>
           <img src={`${assets}/08642.svg`} alt="" />
         </button>
-        <button aria-label="내 정보" onClick={() => setNotice('현재 프로젝트에서 기획을 담당하고 있어요.')}>
+        <button aria-label="내 정보" onClick={() => setNotice('내 정보 · ' + (localStorage.getItem('plotto-nickname') || '서연') + '님 · 기획 담당')}>
           <img src={`${assets}/935f9.svg`} alt="" />
         </button>
       </nav>

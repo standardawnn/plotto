@@ -33,6 +33,7 @@ const opinionExample = '경쟁 서비스의 차이가 잘 보이는 문서와 �
 
 export default function App() {
   const [open, setOpen] = useState(false);
+  const [selectedFile,setSelectedFile]=useState<string|null>(null);
   const [ready, setReady] = useState(false);
   const [text, setText] = useState('');
   const [attached, setAttached] = useState(false);
@@ -185,7 +186,7 @@ export default function App() {
         </div>
       </div>
       <div className="absolute content-stretch flex gap-[6px] items-center left-[20px] right-[20px] top-[202px]" data-node-id="1:1800">
-        <div className="bg-white border-[#eef2fb] border-[1.058px] border-solid content-stretch flex flex-col gap-[8px] h-[124px] items-center justify-center px-[20px] py-[14px] relative rounded-[20.7px] shrink-0 file-card" data-node-id="1:1801">
+        <div className="bg-white border-[#eef2fb] border-[1.058px] border-solid content-stretch flex flex-col gap-[8px] h-[124px] items-center justify-center px-[20px] py-[14px] relative rounded-[20.7px] shrink-0 file-card" data-node-id="1:1801" role="button" tabIndex={0} aria-pressed={selectedFile==='ppt'} onClick={()=>setSelectedFile(selectedFile==='ppt'?null:'ppt')} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSelectedFile('ppt');}}}>
           <div className="relative shrink-0 size-[40px]" data-node-id="1:1802" data-name="Files Icons">
             <div className="-translate-y-1/2 absolute contents left-[5px] top-1/2" data-node-id="I1:1802;2001:2948" data-name="Group">
               <div className="absolute bottom-0 left-[5px] top-0 w-[30px]" data-node-id="I1:1802;2001:2949" data-name="Vector">
@@ -212,7 +213,7 @@ export default function App() {
             </p>
           </div>
         </div>
-        <div className="bg-white border-[#eef2fb] border-[1.058px] border-solid content-stretch flex flex-col gap-[8px] h-[124px] items-center justify-center px-[20px] py-[14px] relative rounded-[20.7px] shrink-0 file-card" data-node-id="1:1806">
+        <div className="bg-white border-[#eef2fb] border-[1.058px] border-solid content-stretch flex flex-col gap-[8px] h-[124px] items-center justify-center px-[20px] py-[14px] relative rounded-[20.7px] shrink-0 file-card" data-node-id="1:1806" role="button" tabIndex={0} aria-pressed={selectedFile==='xls'} onClick={()=>setSelectedFile(selectedFile==='xls'?null:'xls')} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setSelectedFile('xls');}}}>
           <div className="relative shrink-0 size-[40px]" data-node-id="1:1807" data-name="Files Icons">
             <div className="-translate-y-1/2 absolute contents left-[5px] top-1/2" data-node-id="I1:1807;2001:2924" data-name="Group">
               <div className="absolute bottom-0 left-[5px] top-0 w-[30px]" data-node-id="I1:1807;2001:2925" data-name="Vector">

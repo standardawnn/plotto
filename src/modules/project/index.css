@@ -128,3 +128,5 @@ h2 { color: #111; font-size: 18px; font-weight: 600; line-height: 1.445; letter-
 }
 
 @font-face{font-family:"Noto Sans KR";src:url('/fonts/PretendardVariable.woff2')}
+
+.bottom-nav{bottom:max(24px,env(safe-area-inset-bottom));z-index:100}.bottom-nav img{width:24px;height:24px;object-fit:contain}.bottom-nav button{transition:transform .16s ease,background-color .16s ease;border-radius:50%}.bottom-nav button:active{transform:scale(.87);background:#edf0ff}.bottom-nav button:focus-visible{outline:2px solid #536ffa;outline-offset:3px}.activity-card,.continue-button,.task{transition:transform .18s ease,box-shadow .18s ease}.activity-card:active,.continue-button:active,.task:active{transform:scale(.98)}
