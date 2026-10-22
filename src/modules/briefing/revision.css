@@ -1,0 +1,66 @@
+.revision-screen{position:absolute;left:0;top:0;width:402px;height:874px;transform-origin:top left;background:#f4f7fd;color:#525966;font-family:Pretendard,sans-serif;overflow:hidden}
+.revision-screen button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.revision-screen button:disabled{cursor:default}
+.revision-screen button:focus-visible,.revision-screen select:focus-visible{outline:2px solid #536ffa;outline-offset:3px}
+.revision-header{position:absolute;inset:0 0 auto;z-index:3;background:white}
+.revision-titlebar{height:41px;padding:8px 20px;display:flex;align-items:center;justify-content:space-between}
+.revision-titlebar h1{font-size:18px;font-weight:600;line-height:1.445;color:#111}
+.revision-toolbar{height:56px;padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.revision-section-select{display:flex;align-items:center;gap:10px;position:relative;font-size:18px;font-weight:700;line-height:1.7}
+.revision-section-select select{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.revision-filter{display:flex;align-items:center;gap:8px;font-size:13px;color:#676e7d;white-space:nowrap;letter-spacing:.2522px}
+.revision-switch{position:relative;width:60px;height:32px;display:block}
+.revision-switch-on{position:absolute;inset:0;background:#536ffa;border-radius:32px}
+.revision-switch-knob{position:absolute;left:4px;top:4px;width:24px;height:24px;background:white;border-radius:50%}
+.revision-scroll{position:absolute;top:159px;bottom:0;left:0;right:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none;overflow-anchor:none;touch-action:pan-y}
+.revision-scroll::-webkit-scrollbar{display:none}
+.revision-content{padding:8px 20px 560px}
+.revision-section{margin-bottom:32px;font-size:18px;line-height:1.7;overflow-wrap:anywhere}
+.revision-section h2{font-size:20px;line-height:1.7;font-weight:600;margin:0}
+.revision-section p{margin:0}
+.revision-subheading{font-weight:600}
+.revision-context{overflow:hidden}
+.revision-after{margin-top:16px}
+.revision-passage{line-height:1.7}
+.revision-highlight{font:inherit;color:inherit;text-align:left;display:inline;border:0;background:none;padding:0;transition:color .28s}
+.revision-highlight>span{background:#e7edff;box-decoration-break:clone;-webkit-box-decoration-break:clone;transition:background-color .32s;}
+.revision-highlight.selected>span{background:#d8e0ff}
+.revision-highlight.applied>span{background:#e7edff}
+.revision-highlight.applied.selected>span{background:#d8e0ff}
+.revision-highlight.illuminated>span{background:#d8e0ff}
+.revision-indicator{position:relative;display:flex;align-items:center;gap:8px;padding:16px;margin-top:8px;min-height:56px;background:white;border-radius:16px;font-size:13px;line-height:1.4;color:#676e7d;width:100%}
+.revision-indicator .revision-unread{position:absolute;right:-2px;top:0;width:9px;height:9px}
+.revision-indicator>span:nth-child(2){margin-left:auto;color:#536ffa}
+.revision-card-clip{overflow:hidden}
+.revision-card{margin-top:8px;padding:16px;border-radius:16px;background:white;display:flex;flex-direction:column;gap:6px}
+.revision-card-top{display:flex;align-items:center;justify-content:space-between;width:100%;gap:6px}
+.revision-author{display:flex;align-items:baseline;gap:8px;font-size:17px;font-weight:600;color:#3f4450;line-height:1.412;white-space:nowrap}
+.revision-author>span{font-size:15px;font-weight:400;line-height:1.6;color:#7c8494;letter-spacing:.144px}
+.revision-source{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid #ebefff;background:#f4f7fd;border-radius:4px;font-size:12px;font-weight:500;line-height:1.334;letter-spacing:.3024px;color:#676e7d;white-space:nowrap}
+.revision-file-icon{position:relative;display:block;flex-shrink:0;width:18px;height:18px}
+.revision-file-icon>img{position:absolute;left:2.25px;top:-.45px}
+.revision-doc-body{position:absolute;left:1.01px;top:0}
+.revision-doc-fold{position:absolute;left:3.98px;top:-.45px}
+.revision-doc-label{position:absolute;left:1.01px;top:5.6px;width:13.5px;font:bold 4.05px/1.2 Poppins,sans-serif;text-align:center;color:white}
+.revision-comment{font-size:15px;line-height:1.6;letter-spacing:.144px;color:#7c8494}
+.revision-comment>span{color:#536ffa}
+.revision-suggestion-label{display:flex;align-items:center;gap:4px;margin-top:2px;color:#6967ff;font-size:15px;line-height:1.6;letter-spacing:.144px}
+.revision-suggestion{border-radius:8px;background:#ebefff;padding:8px 16px;text-align:left;font-size:15px;line-height:1.6;letter-spacing:.144px;color:#3f4450;transition:background-color .28s}
+.revision-suggestion:not(:disabled):hover{background:#dce4ff}
+.revision-applied-status{margin-left:auto;font-size:12px;color:#536ffa}
+.revision-footer{position:absolute;bottom:29px;left:20px;right:20px;display:flex;gap:16px;align-items:center;justify-content:center;z-index:4;height:61px}
+.revision-navigation,.revision-finish{height:54px;width:168px;flex-shrink:0;border-radius:12px;font-size:16px;line-height:1.5;letter-spacing:.0912px}
+.revision-navigation{display:flex;align-items:center;justify-content:space-evenly;background:white;border:1px solid #c1c8d8}
+.revision-navigation button{display:grid;place-items:center;width:36px;height:48px}
+.revision-navigation button:disabled{opacity:.3}
+.revision-finish{background:#536ffa;color:white;font-weight:600}
+.revision-finish:disabled{opacity:.6}
+.revision-confirm{position:fixed;margin:auto;width:342px;max-width:90%;border:0;border-radius:16px;padding:24px 20px;color:#3f4450;font-family:Pretendard,sans-serif;background:white}
+.revision-confirm::backdrop{background:#1118}
+.revision-confirm p{font-size:17px;font-weight:600;line-height:1.6;margin:0 0 24px}
+.revision-confirm>div{display:flex;gap:8px}
+.revision-confirm button{flex:1;border-radius:8px;padding:12px 6px;background:#ebefff;font-size:15px}
+.revision-confirm button:last-child{background:#536ffa;color:white}
+.revision-error{position:absolute;left:20px;right:20px;bottom:99px;z-index:5;border-radius:8px;padding:8px;background:#fff;font-size:13px;color:#ae2929}
+.revision-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+@media(prefers-reduced-motion:reduce){.revision-screen *{transition:none!important;scroll-behavior:auto!important}}

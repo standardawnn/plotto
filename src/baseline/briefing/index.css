@@ -1,0 +1,11 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+@import 'tailwindcss';
+
+@font-face {
+  font-family: "Montserrat:SemiBold";
+  src: url("https://static.figma.com/font/Montserrat_wght__2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+}
+
+html, body, #root { height: 100%; margin: 0; overflow: hidden; background: #070708; }

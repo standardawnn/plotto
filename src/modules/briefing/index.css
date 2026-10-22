@@ -1,0 +1,13 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+@import 'tailwindcss';
+
+@font-face {
+  font-family: "Montserrat:SemiBold";
+  src: url("https://static.figma.com/font/Montserrat_wght__2") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+}
+
+html, body, #root { height: 100%; margin: 0; overflow: hidden; background: #070708; }
+
+.home-walk{position:absolute;width:258px;height:145px;max-width:none;left:50%;top:-10px;transform:translateX(-50%);object-fit:contain}.home-walk-still{display:none}@media(prefers-reduced-motion:reduce){.home-walk{display:none}.home-walk-still{display:block}}

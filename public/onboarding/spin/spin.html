@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plotto Spin</title>
+<style>
+  html, body { margin: 0; height: 100%; }
+  body { display: grid; place-items: center; background: radial-gradient(120% 90% at 50% 0%, #d9d3fb 0%, #e7e5fb 45%, #f3f2fb 100%); overflow: hidden; }
+  body.alpha { background: transparent; }
+  canvas { width: min(100vw, 100vh); height: min(100vw, 100vh); display: block; cursor: pointer; }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Plotto가 한 바퀴 돌고 체크 배지를 보여주는 애니메이션" role="img"></canvas>
+<script src="layers/meta.js"></script>
+<script src="spin.js"></script>
+</body>
+</html>
