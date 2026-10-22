@@ -1,3 +1,4 @@
+import { installCarousels } from './carousel';
 import { installIdentity } from './identity';
 import { createRoot } from 'react-dom/client';
 import type { ComponentType } from 'react';
@@ -28,6 +29,7 @@ createRoot(document.getElementById('root')!).render(<><App />{chrome && <div cla
 if (window.parent !== window) window.parent.postMessage({ type: 'plotto:route', flow, entry: query.get('entry') || '' }, location.origin);
 }
 installIdentity();
+installCarousels();
 void boot();
 window.addEventListener('keydown', event => {
   if (event.key.toLowerCase() === 'f' && !(event.target instanceof HTMLElement && event.target.closest('input,textarea,select,[contenteditable=true]'))) {
