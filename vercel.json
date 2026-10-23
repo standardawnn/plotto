@@ -1,0 +1,19 @@
+{
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": "dist",
+  "headers": [
+    {
+      "source": "/(.*).html",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+    },
+    {
+      "source": "/onboarding/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+    },
+    {
+      "source": "/(responsive.css|host.js)",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+    }
+  ]
+}

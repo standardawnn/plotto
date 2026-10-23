@@ -107,7 +107,7 @@ export default function DocumentReview({s,onBack,onSave}:{s:number;onBack:()=>vo
   };
   const interruptScroll=()=>{clearTimeout(navigationTimer.current);anchor.current=null;scrollLock.current=0;};
 
-  return <div className="revision-screen" style={{transform:`scale(${s})`}}>
+  return <div className="revision-screen" style={{transform:`scale(${s})`,height:Math.max(600,window.innerHeight/s),width:Math.max(402,window.innerWidth/s)}}>
     <header className="revision-header">
       <StatusBarIPhone17Pro/>
       <div className="revision-titlebar">

@@ -6,3 +6,23 @@
 #name h1,#projects h1{position:absolute;left:20px;top:118px;margin:0;font-size:22px;line-height:30px;font-weight:600;letter-spacing:-.43px}#name h1 b{font-size:26px}#name .subtitle,#projects .subtitle{top:190px;margin:0;font-size:16px;line-height:24px;color:#525966}#nickname{top:342px;height:58px} .project-list{position:absolute;top:240px;left:20px;right:20px;display:flex;flex-direction:column;gap:12px}.project-choice{height:74px;flex-shrink:0;border:1px solid #c1c8d8;border-radius:12px;background:white;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:8px 24px;text-align:left;color:#111}.project-choice strong{font-size:16px;font-weight:500;line-height:24px}.project-choice span{font-size:13px;line-height:18px;color:#929aaa}.project-choice[aria-pressed=true]{background:#d8e0ff;border-color:#6967ff;color:#3728dd}
 
 .back{width:24px;height:24px;padding:0;display:grid;place-items:center}.name-pencil{width:24px;height:24px;top:359px;display:block}.inline-logo{width:69px;height:20px;display:inline-block;vertical-align:-2px}.splash-logo{width:170px;height:auto}
+
+/* Responsive: the canvas height follows the device (see fit() in launch.js). */
+.page{height:100%}
+.splash-character{top:auto;bottom:-156px}
+.progress{top:auto;bottom:112px}
+.project-list{bottom:108px;overflow-y:auto;scrollbar-width:none;padding-bottom:4px}
+.project-list::-webkit-scrollbar{display:none}
+/* App icon: the full character face, centred (was a cropped corner of the body). */
+
+
+/* On a real phone the device has its own status bar and home indicator. */
+html[data-host=device] .status,html[data-host=device] .launch-time,html[data-host=device] .launch-levels,html[data-host=device] .home-indicator{visibility:hidden}
+/* Tablet/desktop: the app column stays readable and the page background fills the whole screen. */
+body{background:#f4f7fd url('assets/bg.png') center/cover no-repeat}
+body[data-page=launcher]{background:#3a0a1e url('ui/wallpaper.png') center/cover no-repeat}
+body[data-page=done]{background:#f4f7fd}
+.page,.gradient{background:transparent!important}.wallpaper{visibility:hidden}
+#tour{position:fixed;inset:0;width:100%;height:100%;border:0;z-index:50;background:#e4e1fb}
+#name,#projects,#done{position:fixed!important;inset:0;width:100%!important;height:100%!important;z-index:40;background:#e4e1fb}#name h1,#projects h1,#name .subtitle,#projects .subtitle{left:24px!important;right:24px!important}#name .back,#projects .back{left:8px!important}#nickname{left:24px!important;right:80px!important;width:auto!important}#name .name-pencil{right:44px!important}#name-next,#projects-next,#start,#name .primary,#projects .primary,#done .primary{left:24px!important;right:24px!important;width:auto!important}#projects .project-list{left:24px!important;right:24px!important;width:auto!important}
+#spin,#spin-fallback{left:50%!important;top:26%!important;transform:translateX(-50%);width:min(44vw,240px)!important;height:min(44vw,240px)!important}#done h2,#done p{left:0!important;right:0!important;text-align:center}#done .primary,#done #start{left:24px!important;right:24px!important;width:auto!important;bottom:34px!important}

@@ -299,8 +299,7 @@ function Home({
             }}
           >
             <span className="home-icon">
-              <Asset name="49e20.svg" className="home-icon-door" />
-              <Asset name="e4e8a.svg" className="home-icon-shape" />
+              <img src="/brand/nav-home-active.svg" alt="" className="asset home-icon-shape" draggable={false} />
             </span>
           </button>
           <button
@@ -311,14 +310,14 @@ function Home({
               workRef.current?.scrollIntoView({ behavior: "smooth" })
             }}
           >
-            <Asset name="a7fd4.svg" />
+            <img src="/brand/nav-project.svg" alt="" className="asset" draggable={false} />
           </button>
           <button
             className="icon-button"
             aria-label="공동세션"
             onClick={onReminder}
           >
-            <Asset name="f73ff.svg" />
+            <img src="/brand/nav-chat.svg" alt="" className="asset" draggable={false} />
           </button>
           <button
             className="icon-button"
@@ -328,7 +327,7 @@ function Home({
               deadlinesRef.current?.scrollIntoView({ behavior: "smooth" })
             }}
           >
-            <Asset name="7153c.svg" />
+            <img src="/brand/nav-profile.svg" alt="" className="asset" draggable={false} />
           </button>
         </nav>
       )}

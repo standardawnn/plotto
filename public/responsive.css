@@ -1,0 +1,170 @@
+/* Responsive layer for every app screen (loaded after each screen's own CSS).
+   Screens render at the real width/height they are given (phone screen or the
+   desktop/tablet column) instead of a scaled 402×874 canvas. */
+
+/* ---------- Status bar / home indicator ---------- */
+/* Intervention drew its own status bar on top of the shared one (doubled 9:41 & icons). */
+html[data-flow="intervention"] .app > .status-bar,
+html[data-flow="intervention"] .app > .home-indicator { display: none !important; }
+
+/* On a real phone the device shows its own status bar: hide the mock ones. */
+html[data-host="device"] .integration-status,
+html[data-host="device"] .integration-home-indicator { display: none !important; }
+
+/* ---------- Fluid document size ----------
+   feedback & classification were pinned to a 402×874 document: on narrower phones the
+   right side was cut off and on shorter ones the bottom button disappeared. */
+html[data-flow="feedback"], html[data-flow="feedback"] body, html[data-flow="feedback"] #root,
+html[data-flow="classification"], html[data-flow="classification"] body, html[data-flow="classification"] #root {
+  width: 100% !important; height: auto !important; min-height: 100% !important;
+}
+html[data-flow="feedback"], html[data-flow="classification"], html[data-flow="booking"], html[data-flow="intervention"] {
+  overflow-x: hidden !important; overflow-y: auto !important; scrollbar-width: none;
+}
+html[data-flow="feedback"] body, html[data-flow="classification"] body, html[data-flow="booking"] body, html[data-flow="intervention"] body { overflow: visible !important; }
+html[data-flow="intervention"]::-webkit-scrollbar { display: none; }
+html[data-flow="feedback"]::-webkit-scrollbar, html[data-flow="classification"]::-webkit-scrollbar, html[data-flow="booking"]::-webkit-scrollbar { display: none; }
+
+/* feedback: content keeps its design positions; the CTA stays at the bottom of the screen. */
+html[data-flow="feedback"] .page { height: auto !important; min-height: max(880px, 100dvh) !important; }
+html[data-flow="feedback"] .page.is-reviewing,
+html[data-flow="feedback"] .review-layer { height: 100dvh !important; min-height: 0 !important; }
+html[data-flow="feedback"] [data-node-id="1:1825"] { position: fixed !important; top: auto !important; bottom: max(34px, env(safe-area-inset-bottom)); z-index: 3; }
+html[data-flow="feedback"] .page > [data-node-id="1:1823"] { position: fixed !important; top: auto !important; bottom: calc(max(34px, env(safe-area-inset-bottom)) + 47px); z-index: 2; }
+
+/* classification: same idea, actions pinned to the bottom of the real screen. */
+html[data-flow="classification"] .experience { height: auto !important; min-height: max(860px, 100dvh) !important; }
+html[data-flow="classification"] .actions { top: auto !important; bottom: max(34px, env(safe-area-inset-bottom)); }
+
+/* booking: panel no longer forces 551px, so the footer button stays on screen on short phones. */
+html[data-flow="booking"] .panel { min-height: 0; }
+
+/* intervention: was capped at 402px (grey bars on wider phones). */
+html[data-flow="intervention"] body { background: #f4f7fd; }
+html[data-flow="intervention"] #root,
+html[data-flow="intervention"] .ambient,
+html[data-flow="intervention"] .assistant { max-width: none; }
+/* feedback: related-task rows had a fixed 262px text column, so the chevrons drifted. */
+html[data-flow="feedback"] .related > div > div { width: 100%; }
+html[data-flow="feedback"] .related > div > div > div:last-child { flex: 1 1 auto; min-width: 0; justify-content: space-between; }
+html[data-flow="feedback"] .related .w-\[262px\] { width: auto; flex: 1 1 auto; min-width: 0; }
+
+/* ---------- Bottom navigation: one icon set, one active colour ---------- */
+html[data-flow="project"] .bottom-nav .home-icon > img:first-child { left: 0; top: 0; width: 24px; height: 24px; }
+html[data-flow="session"] .home-icon .home-icon-shape { left: 0; top: 0; width: 24px; height: 24px; }
+
+/* Figma status-bar component asked for "SF Pro:Semibold", which is not shipped: the time fell back to a serif font. */
+@font-face { font-family: 'SF Pro:Semibold'; src: url('/fonts/PretendardVariable.woff2') format('woff2'); font-weight: 590; font-display: swap; }
+html[data-host="device"] [data-name="Status bar - iPhone 17 Pro"] { visibility: hidden; }
+html[data-host="device"] [data-name="home-indicator"] { visibility: hidden; }
+/* booking: on short phones the page scrolls, and the action button stays reachable at the bottom. */
+html[data-flow="booking"] .panel-footer { position: sticky; bottom: 0; z-index: 3; background: linear-gradient(rgba(255,255,255,0), #fff 22px); border-radius: 0 0 0 0; }
+/* feedback review card: the quote wraps to three lines on narrow phones and was clipped. */
+@media (max-width: 389px) {
+  html[data-flow="feedback"] .review-card { height: 398px; }
+  html[data-flow="feedback"] .review-quote { height: 92px; }
+  html[data-flow="feedback"] .review-forward { top: 318px; }
+}
+
+/* ---------- Tablet & desktop: screens fill the device ----------
+   Backgrounds, headers and panels run edge to edge. Content keeps the phone's own
+   margins (24px) and sizes, so right-aligned items stay on the right edge and
+   nothing is stretched or centred into a narrow column. */
+:root { --gut: 24px; }
+
+/* briefing home */
+
+/* intervention (chat) */
+@media (min-width: 700px) {
+  html[data-flow="intervention"] .conversation,
+  html[data-flow="intervention"] .result-content { margin-inline: var(--gut); }
+  html[data-flow="intervention"] .composer-area { left: var(--gut); right: var(--gut); }
+  html[data-flow="intervention"] .back-button { left: 24px; }
+  html[data-flow="intervention"] .keyboard { left: 0; right: 0; padding-inline: max(5px, calc(50% - 300px)); }
+}
+
+/* proposal */
+@media (min-width: 700px) {
+  html[data-flow="proposal"] .conversation,
+  html[data-flow="proposal"] .composer,
+  html[data-flow="proposal"] .reserve-button,
+  html[data-flow="proposal"] .header-content { left: var(--gut); right: var(--gut); }
+  html[data-flow="proposal"] .reveal-title,
+  html[data-flow="proposal"] .reveal-description { left: calc(var(--gut) + 5px); }
+  html[data-flow="proposal"] .final-character,
+  html[data-flow="proposal"] .pull-character { right: calc(var(--gut) + 8px); }
+}
+
+/* booking */
+@media (min-width: 700px) {
+  html[data-flow="booking"] .hero h1,
+  html[data-flow="booking"] .character { left: var(--gut) !important; }
+  html[data-flow="booking"] .back-button { left: calc(var(--gut) - 4px) !important; }
+  html[data-flow="booking"] .topic-content,
+  html[data-flow="booking"] .review-content,
+  html[data-flow="booking"] .panel-footer { padding-left: var(--gut) !important; padding-right: var(--gut) !important; }
+  html[data-flow="booking"] .time-card { margin-left: max(52px, calc(50% - 260px)) !important; margin-right: max(52px, calc(50% - 260px)) !important; }
+  html[data-flow="booking"] .time-wheels { margin-left: max(29px, calc(50% - 330px)) !important; margin-right: max(29px, calc(50% - 330px)) !important; }
+}
+
+/* feedback (material check & opinion) */
+@media (min-width: 700px) {
+  html[data-flow="feedback"] .page > .summary,
+  html[data-flow="feedback"] .related,
+  html[data-flow="feedback"] .page > [data-node-id="1:1800"],
+  html[data-flow="feedback"] .review-card,
+  html[data-flow="feedback"] .composer { left: var(--gut) !important; right: var(--gut) !important; }
+  html[data-flow="feedback"] [data-node-id="1:1824"] { left: var(--gut) !important; }
+  html[data-flow="feedback"] .back-button { left: var(--gut); }
+}
+
+/* classification (per-member analysis) */
+@media (min-width: 1000px) {
+  html[data-flow="classification"] .analysis-header h1 { left: var(--gut); }
+  html[data-flow="classification"] .header-character { right: calc(var(--gut) + 6px); }
+  html[data-flow="classification"] .comment { left: var(--gut); right: var(--gut); }
+}
+
+/* briefing on tablet/desktop: the dial views stay a centred composition on the full-screen
+   background; the document flow (review → done → share) opens across the whole screen. */
+@media (min-width: 700px) {
+  html[data-flow="briefing"] .max-w-\[520px\].overflow-clip:has(> .z-40) { max-width: none; }
+  html[data-flow="briefing"] .z-40 > div > .absolute.inset-0.bg-white { left: max(0px, calc(50% - 260px)); right: auto; width: min(100%, 520px); }
+  html[data-flow="briefing"] .revision-titlebar,
+  html[data-flow="briefing"] .revision-toolbar,
+  html[data-flow="briefing"] .revision-content { padding-left: max(20px, calc(50% - 300px)); padding-right: max(20px, calc(50% - 300px)); }
+  html[data-flow="briefing"] .revision-footer,
+  html[data-flow="briefing"] .revision-error { left: max(20px, calc(50% - 300px)); right: max(20px, calc(50% - 300px)); }
+}
+
+/* ---------- Onboarding intro (tablet & desktop) ----------
+   Back stays at the far left and 건너뛰기 at the far right of the screen; the slide
+   content stays in its phone-sized column in the middle. */
+@media (min-width: 700px) {
+  .topbar { position: fixed !important; left: 24px !important; right: 24px !important; padding: 0 !important; }
+}
+
+/* briefing home: content spans the tablet/desktop width (phone margins kept) */
+@media (min-width: 700px) {
+  html[data-flow="briefing"] .pb-\[120px\].max-w-\[520px\] { max-width: none !important; }
+}
+
+/* briefing card: the Plotto character sits at the far right on tablet/desktop */
+@media (min-width: 700px) {
+  html[data-flow="briefing"] .relative.h-\[125px\].w-\[109px\] { margin-left: auto; }
+}
+
+/* intervention chat: back button always visible at the left edge on tablet/desktop */
+@media (min-width: 700px) {
+  html[data-flow="intervention"] .page-header .back-button { position: absolute !important; left: 24px !important; top: 62px !important; display: grid !important; opacity: 1 !important; visibility: visible !important; z-index: 20; }
+  html[data-flow="intervention"] .page-header .back-button img { filter: none !important; }
+}
+/* chat: Plotto characters bob and sway. Uses the translate/rotate properties so it does not fight inline transforms. */
+@keyframes plotto-bob{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 -10px;rotate:-4deg}}
+@media (prefers-reduced-motion: no-preference){.idle-character,.handoff-character,.analysis-character{animation:plotto-bob 2s ease-in-out infinite}}
+
+/* feedback: Plotto peeks over the 의견 남기기 button and sways */
+html[data-flow="feedback"] [data-node-id="1:1823"] { display: none !important; }
+html[data-flow="feedback"] [data-node-id="1:1825"]::before { content: ''; position: absolute; left: calc(50% - 34px); bottom: calc(100% - 9px); width: 72px; height: 64px; background: url(/brand/peek-character.png) center bottom / contain no-repeat; transform-origin: 50% 100%; animation: plotto-peek-sway 2.4s ease-in-out infinite; pointer-events: none; z-index: 2; }
+@keyframes plotto-peek-sway { 0%, 100% { rotate: -6deg; } 50% { rotate: 6deg; } }
+@media (prefers-reduced-motion: reduce) { html[data-flow="feedback"] [data-node-id="1:1825"]::before { animation: none; } }

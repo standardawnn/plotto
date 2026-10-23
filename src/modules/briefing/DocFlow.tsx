@@ -94,7 +94,7 @@ function Done({ s, onNext }: { s: number; onNext: () => void }) {
       <p className="absolute inset-x-0 text-center font-semibold text-[#111]" style={{ top: 507 * s, fontSize: 22 * s, lineHeight: 1.364, letterSpacing: -0.4268 * s }}>
         기획안 정리가 완료되었어요
       </p>
-      <div style={{position:'absolute',left:129*s,bottom:8*s,width:144*s,height:5*s,borderRadius:8,background:'black'}}/>
+      <div data-name="home-indicator" style={{position:'absolute',left:129*s,bottom:8*s,width:144*s,height:5*s,borderRadius:8,background:'black'}}/>
     </div>
   );
 }
@@ -183,7 +183,7 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
         </button>
       ))}
       {/* Actions */}
-      <div className="absolute flex justify-between" style={{ left: 24 * s, right: 23 * s, top: 784 * s, gap: 15 * s }}>
+      <div className="absolute flex justify-between" style={{ left: 24 * s, right: 23 * s, bottom: 36 * s, gap: 15 * s }}>
         <button
           onClick={send}
           className="flex-1 bg-white border-solid border-[#dde4ee] rounded-[12px] font-semibold text-[#1f2b3b] transition-transform active:scale-95"
@@ -208,7 +208,7 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
             initial={{ opacity: 0, y: 12, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0 }}
-            style={{ top: 720 * s, paddingInline: 18 * s, paddingBlock: 10 * s, fontSize: 14 * s }}
+            style={{ bottom: 114 * s, paddingInline: 18 * s, paddingBlock: 10 * s, fontSize: 14 * s }}
           >
             팀원 {count}명에게 공유했어요
           </motion.div>

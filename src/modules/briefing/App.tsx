@@ -39,11 +39,10 @@ const imgE263 = `${A}/13d51.svg`;
 const imgE264 = `${A}/0edcb.svg`;
 const imgE265 = `${A}/463be.svg`;
 const imgE266 = `${A}/700d0.svg`;
-const imgNavHomeBar = `${A}/49e20.svg`;
-const imgNavHome = `${A}/e4e8a.svg`;
-const imgNavGrid = `${A}/de536.svg`;
-const imgNavChat = `${A}/fdd84.svg`;
-const imgNavMy = `${A}/d609e.svg`;
+const imgNavHome = "/brand/nav-home-active.svg";
+const imgNavGrid = "/brand/nav-project.svg";
+const imgNavChat = "/brand/nav-chat.svg";
+const imgNavMy = "/brand/nav-profile.svg";
 
 const BG =
   "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 402 874' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(-20.1 80.016 -36.804 -67.343 201 73.838)'><stop stop-color='rgba(48,45,110,1)' offset='0'/><stop stop-color='rgba(38,36,85,1)' offset='0.25'/><stop stop-color='rgba(28,26,59,1)' offset='0.5'/><stop stop-color='rgba(18,17,34,1)' offset='0.75'/><stop stop-color='rgba(12,12,21,1)' offset='0.875'/><stop stop-color='rgba(7,7,8,1)' offset='1'/></radialGradient></defs></svg>\"), linear-gradient(180deg, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0) 51.954%), linear-gradient(270deg, rgb(186, 184, 255) 0%, rgb(180, 225, 255) 40.919%, rgb(232, 246, 255) 76.67%, rgb(199, 233, 255) 89.494%)";
@@ -626,8 +625,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
       <nav className="absolute left-1/2 -translate-x-1/2 bottom-9 w-max bg-white drop-shadow-[0px_0px_3.5px_rgba(0,0,0,0.2)] px-5 py-4 rounded-[36px]">
         <div className="flex gap-6 items-center">
           <div className="relative shrink-0 w-6 h-6">
-            <img alt="" src={imgNavHomeBar} className="absolute block max-w-none" style={{ left: 11, top: 15, width: 2, height: 8 }} />
-            <img alt="홈" src={imgNavHome} className="absolute block max-w-none" style={{ left: 2.6, top: 2.23, width: 18.7999, height: 19.1705 }} />
+            <img alt="홈" src={imgNavHome} className="absolute block max-w-none" style={{ left: 0, top: 0, width: 24, height: 24 }} />
           </div>
           {[imgNavGrid, imgNavChat, imgNavMy].map((src, i) => (
             <img key={src} {...(i < 2 ? {role: "button", tabIndex: 0, "aria-label": i === 0 ? "프로젝트" : "채팅", onClick: () => go("intervention", i === 0 ? "project" : "chat"), onKeyDown: (e: React.KeyboardEvent) => {if(e.key === "Enter" || e.key === " ") go("intervention", i === 0 ? "project" : "chat");}} : {})} alt="" src={src} className="block shrink-0 max-w-none" style={{ width: 24, height: 24 }} />

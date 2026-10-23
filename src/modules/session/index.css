@@ -310,24 +310,11 @@ button { border: 0; padding: 0; background: none; color: inherit; }
   to { opacity: 1; }
 }
 
-@keyframes file-delivery-character-pull {
-  0%, 8%, 36%, 42%, 70%, 76%, 100% { transform: translateX(0); }
-  18%, 28%, 52%, 62%, 88%, 94% { transform: translateX(6px); }
-}
+@keyframes file-delivery-character-pull { 0% { transform: translateX(0); } 12%, 88% { transform: translateX(8px); } 100% { transform: translateX(0); } }
 
-@keyframes file-delivery-folder-pull {
-  0%, 14% { transform: translateX(calc(-100% - 24px)); }
-  30%, 45% { transform: translateX(-140px); }
-  62%, 76% { transform: translateX(-62px); }
-  94%, 100% { transform: translateX(0); }
-}
+@keyframes file-delivery-folder-pull { 0%, 10% { transform: translateX(calc(-100% - 24px)); } 90%, 100% { transform: translateX(0); } }
 
-@keyframes file-delivery-rope-reel {
-  0%, 14% { width: 240px; }
-  30%, 45% { width: 148px; }
-  62%, 76% { width: 70px; }
-  94%, 100% { width: 8px; }
-}
+@keyframes file-delivery-rope-reel { 0%, 10% { width: 240px; } 90%, 100% { width: 8px; } }
 
 .session-files { margin-top: 28px; min-width: 0; }
 .files-heading { height: 24px; padding: 0 var(--page-gutter); }

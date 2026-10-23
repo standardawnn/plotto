@@ -505,8 +505,13 @@ function nav(to, T) {
 }
 
 function resize() {
-  const k = stageWrap.clientWidth / 2048;
-  stage.style.transform = `scale(${k})`;
+  const W = stageWrap.clientWidth;
+  const screenEl = document.getElementById('screen');
+  const H = screenEl ? screenEl.clientHeight : innerHeight;
+  /* fit the artwork inside the device height (keep room for the dots at the bottom) */
+  const avail = Math.max(0, H - stageWrap.offsetTop - 90);
+  const k = Math.min(W, avail) / 2048;
+  stage.style.transform = `translate(${((W - 2048 * k) / 2).toFixed(2)}px,0) scale(${k})`;
 }
 new ResizeObserver(resize).observe(stageWrap);
 resize();

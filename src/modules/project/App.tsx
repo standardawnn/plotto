@@ -172,16 +172,16 @@ export default function App() {
       <div className="bottom-fade" aria-hidden="true" />
       <nav className="bottom-nav" aria-label="주 메뉴">
         <button aria-label="홈" onClick={() => go('briefing')}>
-          <span className="home-icon"><img src={`${assets}/ee9b8.svg`} alt="" /><img className="home-detail" src={`${assets}/49e20.svg`} alt="" /></span>
+          <span className="home-icon"><img src="/brand/nav-home.svg" alt="" /></span>
         </button>
         <button aria-label="프로젝트" aria-current="page" onClick={() => schedule.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
-          <img src={`${assets}/5b188.svg`} alt="" />
+          <img src="/brand/nav-project-active.svg" alt="" />
         </button>
         <button aria-label="채팅" onClick={() => go('intervention','chat')}>
-          <img src={`${assets}/08642.svg`} alt="" />
+          <img src="/brand/nav-chat.svg" alt="" />
         </button>
         <button aria-label="내 정보" onClick={() => setNotice('내 정보 · ' + (localStorage.getItem('plotto-nickname') || '서연') + '님 · 기획 담당')}>
-          <img src={`${assets}/935f9.svg`} alt="" />
+          <img src="/brand/nav-profile.svg" alt="" />
         </button>
       </nav>
       {notice && <div className="toast" role="status" onClick={() => setNotice('')}>{notice}<button aria-label="알림 닫기" onClick={() => setNotice('')}><img src="/brand/icon-close.svg" width="24" height="24" alt="" /></button></div>}
