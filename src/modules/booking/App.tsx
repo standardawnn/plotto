@@ -44,7 +44,7 @@ export default function App() {
   const selectedMinutes = (Number(hour) % 12 + (period === '오후' ? 12 : 0)) * 60 + Number(minute);
   const isTaehunActiveTime = selectedMinutes >= 19 * 60 + 30 && selectedMinutes <= 20 * 60;
   const titles = [<>공동 세션 주제를<br />알려주세요.</>, <>공동 세션 시간을<br />정해주세요.</>, <>태훈님께 아래 내용으로<br />메세지를 남길게요.</>];
-  const message = '태훈아, 나 지금 AI 서비스 시장 현황 정리하다가\n궁금한게 생겼는데 이 사례들을 어떤 기준으로\n골랐는지 같이 보면서 공동세션으로 얘기하고 싶어!\n오늘 7시 반쯤 괜찮아?';
+  const message = '태훈아, 나 지금 AI 서비스 시장 현황 정리하다가 궁금한게 생겼는데 이 사례들을 어떤 기준으로 골랐는지 같이 보면서 공동세션으로 얘기하고 싶어! 오늘 7시 반쯤 괜찮아?';
   return <main className={`session-app screen-${step}${step === 2 && preparingMessage ? ' is-message-loading' : ''}`}>
     <header className="hero">
       <button className="back-button" aria-label="이전 화면" onClick={() => { setStep(Math.max(0, step - 1)); setSent(false); }}><img src={step === 2 ? '/stage4/assets/13b25.svg' : '/stage4/assets/7531e.svg'} alt="" /></button>

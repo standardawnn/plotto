@@ -1,5 +1,5 @@
-// Preserve the sample project's date from the design reference.
-export const projectToday = new Date(2026, 9, 28, 12)
+// "Today" is the real current date, so the schedule always opens on today.
+export const projectToday = (() => { const d = new Date(); d.setHours(12, 0, 0, 0); return d })()
 
 const weekdays = ['일', '월', '화', '수', '목', '금', '토']
 

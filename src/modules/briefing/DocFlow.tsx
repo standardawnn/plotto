@@ -86,14 +86,17 @@ function Done({ s, onNext }: { s: number; onNext: () => void }) {
   return (
     <div className="absolute inset-0 bg-white">
       <div style={{transform:`scale(${s})`,transformOrigin:'top left'}}><StatusBarIPhone17Pro/></div>
-      <video aria-label="Plotto 기획안 정리 완료" src="/onboarding/spin.webm" muted playsInline autoPlay={!reduced}
-        onLoadedData={e=>{if(reduced){e.currentTarget.currentTime=4.1;setFinished(true);}}}
-        onEnded={()=>setFinished(true)}
-        onError={()=>setFinished(true)}
-        style={{position:'absolute',left:111*s,top:330*s,width:180*s,height:180*s,objectFit:'contain'}}/>
-      <p className="absolute inset-x-0 text-center font-semibold text-[#111]" style={{ top: 507 * s, fontSize: 22 * s, lineHeight: 1.364, letterSpacing: -0.4268 * s }}>
-        기획안 정리가 완료되었어요
-      </p>
+      {/* icon + message sit together in the optical centre of the screen */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingBottom: 40 * s }}>
+        <video aria-label="Plotto 기획안 정리 완료" src="/onboarding/spin.webm" muted playsInline autoPlay={!reduced}
+          onLoadedData={e=>{if(reduced){e.currentTarget.currentTime=4.1;setFinished(true);}}}
+          onEnded={()=>setFinished(true)}
+          onError={()=>setFinished(true)}
+          style={{width:180*s,height:180*s,objectFit:'contain'}}/>
+        <p className="text-center font-semibold text-[#111]" style={{ marginTop: -3 * s, fontSize: 22 * s, lineHeight: 1.364, letterSpacing: -0.4268 * s }}>
+          기획안 정리가 완료되었어요
+        </p>
+      </div>
       <div data-name="home-indicator" style={{position:'absolute',left:129*s,bottom:8*s,width:144*s,height:5*s,borderRadius:8,background:'black'}}/>
     </div>
   );
@@ -124,11 +127,13 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
 
   return (
     <div className="absolute inset-0 bg-white">
+      <div className="absolute inset-0 overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="relative" style={{ height: (472 + MATES.length * 108 + 120) * s }}>
       <div style={{transform:`scale(${s})`,transformOrigin:"top left"}}><StatusBarIPhone17Pro/></div><BackButton s={s} onClick={onBack} />
       <p className="absolute font-semibold text-[#536ffa]" style={{ left: 20 * s, top: 122 * s, fontSize: 14 * s, lineHeight: 1.571, letterSpacing: 0.203 * s }}>
         ✦ 해당 파일을 공유할 수 있어요
       </p>
-      <div className="absolute font-bold text-[#363636] whitespace-nowrap" style={{ left: 20 * s, top: 156 * s, fontSize: 22 * s, lineHeight: 1.364, letterSpacing: -0.4268 * s }}>
+      <div className="absolute font-semibold text-[#363636] whitespace-nowrap" style={{ left: 20 * s, top: 156 * s, fontSize: 22 * s, lineHeight: 1.364, letterSpacing: -0.4268 * s }}>
         <p>수정된 자료를</p>
         <p>팀원에게 전달해요</p>
       </div>
@@ -138,9 +143,7 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
       {/* File */}
       <div className="absolute flex flex-col items-center bg-[#f2f2ff] rounded-[20px]" style={{ left: 20 * s, right: 20 * s, top: 232 * s, height: 168 * s, paddingTop: 20 * s }}>
         <div style={{width:72*s,height:72*s,borderRadius:'50%',background:'white',position:'relative'}}>
-          <img alt="" src="/assets/briefing/pdf-body.svg" style={{position:'absolute',left:21*s,top:16*s,width:30*s,height:40*s}}/>
-          <img alt="" src="/assets/briefing/pdf-fold.svg" style={{position:'absolute',left:42.34*s,top:16*s,width:8.663*s,height:7.956*s}}/>
-          <span style={{position:'absolute',top:37*s,left:21*s,width:30*s,textAlign:'center',fontSize:9*s,fontWeight:700,color:'white'}}>PDF</span>
+          <img alt="PDF" src="/assets/revision/pdf.svg" style={{position:'absolute',left:21*s,top:16*s,width:30*s,height:40*s}}/>
         </div>
         <p className="font-semibold text-[#536ffa]" style={{ marginTop: 12 * s, fontSize: 17 * s, lineHeight: 1.412 }}>
           기획안_수정.pdf
@@ -182,7 +185,10 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
           <img alt="" src={imgChevronLeft} className="absolute block rotate-180" style={{ right: 11 * s, top: 37 * s, width: 24 * s, height: 24 * s }} />
         </button>
       ))}
-      {/* Actions */}
+      </div>
+      </div>
+      {/* Actions (pinned; content scrolls underneath) */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: 120 * s, background: "linear-gradient(to bottom, rgba(255,255,255,0), #fff 40%)" }} />
       <div className="absolute flex justify-between" style={{ left: 24 * s, right: 23 * s, bottom: 36 * s, gap: 15 * s }}>
         <button
           onClick={send}

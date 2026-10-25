@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { dotted } from '../../today'
 import HandoffCharacter from "./HandoffCharacter"
 
 const prompt = "이 자료를 바탕으로 AI 서비스 시장 현황을 분석해줘."
@@ -223,7 +224,7 @@ export default function App() {
         </button>
         <h1>AI 서비스 시장 현황 분석</h1>
       </header>
-      {!showResult && <div className="date">2026.10.26</div> }
+      {!showResult && <div className="date">{dotted()}</div> }
 
       {showResult ? (
         <section ref={resultScroll} className="result-content" aria-label={followupMode ? "추천 주제와 이어지는 메시지" : "AI 서비스 시장 분석 결과"}>
@@ -315,11 +316,7 @@ export default function App() {
           {showResult ? (
             <HandoffCharacter active={showRecommendations} />
           ) : stage === "idle" ? (
-            <img
-              className="idle-character"
-              src={`${assetPathPrefix}/4e55b.png`}
-              alt="AI 도우미"
-            />
+            <HandoffCharacter active={false} />
           ) : (
             <div className="analysis-character">
               <img

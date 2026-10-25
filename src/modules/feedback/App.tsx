@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { mmdd } from '../../today';
 import OpinionReview from './OpinionReview';
 const assetPathPrefix = "/assets/screen2";
 const imgSend = `${assetPathPrefix}/c578c.svg`;
@@ -209,7 +210,7 @@ export default function App() {
               경쟁 시장 조사_수정
             </p>
             <p className="font-['Pretendard'] leading-[1.385] relative shrink-0 text-[#929aaa] text-[13px] tracking-[0.2522px]" data-node-id="1:1805">
-              10/12 17:22
+              {mmdd()} 17:22
             </p>
           </div>
         </div>
@@ -236,7 +237,7 @@ export default function App() {
               경쟁 업체 리스트
             </p>
             <p className="font-['Pretendard'] leading-[1.385] relative shrink-0 text-[#929aaa] text-[13px] tracking-[0.2522px]" data-node-id="1:1810">
-              10/12 17:23
+              {mmdd()} 17:23
             </p>
           </div>
         </div>

@@ -5,3 +5,5 @@
 html:not(.motion-ready) .stage,html:not(.motion-ready) .copy{visibility:hidden}
 
 .topbar{right:20px;justify-content:space-between}.skip-forward{border:0;background:none;color:#525966;font:inherit;font-size:16px;padding:0}.footer{bottom:56px}.cta{display:none}.dots:after{display:none}.dots button{position:relative}.dots button:before{content:"";position:absolute;inset:-16px}.stage-wrap{touch-action:pan-y}
+.skip{width:24px;height:24px;padding:0;border:0;background:none;display:grid;place-items:center;flex:none;font-size:0;color:#525966}.skip svg{width:24px;height:24px;display:block}
+/* the device shows its own status bar: trim the mock status-bar gap */.topbar{top:32px}.copy{top:92px}.stage-wrap{top:315px}

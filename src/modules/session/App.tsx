@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
+import { mmddCompact, mmddDay } from '../../today'
+import { go } from '../../journey'
 
 const assetPathPrefix = "/stage5/assets"
 
@@ -101,7 +103,7 @@ const tasks = [
   },
   {
     title: "디자인 시안 수정",
-    description: "0922 회의 기반 수정",
+    description: `${mmddCompact(-7)} 회의 기반 수정`,
     progress: 60,
   },
   { title: "GUI 제작", description: "프론트앤드 전달용", progress: 40 },
@@ -143,10 +145,12 @@ function Home({
   onReminder,
   reminderOpen,
   onBriefing,
+  ringing = false,
 }: {
   onReminder: () => void
   reminderOpen: boolean
   onBriefing: () => void
+  ringing?: boolean
 }) {
   const [project, setProject] = useState(projects[0])
   const [activeNav, setActiveNav] = useState("홈")
@@ -159,7 +163,7 @@ function Home({
       <header className="home-header flex items-center justify-between">
         <Asset name="32232.svg" />
         <button
-          className="notification-button icon-button"
+          className={`notification-button icon-button ${ringing ? "is-ringing" : ""}`}
           aria-label="공동세션 알림 열기"
           onClick={onReminder}
         >
@@ -171,7 +175,7 @@ function Home({
       <section className="briefing-section" aria-label="회의 브리핑">
         <div className="briefing-card flex items-center justify-between">
           <div className="briefing-copy">
-            <p className="briefing-date">09/29 화</p>
+            <p className="briefing-date">{mmddDay()}</p>
             <h1>
               서연님이 자리를 비운 동안
               <br />
@@ -295,7 +299,7 @@ function Home({
             aria-current={activeNav === "홈" ? "page" : undefined}
             onClick={() => {
               setActiveNav("홈")
-              window.scrollTo({ top: 0, behavior: "smooth" })
+              go("briefing")
             }}
           >
             <span className="home-icon">
@@ -307,7 +311,7 @@ function Home({
             aria-label="프로젝트"
             onClick={() => {
               setActiveNav("프로젝트")
-              workRef.current?.scrollIntoView({ behavior: "smooth" })
+              go("project")
             }}
           >
             <img src="/brand/nav-project.svg" alt="" className="asset" draggable={false} />
@@ -542,7 +546,7 @@ function Session({ onBack }: { onBack: () => void }) {
         : stage === "files"
           ? "character"
           : "complete"
-    const delay = stage === "delivery" ? 3200 : stage === "files" ? 1000 : 900
+    const delay = stage === "delivery" ? 1600 : stage === "files" ? 1000 : 900
     const timeout = window.setTimeout(() => setStage(nextStage), delay)
     return () => window.clearTimeout(timeout)
   }, [stage])
@@ -851,10 +855,23 @@ export default function App() {
   const [screen, setScreen] = useState(() =>
     location.hash === "#session" ? "session" : "home",
   )
-  const [reminderOpen, setReminderOpen] = useState(
-    () => location.hash !== "#session",
-  )
+  const [reminderOpen, setReminderOpen] = useState(false)
   const [briefingOpen, setBriefingOpen] = useState(false)
+  // Lead-in before the reminder: the bell rings and a "session soon" banner drops in,
+  // so the 공동세션 시간이에요 sheet doesn't appear out of nowhere.
+  const [cue, setCue] = useState(false)
+  useEffect(() => {
+    if (location.hash === "#session") return
+    const show = window.setTimeout(() => setCue(true), 900)
+    const open = window.setTimeout(() => {
+      setCue(false)
+      setReminderOpen(true)
+    }, 3600)
+    return () => {
+      window.clearTimeout(show)
+      window.clearTimeout(open)
+    }
+  }, [])
 
   useEffect(() => {
     const onNavigate = () => {
@@ -875,19 +892,40 @@ export default function App() {
       "",
       to === "session" ? "#session" : location.pathname + location.search,
     )
-    window.scrollTo(0, 0)
   }
 
   return (
     <>
       {screen === "home" ? (
         <Home
-          onReminder={() => setReminderOpen(true)}
+          onReminder={() => {
+            setCue(false)
+            setReminderOpen(true)
+          }}
           reminderOpen={reminderOpen}
-          onBriefing={() => setBriefingOpen(true)}
+          ringing={cue}
+          onBriefing={() => go("briefing", "briefing")}
         />
       ) : (
         <Session onBack={() => navigate("home")} />
+      )}
+      {cue && !reminderOpen && screen === "home" && (
+        <button
+          type="button"
+          className="session-cue"
+          onClick={() => {
+            setCue(false)
+            setReminderOpen(true)
+          }}
+        >
+          <img src="/stage5/assets/98c83.svg" alt="" />
+          <span>
+            <strong>곧 공동세션이 시작돼요</strong>
+            <br />
+            태훈님이 세션에 들어오고 있어요
+          </span>
+          <span className="cue-time">잠시 후</span>
+        </button>
       )}
       {reminderOpen && (
         <SessionReminder
@@ -901,7 +939,7 @@ export default function App() {
           onClose={() => setBriefingOpen(false)}
           className="briefing-dialog"
         >
-          <p className="briefing-dialog-date">09/29 화</p>
+          <p className="briefing-dialog-date">{mmddDay()}</p>
           <h2>
             서연님이 자리를 비운 동안
             <br />

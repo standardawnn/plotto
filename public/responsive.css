@@ -156,15 +156,54 @@ html[data-flow="booking"] .panel-footer { position: sticky; bottom: 0; z-index: 
 
 /* intervention chat: back button always visible at the left edge on tablet/desktop */
 @media (min-width: 700px) {
-  html[data-flow="intervention"] .page-header .back-button { position: absolute !important; left: 24px !important; top: 62px !important; display: grid !important; opacity: 1 !important; visibility: visible !important; z-index: 20; }
+  html[data-flow="intervention"] .page-header .back-button { position: absolute !important; left: 24px !important; top: 22px !important; display: grid !important; opacity: 1 !important; visibility: visible !important; z-index: 20; }
   html[data-flow="intervention"] .page-header .back-button img { filter: none !important; }
 }
 /* chat: Plotto characters bob and sway. Uses the translate/rotate properties so it does not fight inline transforms. */
 @keyframes plotto-bob{0%,100%{translate:0 0;rotate:0deg}50%{translate:0 -10px;rotate:-4deg}}
 @media (prefers-reduced-motion: no-preference){.idle-character,.handoff-character,.analysis-character{animation:plotto-bob 2s ease-in-out infinite}}
 
-/* feedback: Plotto peeks over the 의견 남기기 button and sways */
+/* feedback: Plotto peeks over the 의견 남기기 button; only the head sways, the hands stay put */
 html[data-flow="feedback"] [data-node-id="1:1823"] { display: none !important; }
-html[data-flow="feedback"] [data-node-id="1:1825"]::before { content: ''; position: absolute; left: calc(50% - 34px); bottom: calc(100% - 9px); width: 72px; height: 64px; background: url(/brand/peek-character.png) center bottom / contain no-repeat; transform-origin: 50% 100%; animation: plotto-peek-sway 2.4s ease-in-out infinite; pointer-events: none; z-index: 2; }
-@keyframes plotto-peek-sway { 0%, 100% { rotate: -6deg; } 50% { rotate: 6deg; } }
+html[data-flow="feedback"] [data-node-id="1:1825"]::before,
+html[data-flow="feedback"] [data-node-id="1:1825"]::after { content: ''; position: absolute; left: calc(50% - 34px); bottom: calc(100% - 9px); width: 72px; height: 64px; background: no-repeat center bottom / contain; pointer-events: none; }
+html[data-flow="feedback"] [data-node-id="1:1825"]::before { background-image: url(/brand/peek-head.png); transform-origin: 50% 100%; animation: plotto-head-sway 2.4s ease-in-out infinite; z-index: 1; }
+html[data-flow="feedback"] [data-node-id="1:1825"]::after { background-image: url(/brand/peek-hands.png); z-index: 2; }
+@keyframes plotto-head-sway { 0%, 100% { rotate: -5deg; } 50% { rotate: 5deg; } }
 @media (prefers-reduced-motion: reduce) { html[data-flow="feedback"] [data-node-id="1:1825"]::before { animation: none; } }
+
+/* ---------- Bottom navigation (GNB): pinned to the bottom on every home-type screen,
+   clear of the home indicator / browser toolbar ---------- */
+html[data-flow="briefing"] nav[class*="bottom-9"] { position: fixed !important; bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px)) !important; z-index: 20; }
+html[data-flow="session"] .home-navigation,
+html[data-flow="project"] .bottom-nav { bottom: max(28px, calc(env(safe-area-inset-bottom) + 12px)) !important; }
+
+/* ---------- Top spacing ----------
+   The phone/browser already shows its own status bar, so the 62px the mock iOS status
+   bar used to occupy is trimmed to a small top margin on every screen. */
+html[data-flow="session"] .app { --safe-top: max(20px, env(safe-area-inset-top)); }
+html[data-flow="project"] .hero { padding-top: 32px; height: 248px; }
+html[data-flow="intervention"] .page-header { height: 75px; padding-top: 32px; }
+html[data-flow="intervention"] .page-header .back-button { top: 22px; }
+html[data-flow="booking"] .hero { height: 283px; flex-basis: 283px; }
+html[data-flow="booking"] .screen-1 .hero { height: 282px; flex-basis: 282px; }
+html[data-flow="booking"] .back-button { top: 22px; }
+html[data-flow="booking"] h1 { top: 70px; }
+html[data-flow="booking"] .character { top: 153px; }
+html[data-flow="feedback"] .page { margin-top: -40px; }
+html[data-flow="classification"] .experience { margin-top: -40px; }
+
+/* ---- 2026-10-25: project hero button inside blue box; no rope pull; hidden scrollbars ---- */
+html[data-flow="project"] .hero { height: 288px !important; }
+html[data-flow="project"] .hero-art { top: 100px !important; }
+html[data-flow="project"] .continue-button { top: 216px !important; }
+html[data-flow="session"] .file-delivery-procession { animation: file-delivery-ready .15s 0s ease both, file-delivery-slide 1.1s cubic-bezier(.22, .8, .25, 1) both !important; }
+html[data-flow="session"] .file-delivery .delivery-folder, html[data-flow="session"] .delivery-character { animation: none !important; }
+html[data-flow="session"] .delivery-character::before, html[data-flow="session"] .delivery-character::after { display: none !important; }
+@keyframes file-delivery-slide { from { transform: translateX(-100vw); } to { transform: translateX(0); } }
+html, body, *, *::before, *::after { scrollbar-width: none !important; }
+*::-webkit-scrollbar, html::-webkit-scrollbar, body::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+
+/* 2026-10-25: briefing file card - keep the blurred backdrop inside the rounded border */
+html[data-flow="briefing"] .overflow-clip > div[aria-hidden="true"] { border-radius: inherit; overflow: hidden; isolation: isolate; }
+html[data-flow="briefing"] .overflow-clip > div[aria-hidden="true"] > div { border-radius: inherit; }

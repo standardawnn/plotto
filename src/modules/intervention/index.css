@@ -115,7 +115,8 @@ strong { font-family: 'Pretendard:Bold', 'Noto Sans KR', sans-serif; font-weight
   .message { max-width: 70%; }
 }
 @media (max-height: 760px) {
-  .assistant { position: relative; bottom: auto; left: auto; transform: none; margin-top: 46px; margin-bottom: 20px; }
+  /* short phones: the character stays pinned above the composer; content scrolls above it */
+  .app { padding-bottom: 250px; }
   .stage-writing .conversation { padding-bottom: 390px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -156,6 +157,10 @@ body { background: #e8ebf4; }
 .result-intro.revealing::after { content: ''; display: inline-block; width: 2px; height: 15px; margin-left: 3px; vertical-align: -2px; background: #7766ee; animation: cursor-blink .7s steps(1) infinite; }
 .recommendations { animation: recommendation-enter .6s cubic-bezier(.2,.8,.2,1) both; }
 .handoff-character, .handoff-sprite { width: 144px; height: 144px; }
+.handoff-frames { display: block; width: 144px; height: 144px; background: url(/stage2/assets/character-handoff-sheet.png) 0 0 / 300% 200% no-repeat; animation: handoff-frames 1.5s steps(1) infinite; }
+@keyframes handoff-frames { 0% { background-position: 0 0; } 16.6667% { background-position: 50% 0; } 33.3333% { background-position: 100% 0; } 50% { background-position: 0 100%; } 66.6667% { background-position: 50% 100%; } 83.3333% { background-position: 100% 100%; } }
+.waiting .handoff-frames { animation-duration: 2.1s; }
+@media (prefers-reduced-motion: reduce) { .handoff-frames { animation: none; background-position: 0 100%; } }
 .handoff-sprite { position: relative; overflow: hidden; }
 .handoff-poses { position: absolute; left: 0; top: 0; width: 300%; height: 200%; max-width: none; transform: translate(0,-50%); }
 .handoff-sprite { transform-origin: 50% 80%; transform: translate(-4px,2px) rotate(-2deg); }

@@ -1,4 +1,5 @@
-import { go } from "../../journey";
+import { entry, go } from "../../journey";
+import { korean, mmdd, mmddCompact, mmddDay } from '../../today';
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, AnimatePresence } from "motion/react";
 import DocFlow from "./DocFlow";
@@ -52,8 +53,8 @@ const BRIEF_CARD_BG =
   "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 362 196' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(-18.1 17.944 -33.142 -15.102 181 16.559)'><stop stop-color='rgba(48,45,110,1)' offset='0'/><stop stop-color='rgba(38,36,85,1)' offset='0.25'/><stop stop-color='rgba(28,26,59,1)' offset='0.5'/><stop stop-color='rgba(18,17,34,1)' offset='0.75'/><stop stop-color='rgba(12,12,21,1)' offset='0.875'/><stop stop-color='rgba(7,7,8,1)' offset='1'/></radialGradient></defs></svg>\")";
 
 const STEPS = [
-  { label: "Before", title: "0925 회의 진행", body: ["9월 25일 유진님과 태훈님의", "기획안 회의가 진행됐어요"] },
-  { label: "Now", title: "수정 기획안 확인", body: ["9월 25일 회의를 기반으로", "Plotto가 기획안을 수정했어요"] },
+  { label: "Before", title: `${mmddCompact(-4)} 회의 진행`, body: [`${mmdd(-4)} 유진님과 태훈님의`, "기획안 회의가 진행됐어요"] },
+  { label: "Now", title: "수정 기획안 확인", body: [`${korean(-4)} 회의를 기반으로`, "Plotto가 기획안을 수정했어요"] },
   { label: "Next", title: "최종 기획안 공유", body: ["최종 확정된 기획안을 연관된", "팀원과 공유해야 해요"] },
   { label: "Extra", title: "기업분석 보고서 작성", body: ["그 다음 진행해야 할 일이에요", "태훈님이 기다리고 있어요"] },
 ];
@@ -81,7 +82,7 @@ function DeviceChrome({light=false}:{light?:boolean}) {
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<"home" | "briefing">("home");
+  const [screen, setScreen] = useState<"home" | "briefing">(entry === "briefing" ? "briefing" : "home");
   return (
     <div className="relative w-full h-full overflow-hidden">
       <AnimatePresence mode="wait" initial={false}>
@@ -106,9 +107,11 @@ function Briefing({ onExit }: { onExit: () => void }) {
   // dialRotation in step units: 0 = Before active, 3 = Extra active
   const [rot, setRot] = useState(0);
   const rotRef = useRef(0);
-  // spread: 0 = collapsed stack, 1 = fanned out on the dial
-  const [sp, setSp] = useState(0);
-  const spRef = useRef(0);
+  // spread: 0 = collapsed stack, 1 = fanned out on the dial.
+  // Once fanned out it stays that way for this visit, so coming back doesn't start over.
+  const wasSpread = (() => { try { return sessionStorage.getItem("plotto-briefing-spread") === "1"; } catch { return false; } })();
+  const [sp, setSp] = useState(wasSpread ? 1 : 0);
+  const spRef = useRef(wasSpread ? 1 : 0);
   const [view, setView] = useState<View>("dial");
   const [docOpen, setDocOpen] = useState(false);
   const anim = useRef<ReturnType<typeof animate> | null>(null);
@@ -135,10 +138,12 @@ function Briefing({ onExit }: { onExit: () => void }) {
   const setSpread = (v: number) => {
     spRef.current = v;
     setSp(v);
+    if (v >= 1) { try { sessionStorage.setItem("plotto-briefing-spread", "1"); } catch { /* storage unavailable */ } }
   };
-  const snapTo = (target: number) => {
+  const snapTo = (target: number, velocity = 0) => {
     anim.current?.stop();
-    anim.current = animate(rotRef.current, target, { type: "spring", duration: 0.55, bounce: 0.08, onUpdate: setRotation });
+    // velocity in steps/s keeps the flick's momentum, so the dial glides into place
+    anim.current = animate(rotRef.current, target, { type: "spring", stiffness: 240, damping: 30, velocity, onUpdate: setRotation });
   };
   const spreadTo = (target: number) => {
     spAnim.current?.stop();
@@ -190,9 +195,8 @@ function Briefing({ onExit }: { onExit: () => void }) {
     const d = drag.current;
     if (!d) return;
     d.moved = Math.max(d.moved, Math.abs(e.clientX - d.x));
-    // drag left → advance (next step comes up the arc)
+    // drag left → advance (next step comes up the arc); a long drag can pass several steps
     let v = d.start - (e.clientX - d.x) / pxPerStep;
-    v = clamp(v, d.startIdx - 1, d.startIdx + 1);
     if (v < 0) v = v * 0.3;
     if (v > 3) v = 3 + (v - 3) * 0.3;
     setRotation(v);
@@ -224,15 +228,29 @@ function Briefing({ onExit }: { onExit: () => void }) {
       setView(d.tap === 0 ? "before" : "now");
       return;
     }
-    const first = d.samples[0];
+    const now = performance.now();
+    const recent = d.samples.filter((p) => now - p.t < 120);
+    const first = recent[0] ?? d.samples[0];
     const last = d.samples[d.samples.length - 1];
     const vel = (last.x - first.x) / Math.max(1, last.t - first.t); // px/ms
-    let target = Math.round(rotRef.current);
-    if (Math.abs(vel) > 0.35 && target === d.startIdx) target = d.startIdx + (vel < 0 ? 1 : -1);
-    snapTo(clamp(clamp(target, d.startIdx - 1, d.startIdx + 1), 0, 3));
+    const stepsPerSec = (-vel * 1000) / pxPerStep;
+    // project where a flick would carry the dial, then settle on the nearest card
+    let target = Math.round(rotRef.current + stepsPerSec * 0.18);
+    if (Math.abs(vel) > 0.2 && target === d.startIdx) target = d.startIdx + (vel < 0 ? 1 : -1);
+    snapTo(clamp(target, 0, 3), stepsPerSec);
   };
   // trackpad pinch (ctrl + wheel) also spreads the stack
+  const wheelSnap = useRef<number>(0);
   const onWheel = (e: React.WheelEvent) => {
+    if (expanded && !e.ctrlKey) {
+      // mouse wheel / trackpad scroll turns the dial on desktop
+      anim.current?.stop();
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      setRotation(clamp(rotRef.current + delta / 260, -0.2, 3.2));
+      window.clearTimeout(wheelSnap.current);
+      wheelSnap.current = window.setTimeout(() => snapTo(clamp(Math.round(rotRef.current), 0, 3)), 120);
+      return;
+    }
     if (expanded || !e.ctrlKey) return;
     spAnim.current?.stop();
     const v = clamp(spRef.current - e.deltaY / 120, 0, 1);
@@ -335,9 +353,9 @@ function Briefing({ onExit }: { onExit: () => void }) {
             const contentOpacity = isNow ? 1 : clamp(sp * 1.6 - 0.2, 0, 1);
             const body = isNow
               ? sp < 0.5
-                ? ["9월 25일 회의를 기반으로", "수정된 기획안이에요"]
+                ? [`${korean(-4)} 회의를 기반으로`, "수정된 기획안이에요"]
                 : tNow > 0.5
-                  ? ["9월 25일 회의를 기반으로", "Plotto가 기획안을 수정했어요"]
+                  ? [`${korean(-4)} 회의를 기반으로`, "Plotto가 기획안을 수정했어요"]
                   : step.body
               : step.body;
             return (
@@ -457,8 +475,9 @@ function Briefing({ onExit }: { onExit: () => void }) {
 /* ---------------- Home (design 10:498) ---------------- */
 
 type Ring = { src: string; l: number; t: number; w: number; h: number; inset?: string };
-const PROGRESS: { title: string; sub: string; pct: string; rings: Ring[]; char?: { src: string; l: number; t: number; w: number; h: number; img: string } }[] = [
+const PROGRESS: { project: string; title: string; sub: string; pct: string; rings: Ring[]; char?: { src: string; l: number; t: number; w: number; h: number; img: string } }[] = [
   {
+    project: "마케팅 공모전",
     title: "레퍼런스 정리",
     sub: "공모전 수상작 참고하여 정리",
     pct: "진행도 100%",
@@ -469,8 +488,9 @@ const PROGRESS: { title: string; sub: string; pct: string; rings: Ring[]; char?:
     char: { src: imgChars, l: 61.48, t: 18.39, w: 49.837, h: 50.915, img: "h-[112.29%] left-[-240.55%] top-[-7.75%] w-[344.16%]" },
   },
   {
+    project: "마케팅 공모전",
     title: "디자인 시안 수정",
-    sub: "0922 회의 기반 수정",
+    sub: `${mmddCompact(-7)} 회의 기반 수정`,
     pct: "진행도 60%",
     rings: [
       { src: imgE325, l: 47.66, t: 6.4, w: 73.118, h: 73.118 },
@@ -480,6 +500,7 @@ const PROGRESS: { title: string; sub: string; pct: string; rings: Ring[]; char?:
     char: { src: imgChar3492, l: 53.14, t: 19.2, w: 59.409, h: 47.527, img: "h-[108.82%] left-[-7.65%] top-[-5.88%] w-[130.59%]" },
   },
   {
+    project: "청년 도움 프로젝트",
     title: "GUI 제작",
     sub: "프론트앤드 전달용",
     pct: "진행도 40%",
@@ -492,6 +513,7 @@ const PROGRESS: { title: string; sub: string; pct: string; rings: Ring[]; char?:
     char: { src: imgChars, l: 54.3, t: 18.66, w: 55.327, h: 44.177, img: "h-[127.4%] left-[-99.04%] top-[-17.31%] w-[305.18%]" },
   },
   {
+    project: "청년 도움 프로젝트",
     title: "개발 일정 정리",
     sub: "팀원들 스케줄에 맞춰 정리",
     pct: "진행도 25%",
@@ -504,6 +526,14 @@ const PROGRESS: { title: string; sub: string; pct: string; rings: Ring[]; char?:
     char: { src: imgChars, l: 57.27, t: 15.55, w: 53.78, h: 54.944, img: "h-[112.29%] left-[-240.55%] top-[-7.75%] w-[344.16%]" },
   },
 ];
+// Extra sample tasks for the other projects (same card art as the tasks above).
+PROGRESS.push(
+  { ...PROGRESS[1], project: "자원순환프로젝트", title: "캠페인 포스터 시안", sub: "분리배출 캠페인 홍보용", pct: "진행도 60%" },
+  { ...PROGRESS[3], project: "자원순환프로젝트", title: "수거 일정 정리", sub: "지역별 수거 요일 정리", pct: "진행도 25%" },
+  { ...PROGRESS[2], project: "아동자립캠프", title: "프로그램 기획", sub: "캠프 3일차 활동 구성", pct: "진행도 40%" },
+  { ...PROGRESS[0], project: "아동자립캠프", title: "참가자 명단 정리", sub: "신청서 기반 명단 확정", pct: "진행도 100%" },
+);
+const PROJECT_CHIPS = ["마케팅 공모전", "청년 도움 프로젝트", "자원순환프로젝트", "아동자립캠프"];
 const DEADLINES = [
   { title: "기획안 수정하기", project: "마케팅 공모전", due: "D-DAY", hot: true },
   { title: "디자인 피드백", project: "청년 참여 프로젝트", due: "D-1" },
@@ -512,13 +542,15 @@ const DEADLINES = [
 
 function Home({ onBriefing }: { onBriefing: () => void }) {
  const [selectedProject,setSelectedProject]=useState(0);
- const [selectedTask,setSelectedTask]=useState<string|null>(null);
+ const cardRow=useRef<HTMLDivElement>(null);
+ const visibleTasks=PROGRESS.filter(p=>p.project===PROJECT_CHIPS[selectedProject]);
+ const pickProject=(i:number)=>{setSelectedProject(i);cardRow.current?.scrollTo({left:0,behavior:"smooth"});};
   return (
     <div className="relative w-full h-full bg-[#f4f7fd] font-['Pretendard'] not-italic">
       <DeviceChrome/>
       <div className="absolute inset-0 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div aria-hidden className="absolute inset-x-0 top-0 h-[294px] -scale-y-100 pointer-events-none" style={{ backgroundImage: HOME_TOP_BG, backgroundSize: "100% 100%" }} />
-        <div className="relative mx-auto w-full max-w-[520px] pb-[120px] pt-[max(40px,env(safe-area-inset-top))]">
+        <div className="relative mx-auto w-full max-w-[520px] pb-[120px] pt-[max(4px,env(safe-area-inset-top))]">
           {/* Header */}
           <div className="relative h-[48px] mt-[22px]">
             <img alt="plotto" src={imgPlotto} className="absolute left-5 top-1/2 -translate-y-1/2 block" style={{ width: 72, height: 20 }} />
@@ -530,13 +562,10 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
           {/* Briefing card */}
           <div className="relative px-5 py-2">
             <div className="flex gap-3 items-center px-5 py-6 rounded-[24px] overflow-hidden" style={{ backgroundImage: BRIEF_CARD_BG }}>
-              <div className="flex flex-col gap-[18px] w-[205px] shrink-0 text-white">
+              <div className="flex flex-col gap-[18px] min-w-0 flex-1 max-w-[230px] min-[700px]:max-w-[420px] text-white">
                 <div className="flex flex-col gap-[6px]">
-                  <p className="font-light text-[15px] leading-[26px]">09/29 화</p>
-                  <div className="font-semibold text-[20px] leading-[30px]">
-                    <p>서연님이 자리를 비운 동안</p>
-                    <p>회의가 진행됐어요</p>
-                  </div>
+                  <p className="font-light text-[15px] leading-[26px]">{mmddDay()}</p>
+                  <p className="font-semibold text-[20px] leading-[30px] [word-break:keep-all] [text-wrap:balance]">서연님이 자리를 비운 동안 회의가 진행됐어요</p>
                 </div>
                 <button
                   onClick={onBriefing}
@@ -561,19 +590,21 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
               <p className="font-semibold text-[18px] leading-[22px] text-[#354052]">열심히 일하고 있어요</p>
             </div>
             <div className="flex gap-3 px-5 mt-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {["마케팅 공모전", "청년 도움 프로젝트", "자원순환프로젝트", "아동자립캠프"].map((c, i) => (
-                <div
+              {PROJECT_CHIPS.map((c, i) => (
+                <button
+                  type="button"
                   key={c}
-                  {...{role: "button", tabIndex: 0, onClick: () => setSelectedProject(i), onKeyDown: (e: React.KeyboardEvent) => { if(e.key === "Enter" || e.key === " ")setSelectedProject(i); }}}
-                  className={`shrink-0 flex items-center justify-center px-3 py-1 rounded-[23px] border-[1.5px] border-solid ${i === selectedProject ? "bg-[rgba(83,111,250,0.2)] border-[#536ffa]" : "bg-[#ebedf6] border-[#c2c5cf]"}`}
+                  aria-pressed={i === selectedProject}
+                  onClick={() => pickProject(i)}
+                  className={`home-chip shrink-0 flex items-center justify-center px-3 py-1 rounded-[23px] border-[1.5px] border-solid transition-colors duration-200 ${i === selectedProject ? "bg-[rgba(83,111,250,0.2)] border-[#536ffa]" : "bg-[#ebedf6] border-[#c2c5cf]"}`}
                 >
                   <p className="font-medium text-[14px] leading-[22px] text-black whitespace-nowrap">{c}</p>
-                </div>
+                </button>
               ))}
             </div>
-            <div className="flex gap-4 mt-5 pl-[23.6px] pr-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {PROGRESS.map((p) => (
-                <div key={p.title} role="button" tabIndex={0} aria-pressed={selectedTask===p.title} onClick={()=>setSelectedTask(selectedTask===p.title?null:p.title)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setSelectedTask(p.title);}}} className="progress-click relative shrink-0 h-[210.6px] w-[168.3px]">
+            <div ref={cardRow} className="home-task-row flex gap-4 mt-5 pl-[23.6px] pr-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {visibleTasks.map((p, i) => (
+                <div key={`${selectedProject}-${p.title}`} className="home-task relative shrink-0 h-[210.6px] w-[168.3px]" style={{ animationDelay: `${i * 60}ms` }}>
                   <div className="absolute bg-white h-[158px] left-0 rounded-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.2)] top-[34px] w-[168px]" />
                   <div className="absolute bg-[#1c1a3c] h-[35.1px] left-0 rounded-bl-[20.7px] rounded-br-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.15)] top-[157px] w-[168.3px]" />
                   <p className="absolute left-1/2 -translate-x-1/2 top-[97px] font-semibold text-[16.2px] leading-[1.445] text-black whitespace-nowrap">{p.title}</p>
@@ -662,7 +693,7 @@ function DetailShell({ s, label, height, title, subtitle, children }: { s: numbe
       >
         <div className="absolute left-0 bg-[#ebefff]" style={{ top: 98 * s, width: 387 * s, height: 379 * s }} />
         
-        <p className="absolute font-semibold text-black" style={{ left: 24.537 * s, top: 22.303 * s, width: 145 * s, fontSize: 20 * s, lineHeight: 1.4, letterSpacing: -0.24 * s }}>
+        <p className="absolute font-semibold text-black whitespace-nowrap" style={{ left: 24.537 * s, top: 22.303 * s, fontSize: 20 * s, lineHeight: 1.4, letterSpacing: -0.24 * s }}>
           {title}
         </p>
         <p className="absolute font-normal text-[#808289] whitespace-nowrap" style={{ left: 25 * s, top: 59 * s, fontSize: 16 * s, lineHeight: 1.5, letterSpacing: 0.0912 * s }}>
@@ -701,7 +732,7 @@ function Bullets({ s, items }: { s: number; items: string[] }) {
 
 function BeforeDetail({ s }: { s: number }) {
   return (
-    <DetailShell s={s} label="Before" height={334} title="0925 회의 진행" subtitle="유진님과 태훈님이 기획안 회의를 진행했어요">
+    <DetailShell s={s} label="Before" height={334} title={`${mmddCompact(-4)} 회의 진행`} subtitle="유진님과 태훈님이 기획안 회의를 진행했어요">
       <div className="flex flex-col items-end" style={{ gap: 16.2 * s }}>
         <div className="flex flex-col w-full" style={{ gap: 16 * s }}>
           <SparkleRow s={s} text="회의 중 중요한 내용을 요약했어요." />
@@ -740,10 +771,7 @@ function NowDetail({ s, onOpen }: { s: number; onOpen: () => void }) {
             <div className="absolute inset-0 bg-[rgba(255,255,255,0.9)] backdrop-blur-[13.5px]" />
           </div>
           <div className="relative flex items-center" style={{ gap: 10.8 * s }}>
-            <div className="relative shrink-0" style={{width:31*s,height:36*s}}>
-              <img src="/assets/briefing/pdf-outline.svg" alt="" style={{position:'absolute',left:4*s,width:27*s,height:36*s}}/>
-              <span style={{position:'absolute',left:0,top:18*s,background:'#f04438',borderRadius:2,padding:'1px 2px',fontSize:9*s,fontWeight:700,color:'white'}}>PDF</span>
-            </div>
+            <img src="/assets/revision/pdf.svg" alt="PDF" className="block shrink-0" style={{width:27*s,height:36*s}}/>
             <p className="font-medium text-black whitespace-nowrap" style={{ fontSize: 13.5 * s, lineHeight: 1.467, letterSpacing: 0.1296 * s }}>
               기획안_수정.pdf
             </p>

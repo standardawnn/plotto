@@ -65,13 +65,15 @@ h2 { color: #111; font-size: 18px; font-weight: 600; line-height: 1.445; letter-
 .schedule-section > h2 { margin-left: 20px; margin-bottom: 8px; }
 .schedule-viewport { position: relative; isolation: isolate; }
 .schedule-viewport::before, .schedule-viewport::after { content: ''; position: absolute; top: 0; height: 46px; z-index: 4; background: linear-gradient(to right, var(--page-background) 20.28%, transparent 77.273%); filter: blur(4px); pointer-events: none; }
-.schedule-viewport::before { left: 20px; width: 156px; }
+.schedule-viewport::before { left: 80px; width: 96px; }
 .schedule-viewport::after { right: 0; width: 77px; transform: rotate(180deg); }
-.schedule-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding-left: 20px; cursor: grab; touch-action: pan-x pan-y; overscroll-behavior-x: contain; user-select: none; }
+.schedule-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding-left: 20px; clip-path: inset(-20px 0 -20px 20px); cursor: grab; touch-action: pan-x pan-y; overscroll-behavior-x: contain; user-select: none; }
 .schedule-scroll::-webkit-scrollbar { display: none; }
 .schedule-scroll:active { cursor: grabbing; }
 .schedule-canvas { --schedule-day-width: 68.75px; position: relative; width: max(100%, 565px); padding-right: 20px; }
-.date-row { display: flex; height: 50px; padding-left: 38px; align-items: center; }
+.date-row { display: flex; height: 50px; padding-left: 0; align-items: center; }
+/* sticky cover above the member column so dates slide under it, like the rows below */
+.date-row::before { content: ''; position: sticky; left: 0; z-index: 3; flex: 0 0 60px; height: 50px; margin-right: -22px; background: var(--page-background); }
 .date { flex: 0 0 var(--schedule-day-width); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 50px; padding: 8px; background: transparent; border-radius: 13px; font-size: 11px; line-height: 1.273; letter-spacing: .3421px; color: #7c8494; }
 .date span:last-child { color: #929aaa; font-weight: 500; }
 .date:focus-visible { outline-offset: -3px; }
@@ -118,8 +120,8 @@ h2 { color: #111; font-size: 18px; font-weight: 600; line-height: 1.445; letter-
   .activity-card { height: 145px; }
   .file-art { right: 36px; }
   .schedule-section > h2 { margin-left: 40px; }
-  .schedule-viewport::before { left: 40px; }
-  .schedule-scroll { padding-left: 40px; }
+  .schedule-viewport::before { left: 100px; width: 96px; }
+  .schedule-scroll { padding-left: 40px; clip-path: inset(-20px 0 -20px 40px); }
   .schedule-canvas { width: max(100%, 700px); padding-right: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {

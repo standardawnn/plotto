@@ -8,7 +8,7 @@ export default function BriefingCharacter({view, spread, scale, progress}: {view
   const pose = view === 'dial' ? 'dial' : view;
   return <div className="absolute inset-0 z-30 pointer-events-none" style={{transform:`scale(${scale})`,transformOrigin:'top left'}}>
     <motion.div className="absolute inset-0" initial={false}
-      animate={{y:view === 'dial' ? 230*amount : view === 'now' ? 80 : 0}}
+      animate={{y:view === 'dial' ? 230*amount : view === 'now' ? 80 : 66}}
       transition={{duration:reduced ? 0 : view === 'dial' && amount < 1 ? 0 : .65,ease:[.22,1,.36,1]}}>
       <AnimatePresence initial={false}>
         <motion.div key={pose} className="absolute inset-0" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}

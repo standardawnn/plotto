@@ -69,10 +69,10 @@ html:has(.is-message-loading)::-webkit-scrollbar, body:has(.is-message-loading):
 .summary { margin: 0 1px; display: flex; flex-direction: column; gap: 16px; }
 .summary > div { display: grid; grid-template-columns: 30px 1fr; gap: 10px; }
 .summary dt { font-size: 17px; line-height: 1.412; font-weight: 600; }
-.summary dd { margin: 0; font-size: 16px; line-height: 1.5; letter-spacing: .0912px; color: #3f4450; }
+.summary dd { margin: 0; font-size: 16px; line-height: 1.5; letter-spacing: .0912px; color: #3f4450; word-break: keep-all; overflow-wrap: break-word; text-wrap: pretty; }
 .divider { display: block; margin: 20px -2px 18px; width: 100%; height: 1px; }
 .message-label { color: #6967ff; font-size: 14px; font-weight: 500; line-height: 1.429; letter-spacing: .203px; margin: 0 0 12px 1px; }
-.message-bubble { position: relative; background: #ebefff; border-radius: 16px; padding: 12px 20px; font-size: 15px; line-height: 1.6; letter-spacing: .144px; white-space: pre-wrap; }
+.message-bubble { position: relative; background: #ebefff; border-radius: 16px; padding: 12px 20px; font-size: 15px; line-height: 1.6; letter-spacing: .144px; white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word; text-wrap: pretty; }
 .message-bubble { transform-origin: calc(100% - 25px) bottom; animation: message-pop .6s cubic-bezier(.22, 1, .36, 1) .2s both; }
 @keyframes message-pop {
   0% { opacity: 0; transform: translate(16px, 20px) scale(.15); }
