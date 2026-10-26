@@ -208,5 +208,3 @@ html, body, *, *::before, *::after { scrollbar-width: none !important; }
 html[data-flow="briefing"] .overflow-clip > div[aria-hidden="true"] { border-radius: inherit; overflow: hidden; isolation: isolate; }
 html[data-flow="briefing"] .overflow-clip > div[aria-hidden="true"] > div { border-radius: inherit; }
 
-/* 2026-10-26: when the briefing is shrunk to fit a short desktop window, keep it a phone-width column instead of stretching edge to edge */
-html[data-flow="briefing"][style*="zoom"] body { max-width: 520px; margin: 0 auto; }
