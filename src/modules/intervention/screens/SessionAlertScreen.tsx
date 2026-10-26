@@ -1,3 +1,4 @@
+import { mmddDay } from '../../../today';
 const assetPathPrefix = "/assets/intervention";
 const imgNameBellFillFalse = `${assetPathPrefix}/56759.svg`;
 const imgImage3473 = `${assetPathPrefix}/2b675.png`;
@@ -334,7 +335,7 @@ export default function SessionAlertScreen() {
               <div className="content-stretch flex flex-col gap-[18px] items-start relative shrink-0 w-[205px]" data-node-id="2003:2380">
                 <div className="[word-break:break-word] content-stretch flex flex-col gap-[6px] items-start not-italic relative shrink-0 text-white w-full" data-node-id="2003:2381">
                   <p className="font-['Pretendard:Light'] leading-[26px] relative shrink-0 text-[15px] w-full" data-node-id="2003:2382">
-                    09/29 Tue
+                    {mmddDay()}
                   </p>
                   <div className="font-['Pretendard:SemiBold'] leading-[0] relative shrink-0 text-[20px] w-full" data-node-id="2003:2383">
                     <p className="leading-[30px] mb-0">서연님이 자리를 비운 동안</p>

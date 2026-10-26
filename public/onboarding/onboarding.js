@@ -181,9 +181,9 @@ function scene01(root) {
     const reach = sine(prog(t, 1.85, 2.5)) * (1 - sine(prog(t, 2.95, 3.8)));
     const smile = sine(prog(t, 4.7, 5.25)) * (1 - sine(prog(t, 6.7, 7.2)));
     const hop = bump(prog(t, 4.65, 5.45));
-    const mx = C[0] + wave(t, 7.4) * 12 + reach * 40;
-    const my = 990 + (1 - intro) * 70 + wave(t, 3.8) * 15 + reach * 8 - hop * 22;
-    const mr = wave(t, 5.6, 1) * 1.4 + notice * 3 + reach * 6;
+    const mx = C[0] + wave(t, 7.4) * 4 + reach * 40;
+    const my = 990 + (1 - intro) * 70 + wave(t, 3.8) * 5 + reach * 8 - hop * 22;
+    const mr = wave(t, 5.6, 1) * 0.5 + notice * 1.5 + reach * 3;
     const breath = wave(t, 3.8, 1.2) * .007;
 
     // eyes: glance to the grey card, then softly track it while it orbits

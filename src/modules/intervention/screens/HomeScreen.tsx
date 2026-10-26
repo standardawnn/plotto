@@ -1,3 +1,4 @@
+import { mmddDay } from '../../../today';
 const assetPathPrefix = "/assets/intervention";
 const imgImage3473 = `${assetPathPrefix}/2b675.png`;
 const imgImage3492 = `${assetPathPrefix}/76cb0.png`;
@@ -366,7 +367,7 @@ export default function HomeScreen() {
               <div className="content-stretch flex flex-col gap-[18px] items-start relative shrink-0 w-[205px]" data-node-id="2001:1382">
                 <div className="[word-break:break-word] content-stretch flex flex-col gap-[6px] items-start not-italic relative shrink-0 text-white w-full" data-node-id="2001:1383">
                   <p className="font-['Pretendard:Light'] leading-[26px] relative shrink-0 text-[15px] w-full" data-node-id="2001:1384">
-                    09/29 Tue
+                    {mmddDay()}
                   </p>
                   <div className="font-['Pretendard:SemiBold'] leading-[0] relative shrink-0 text-[20px] w-full" data-node-id="2001:1385">
                     <p className="leading-[30px] mb-0">서연님이 자리를 비운 동안</p>
