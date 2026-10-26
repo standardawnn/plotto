@@ -56,7 +56,7 @@ export default function App() {
         {step >= 5 && step < 9 && <div className="center-character">
           <picture>
             <source media="(prefers-reduced-motion: reduce)" srcSet={`${assets}/character-analysis-still.webp`} />
-            <img src={`${assets}/character-analysis.webp`} alt="태블릿을 보며 의견을 분석하는 플로토 캐릭터" width={105} height={105} />
+            <img src={`${assets}/character-analysis.png`} alt="태블릿을 보며 의견을 분석하는 플로토 캐릭터" width={105} height={105} />
           </picture>
         </div>}
         <div className={`connector connector-one ${step >= 6 ? 'drawn' : ''}`} onTransitionEnd={event => revealRecipient(0, event.propertyName)}><img src={`${assets}/f6fd1.svg`} alt="" /></div>
