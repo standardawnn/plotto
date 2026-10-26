@@ -8,7 +8,7 @@ $('open').onclick=()=>{if(current!=='launcher')return;show('splash');tourReady=f
 addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('tour').contentWindow)return;if(e.data?.type==='plotto:ready'){tourReady=true;enterTour();}if(e.data?.type==='plotto:name'){show('name');}if(e.data?.type==='plotto:launcher')show('launcher');});
 $('name-back').onclick=()=>show('tour');$('nickname').oninput=()=>{$('name-next').disabled=!$('nickname').value.trim();};
 $('name-form').onsubmit=e=>{e.preventDefault();const name=$('nickname').value.trim();if(!name)return;try{localStorage.setItem('plotto-nickname',name);}catch{}document.getElementById("done-name").textContent=name;$('projects-name').textContent=name;show('projects');};
-$('projects-next').onclick=()=>{try{localStorage.setItem('plotto-projects',JSON.stringify([...document.querySelectorAll('.project-choice[aria-pressed="true"]')].map(b=>b.dataset.name)));}catch{}show('done');if(reduced){$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha&record';$('spin-fallback').onload=()=>{const w=$('spin-fallback').contentWindow;w.PlottoSpin.ready.then(()=>w.PlottoSpin.renderAt(3));};}else $('spin').play().catch(()=>{$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha';});};
+$('projects-next').onclick=()=>{try{localStorage.setItem('plotto-projects',JSON.stringify([...document.querySelectorAll('.project-choice[aria-pressed="true"]')].map(b=>b.dataset.name)));}catch{}show('done');if(reduced){$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha&record';$('spin-fallback').onload=()=>{const w=$('spin-fallback').contentWindow;w.PlottoSpin.ready.then(()=>w.PlottoSpin.renderAt(3));};}else { const v=$('spin'); if (v.play) v.play().catch(()=>{$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha';}); }};
 $('start').onclick=()=>location.replace('../mobile.html?flow=briefing');
 
 
@@ -16,3 +16,8 @@ $('start').onclick=()=>location.replace('../mobile.html?flow=briefing');
 const projects=[['마케팅 프로젝트',3,'2026.01.01'],['청년 도움 프로젝트',6,'2025.02.17'],['자원순환프로젝트',11,'2026.05.24'],['아동자립캠프',5,'2026.07.14'],['한국어 교육 봉사',2,'2025.01.01'],['바롬프로젝트',6,'2025.07.06']];
 projects.forEach(([name,count,date],i)=>{const b=document.createElement('button');b.type='button';b.className='project-choice';b.dataset.name=name;b.setAttribute('aria-pressed',String(i<4));const title=document.createElement('strong');title.textContent=name;const detail=document.createElement('span');detail.textContent=`인원: ${count}명 | 시작일: ${date}`;b.append(title,detail);b.onclick=()=>{b.setAttribute('aria-pressed',String(b.getAttribute('aria-pressed')!=='true'));$('projects-next').disabled=!document.querySelector('.project-choice[aria-pressed="true"]');};$('project-list').append(b);});
 $('projects-back').onclick=()=>show('name');
+
+/* iPhone: WebM with transparency shows a black box, so use the transparent animated PNG there */
+if (/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)) {
+  const v=document.getElementById('spin'); const im=document.createElement('img'); im.id='spin'; im.alt=''; im.src='spin.png'; if (v) v.replaceWith(im);
+}

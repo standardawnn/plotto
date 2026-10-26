@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { animate, motion, AnimatePresence } from "motion/react";
 import DocFlow from "./DocFlow";
 import BriefingCharacter from "../../BriefingCharacter";
+const IS_IOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
 const A = "/assets/briefing";
 const imgCharacter = `${A}/546e2.png`;
@@ -579,7 +580,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
                 </button>
               </div>
               <div className="relative h-[125px] w-[109px] shrink-0 overflow-hidden">
-                <video className="home-walk" autoPlay loop muted playsInline preload="auto" aria-label="걸으며 회의 자료를 확인하는 Plotto" src={`${A}/home-walk.webm`} />
+                {IS_IOS ? <img className="home-walk" alt="걸으며 회의 자료를 확인하는 Plotto" src={`${A}/home-walk.png`} /> : <video className="home-walk" autoPlay loop muted playsInline preload="auto" aria-label="걸으며 회의 자료를 확인하는 Plotto" src={`${A}/home-walk.webm`} />}
                 <img alt="Plotto" src={imgCharacter} className="home-walk-still absolute h-[110.04%] left-[-33.65%] max-w-none top-[-7.28%] w-[152.11%]" />
               </div>
             </div>

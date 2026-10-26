@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import DocumentReview from "./DocumentReview";
 import { StatusBarIPhone17Pro } from "../intervention/screens/SessionEnteredScreen";
+const IS_IOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
 const A = "/assets/briefing";
 const imgChevronLeft = `${A}/7531e.svg`;
@@ -88,11 +89,14 @@ function Done({ s, onNext }: { s: number; onNext: () => void }) {
       <div style={{transform:`scale(${s})`,transformOrigin:'top left'}}><StatusBarIPhone17Pro/></div>
       {/* icon + message sit together in the optical centre of the screen */}
       <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ paddingBottom: 40 * s }}>
-        <video aria-label="Plotto 기획안 정리 완료" src="/onboarding/spin.webm" muted playsInline autoPlay={!reduced}
+        {IS_IOS ? <img alt="Plotto 기획안 정리 완료" src="/onboarding/spin.png"
+          onLoad={()=>{setTimeout(()=>setFinished(true), reduced ? 0 : 4300);}}
+          onError={()=>setFinished(true)}
+          style={{width:180*s,height:180*s,objectFit:'contain'}}/> : <video aria-label="Plotto 기획안 정리 완료" src="/onboarding/spin.webm" muted playsInline autoPlay={!reduced}
           onLoadedData={e=>{if(reduced){e.currentTarget.currentTime=4.1;setFinished(true);}}}
           onEnded={()=>setFinished(true)}
           onError={()=>setFinished(true)}
-          style={{width:180*s,height:180*s,objectFit:'contain'}}/>
+          style={{width:180*s,height:180*s,objectFit:'contain'}}/>}
         <p className="text-center font-semibold text-[#111]" style={{ marginTop: -3 * s, fontSize: 22 * s, lineHeight: 1.364, letterSpacing: -0.4268 * s }}>
           기획안 정리가 완료되었어요
         </p>
