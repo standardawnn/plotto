@@ -1,6 +1,6 @@
 const $=id=>document.getElementById(id);const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
 document.body.appendChild($('tour')); ['name','projects','done'].forEach(id=>document.body.appendChild($(id))); /* intro layer: full screen, not inside the scaled phone canvas */
-function fit(){/* fill the real screen: width fits 402 design px, height follows the device */const s=Math.min(innerWidth/402,innerHeight/874);$('canvas').style.height=innerHeight/s+'px';$('canvas').style.transform=`scale(${s})`;$('canvas').style.left=(innerWidth-402*s)/2+'px';}addEventListener('resize',fit);fit();document.body.dataset.page='launcher';
+function fit(){/* fill the real screen: width fits 402 design px, height follows the device */const s=innerWidth<700?innerWidth/402:Math.min(innerWidth/402,innerHeight/874);$('canvas').style.height=innerHeight/s+'px';$('canvas').style.transform=`scale(${s})`;$('canvas').style.left=(innerWidth-402*s)/2+'px';}addEventListener('resize',fit);fit();document.body.dataset.page='launcher';
 let current='launcher',timer,tourReady=false,splashElapsed=false;
 function enterTour(){if(current==='splash'&&tourReady&&splashElapsed){show('tour');$('tour').contentWindow.postMessage({type:'plotto:start'},location.origin);}}
 function show(id){clearTimeout(timer);$(current).getAnimations().forEach(a=>a.cancel());$(current).hidden=true;$(id).getAnimations().forEach(a=>a.cancel());$(id).hidden=false;current=id;document.body.dataset.page=id;if(!reduced)$(id).animate([{opacity:0},{opacity:1}],{duration:380,easing:'cubic-bezier(.22,1,.36,1)'});}
