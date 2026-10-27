@@ -31,5 +31,4 @@
       if (!root || !root.childElementCount) show('앱이 시작되지 않았어요 (timeout)');
     }, 10000);
   });
-  if ('serviceWorker' in navigator) addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
 })();
