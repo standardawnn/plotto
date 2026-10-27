@@ -131,7 +131,7 @@ HEAD_SNIPPET = (
     + '<meta name="apple-mobile-web-app-capable" content="yes"/>'
     + '<meta name="apple-mobile-web-app-status-bar-style" content="default"/>'
     + '<meta name="apple-mobile-web-app-title" content="Plotto"/>'
-    + '<script>if("serviceWorker" in navigator){addEventListener("load",function(){navigator.serviceWorker.register("/sw.js").catch(function(){})})}</script>'
+    + '<script>' + open(os.path.join(ROOT, 'scripts', 'fallback.js'), encoding='utf-8').read() + '</script>'
     + MARKER
 )
 
