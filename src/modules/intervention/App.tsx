@@ -190,7 +190,8 @@ export default function App() {
   }
 
   function send() {
-    if (!text.trim() || typing) return
+    if (typing) { setTyping(false); return }
+    if (!text.trim()) return
     setSentText(text.trim())
     setStage(showResult ? "result" : "sent")
     if (showResult) {
@@ -386,7 +387,7 @@ export default function App() {
             type="submit"
             className="send-button"
             aria-label="보내기"
-            disabled={stage !== "writing" || typing || !text.trim()}
+            disabled={stage !== "writing" || (!typing && !text.trim())}
           >
             <img src={`${assetPathPrefix}/e1ffa.svg`} alt="" />
           </button>
@@ -431,7 +432,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              disabled={typing || !text.trim()}
+              disabled={!typing && !text.trim()}
               onClick={send}
             >
               보내기

@@ -1,9 +1,10 @@
 {
   "name": "Plotto",
   "short_name": "Plotto",
-  "start_url": "/",
+  "id": "/mobile.html",
+  "start_url": "/mobile.html",
   "scope": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f4f7fd",
   "theme_color": "#f4f7fd",
@@ -17,6 +18,12 @@
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

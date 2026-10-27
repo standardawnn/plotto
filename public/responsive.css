@@ -208,3 +208,16 @@ html, body, *, *::before, *::after { scrollbar-width: none !important; }
 html[data-flow="briefing"] .overflow-clip > div[aria-hidden="true"] { border-radius: inherit; overflow: hidden; isolation: isolate; }
 html[data-flow="briefing"] .overflow-clip > div[aria-hidden="true"] > div { border-radius: inherit; }
 
+
+/* 2026-10-26: follow-up messages must sit above the fixed character, not under it */
+html[data-flow="intervention"] .followup-page .result-content { max-height: max(120px, calc(100dvh - 480px)) !important; }
+
+/* 2026-10-26: proposal - reopen the question panel after closing it (in normal flow, under the chat bubbles) */
+html[data-flow="proposal"] .reopen-question { display: block; position: static; align-self: flex-end; margin: 0; height: auto; padding: 12px 20px; border: 0; border-radius: 16px; background: #fff; color: #1d1d1f; font-family: inherit; font-size: 16px; font-weight: 400; line-height: 1.5; letter-spacing: .0912px; text-align: right; white-space: nowrap; cursor: pointer; opacity: 1; visibility: visible; }
+
+/* Proposal: scrollable conversation above the composer, compact recommendation box, left-aligned light-purple reopen bubble */
+html[data-flow="proposal"] .conversation { bottom: calc(120 * var(--v)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding-bottom: 16px; }
+html[data-flow="proposal"] .conversation::-webkit-scrollbar { display: none; }
+html[data-flow="proposal"] .recommendations { height: calc(262 * var(--v)); min-height: 0; }
+html[data-flow="proposal"] .recommendation.second { top: calc(150 * var(--v)); }
+html[data-flow="proposal"] .reopen-question { align-self: flex-start; background: #ece8ff; color: #4b2bb8; font-weight: 600; }

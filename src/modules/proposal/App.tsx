@@ -5,6 +5,8 @@ const asset = (name: string) => `/stage3/assets/${name}`
 export default function App() {
   const [phase, setPhase] = useState<'idle' | 'pull' | 'reveal'>('idle')
   const [message, setMessage] = useState('')
+  const [sentMessages, setSentMessages] = useState<string[]>([])
+  const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
     const pull = window.setTimeout(() => setPhase('pull'), 1100)
@@ -36,17 +38,19 @@ export default function App() {
         <div className="chat-bubbles">
           <p>근데 태훈이가 조사한 사례들이<br />실제로 협업 과정까지 연결해주는 서비스였나</p>
           <p>왜 저걸로 서비스 조사를 해왔지?</p>
+          {sentMessages.map((text, index) => <p key={index}>{text}</p>)}
+          {phase === 'idle' && dismissed && <button className="reopen-question" type="button" onClick={() => { setDismissed(false); setPhase('pull'); window.setTimeout(() => setPhase('reveal'), 1750) }}>의문 다시 보기</button>}
         </div>
       </section>
       <img className="idle-character" src={asset('4e55b.png')} alt="플로토 캐릭터" />
-      <form className="composer" onSubmit={event => { event.preventDefault(); if (message.trim()) setMessage('') }}>
+      <form className="composer" onSubmit={event => { event.preventDefault(); if (message.trim()) { setSentMessages(list => [...list, message.trim()]); setMessage('') } }}>
         <span className="microphone" aria-hidden="true"><img src={asset('d9333.svg')} alt="" /></span>
         <div className="input-wrap"><input aria-label="메시지 입력" placeholder="작업을 이어가요..." value={message} onChange={event => setMessage(event.target.value)} /><button type="submit" aria-label="보내기"><img src={asset('ab9cf.svg')} alt="" /></button></div>
       </form>
       <div className="scrim" aria-hidden="true" />
       <div className="panel-motion">
         <section className="gradient-panel" aria-label="공동세션 제안" aria-hidden={phase !== 'reveal'}>
-          <div className="header-content"><button aria-label="뒤로 가기" type="button"><img src={asset('c75a5.svg')} alt="" /></button><p>AI 서비스 시장 현황 분석</p></div>
+          <div className="header-content"><button aria-label="뒤로 가기" type="button" onClick={() => { setDismissed(true); setPhase('idle') }}><img src={asset('c75a5.svg')} alt="" /></button><p>AI 서비스 시장 현황 분석</p></div>
           <div className="panel-light right"><img src={asset('da14a.png')} alt="" /></div>
           <div className="panel-light bottom"><img src={asset('d130c.png')} alt="" /></div>
           <div className="panel-light left"><img src={asset('da14a.png')} alt="" /></div>
@@ -57,7 +61,7 @@ export default function App() {
         </section>
         <img className="pull-character" src={asset('c40a6.png')} alt="상단 박스를 잡아 끌어내리는 플로토 캐릭터" />
       </div>
-      <button className="close-button" type="button" aria-label="닫기" onClick={() => setPhase('idle')}><img src={asset('7fe7a.svg')} alt="" /></button>
+      <button className="close-button" type="button" aria-label="닫기" onClick={() => { setDismissed(true); setPhase('idle') }}><img src={asset('7fe7a.svg')} alt="" /></button>
     </main>
   )
 }
