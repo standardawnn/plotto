@@ -1,3 +1,4 @@
+import { ErrorBoundary } from './ErrorBoundary';
 import { installCarousels } from './carousel';
 import { installIdentity } from './identity';
 import { createRoot } from 'react-dom/client';
@@ -19,13 +20,17 @@ const apps = { ...import.meta.glob<{ default: ComponentType }>('./modules/*/App.
 const styles = { ...import.meta.glob('./modules/*/index.css'), ...(import.meta.env.DEV ? import.meta.glob('./baseline/*/index.css') : {}) };
 const group = baseline ? 'baseline' : 'modules';
 async function boot() {
-await styles[`./${group}/${flow}/index.css`]();
-const { default: App } = await apps[`./${group}/${flow}/App.tsx`]();
-await import('./mobile.css');
+// Start all three loads together (same order, so stylesheet order is unchanged), then wait for each.
+const cssLoad = styles[`./${group}/${flow}/index.css`]();
+const appLoad = apps[`./${group}/${flow}/App.tsx`]();
+const mobileCss = import('./mobile.css');
+await cssLoad;
+const { default: App } = await appLoad;
+await mobileCss;
 document.documentElement.dataset.flow = flow;
 document.documentElement.dataset.embed = '';
 const chrome = ['project','proposal','booking','classification','session','intervention','feedback'].includes(flow);
-createRoot(document.getElementById('root')!).render(<><App />{chrome && <div className={`integration-status ${['project','proposal','classification','intervention'].includes(flow)?'light':''}`} aria-hidden="true"><span>9:41</span><i/><img src="/assets/intervention/8b917.svg" alt=""/></div>}{chrome && <div className="integration-home-indicator" aria-hidden="true"/>}</>);
+createRoot(document.getElementById('root')!).render(<><ErrorBoundary label={flow}><App /></ErrorBoundary>{chrome && <div className={`integration-status ${['project','proposal','classification','intervention'].includes(flow)?'light':''}`} aria-hidden="true"><span>9:41</span><i/><img src="/assets/intervention/8b917.svg" alt=""/></div>}{chrome && <div className="integration-home-indicator" aria-hidden="true"/>}</>);
 if (window.parent !== window) window.parent.postMessage({ type: 'plotto:route', flow, entry: query.get('entry') || '' }, location.origin);
 }
 installIdentity();

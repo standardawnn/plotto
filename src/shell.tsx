@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './shell.css';
 import { flows } from './journey';
+import { ErrorBoundary } from './ErrorBoundary';
 
 // Full-screen host. The prototype always fills the device it runs on — phone,
 // tablet or desktop — at real CSS pixels; each screen lays itself out for the
@@ -33,4 +34,4 @@ function App() {
   return <iframe className="app-frame" ref={frame} title="Plotto" src={initial} allow="microphone; camera; autoplay" />;
 }
 
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(<ErrorBoundary label="shell"><App /></ErrorBoundary>);

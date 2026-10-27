@@ -28,3 +28,27 @@ body[data-page=done]{background:#f4f7fd}
 #spin,#spin-fallback{left:50%!important;top:26%!important;transform:translateX(-50%);width:min(44vw,240px)!important;height:min(44vw,240px)!important}#done h2,#done p{left:0!important;right:0!important;text-align:center}#done .primary,#done #start{left:24px!important;right:24px!important;width:auto!important;bottom:34px!important}
 .back{width:24px;height:24px;padding:0;display:grid;place-items:center}.back svg{width:24px;height:24px;display:block}.splash-character{transform-origin:50% 100%;animation:peek 1.5s ease-out both,ear-wiggle .9s ease-in-out 1.2s both}@keyframes ear-wiggle{0%,100%{rotate:0deg}20%{rotate:-7deg}45%{rotate:6deg}70%{rotate:-5deg}88%{rotate:3deg}}
 /* the device shows its own status bar: trim the mock status-bar gap */#name,#projects{top:-40px!important;bottom:0!important;height:auto!important}
+/* iPhone swaps the splash <video id="spin"> for <img id="spin"> (launch.js). Give the image the same absolute placement so it stays centred. */
+img#spin{position:absolute!important;display:block;object-fit:contain;max-width:none}
+/* Centre the splash character on the 402px design canvas (its box is 338px wide). */
+.splash-character{left:calc(50% - 169px)!important}
+/* Nickname and other fields: 16px stops iOS from zooming the page on focus. */
+input,textarea{font-size:16px!important}
+/* The splash art sits 51px left inside its box (img left -40.58%). Centre the art in the box. */
+.splash-character img{left:-25.44%!important}
+/* Calmer motion: slower rise and a smaller, slower ear wiggle. */
+@keyframes ear-wiggle{0%,100%{rotate:0deg}35%{rotate:-2.5deg}65%{rotate:1.5deg}}
+.splash-character{animation:peek 2.2s cubic-bezier(.22,.7,.2,1) both,ear-wiggle 1.4s ease-in-out 1.8s both}
+
+/* Splash: head stays still; only the two tails sway (layers from ui/splash.png). */
+.splash-character{animation:peek 1.6s cubic-bezier(.22,.7,.2,1) both}
+.splash-character .splash-tail{will-change:transform;animation:tail-sway 2.6s ease-in-out infinite}
+.splash-character .splash-tail-back{transform-origin:59.81% 19.94%}
+.splash-character .splash-tail-front{transform-origin:77.75% 30.7%;animation-name:tail-sway-front;animation-delay:-.4s}
+@keyframes tail-sway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+@keyframes tail-sway-front{0%,100%{transform:rotate(-3.2deg)}50%{transform:rotate(3.2deg)}}
+@media (prefers-reduced-motion:reduce){.splash-character .splash-tail{animation:none}}
+
+/* Do not crop the tails: the box clipped them once the art was centred. */
+.splash-character{overflow:visible!important}
+.splash-character{left:calc(50% - 147px)!important}

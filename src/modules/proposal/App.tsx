@@ -9,6 +9,7 @@ export default function App() {
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     const pull = window.setTimeout(() => setPhase('pull'), 1100)
     const reveal = window.setTimeout(() => setPhase('reveal'), 2850)
     return () => { window.clearTimeout(pull); window.clearTimeout(reveal) }

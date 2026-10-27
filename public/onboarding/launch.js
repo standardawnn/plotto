@@ -1,9 +1,10 @@
-const $=id=>document.getElementById(id);const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const $=id=>document.getElementById(id);const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
 document.body.appendChild($('tour')); ['name','projects','done'].forEach(id=>document.body.appendChild($(id))); /* intro layer: full screen, not inside the scaled phone canvas */
 function fit(){/* fill the real screen: width fits 402 design px, height follows the device */const s=innerWidth<700?innerWidth/402:Math.min(innerWidth/402,innerHeight/874);$('canvas').style.height=innerHeight/s+'px';$('canvas').style.transform=`scale(${s})`;$('canvas').style.left=(innerWidth-402*s)/2+'px';}addEventListener('resize',fit);fit();document.body.dataset.page='launcher';
 let current='launcher',timer,tourReady=false,splashElapsed=false;
 function enterTour(){if(current==='splash'&&tourReady&&splashElapsed){show('tour');$('tour').contentWindow.postMessage({type:'plotto:start'},location.origin);}}
-function show(id){clearTimeout(timer);$(current).getAnimations().forEach(a=>a.cancel());$(current).hidden=true;$(id).getAnimations().forEach(a=>a.cancel());$(id).hidden=false;current=id;document.body.dataset.page=id;if(!reduced)$(id).animate([{opacity:0},{opacity:1}],{duration:380,easing:'cubic-bezier(.22,1,.36,1)'});}
+function show(id){clearTimeout(timer);$(current).getAnimations().forEach(a=>a.cancel());$(current).hidden=true;$(id).getAnimations().forEach(a=>a.cancel());$(id).hidden=false;current=id;document.body.dataset.page=id;try{sessionStorage.setItem('plotto-launch-page',id);}catch(e){}if(!reduced)$(id).animate([{opacity:0},{opacity:1}],{duration:380,easing:'cubic-bezier(.22,1,.36,1)'});}
 $('open').onclick=()=>{if(current!=='launcher')return;show('splash');tourReady=false;splashElapsed=false;$('tour').src='index.html';timer=setTimeout(()=>{splashElapsed=true;enterTour();},reduced?300:2400);};
 addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('tour').contentWindow)return;if(e.data?.type==='plotto:ready'){tourReady=true;enterTour();}if(e.data?.type==='plotto:name'){show('name');}if(e.data?.type==='plotto:launcher')show('launcher');});
 $('name-back').onclick=()=>show('tour');$('nickname').oninput=()=>{$('name-next').disabled=!$('nickname').value.trim();};
@@ -21,3 +22,15 @@ $('projects-back').onclick=()=>show('name');
 if (/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)) {
   const v=document.getElementById('spin'); const im=document.createElement('img'); im.id='spin'; im.alt=''; im.src='spin.png'; if (v) v.replaceWith(im);
 }
+/* Resume on the name or project step after a reload instead of restarting the splash. */
+try{const savedPage=sessionStorage.getItem('plotto-launch-page');if(savedPage==='name'||savedPage==='projects')show(savedPage);}catch(e){}
+
+/* Warm the browser cache for the home screen while the visitor is still on onboarding (no decoding, so no extra memory). */
+(function(){
+  var ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  var files=['/assets/mobile-FASNG4QK.js','/assets/c-A7G4KRAT.js','/assets/c-23GKFKRE.js','/assets/c-7VYKZJCW.js','/assets/briefing-BMr55n-q.css','/assets/mobile-FEwyttW3.css','/assets/c-2GCOA6CK.js','/assets/c-ZLHLAVS7.js','/assets/c-WEHOAYWQ.js','/assets/c-TEWZAEPA.js','/assets/jsx-runtime-B7w6RmXF.js','/responsive.css',ios?'/assets/briefing/home-walk.png':'/assets/briefing/home-walk.webm'];
+  var i=0;
+  function next(){ if(i>=files.length) return; var f=files[i++]; fetch(f,{cache:'force-cache'}).then(function(r){return r.arrayBuffer();}).catch(function(){}).then(next); }
+  function start(){ setTimeout(function(){ next(); next(); },1200); }
+  if(document.readyState==='complete') start(); else addEventListener('load',start);
+})();

@@ -96,8 +96,6 @@ export default function App() {
 
   useEffect(() => {
     if (stage !== "sent") return
-    // Short screens: keep the analysing character in view (the page scrolls there).
-    requestAnimationFrame(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" }))
     const timer = window.setTimeout(() => {
       setShowResult(true)
       setStage("result")

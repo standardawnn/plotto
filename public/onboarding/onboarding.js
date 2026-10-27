@@ -501,6 +501,7 @@ function nav(to, T) {
   state.dir = to > state.cur ? 1 : -1;
   state.dotFrom = state.cur; state.lastDotT = T;
   state.cur = to;
+  try { sessionStorage.setItem('plotto-tour-step', String(to)); } catch (e) { /* storage unavailable */ }
   scenes[to].enter = T + DELAY;
 }
 
@@ -569,7 +570,16 @@ function renderAt(T) {
 const RECORD = /[?&]record\b/.test(location.search);
 let clock0 = null;
 const now = () => (performance.now() - clock0) / 1000;
-addEventListener('message', e => {if(e.origin===location.origin && e.source===parent && e.data?.type==='plotto:start'){clock0=performance.now();renderAt(0);}});
+addEventListener('message', e => {if(e.origin===location.origin && e.source===parent && e.data?.type==='plotto:start'){
+  /* Resume the scene the visitor was on if the page was reloaded (for example after a memory reset). */
+  let saved = 0;
+  try { saved = Number(sessionStorage.getItem('plotto-tour-step')) || 0; } catch (err) { saved = 0; }
+  if (saved > 0 && saved < scenes.length) {
+    state.cur = saved; state.prev = null; state.dir = 1;
+    clock0 = performance.now() - (scenes[saved].enter + IN) * 1000;
+    renderAt(now());
+  } else { clock0 = performance.now(); renderAt(0); }
+}});
 function next() { const T = now(); if(clock0 === null || T < scenes[state.cur].enter + IN)return; state.pressAt = T; if (state.cur < scenes.length - 1) nav(state.cur + 1, T); else finish(); }
 function finish() { parent.postMessage({type:'plotto:name'},location.origin); }
 cta.addEventListener('click', next);

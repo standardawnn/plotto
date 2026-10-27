@@ -9,7 +9,8 @@
   function save() {
     try { sessionStorage.setItem(key, String(Math.max(0, Math.round(window.scrollY)))); } catch (e) { /* storage unavailable */ }
   }
-  var saved = read();
+  // The proposal screen always starts at the top so its question panel can drop from above.
+  var saved = params.get('flow') === 'proposal' ? null : read();
   var interrupted = false;
   ['wheel', 'touchstart', 'mousedown', 'keydown'].forEach(function (type) {
     window.addEventListener(type, function () { interrupted = true; }, { passive: true, once: true });
