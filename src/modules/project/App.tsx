@@ -2,6 +2,8 @@ import { go } from '../../journey';
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent } from 'react'
 import { dayDifference, getScheduleDates, projectToday, shiftDate } from './scheduleDates'
+import ProjectPicker from './ProjectPicker'
+import { useProjects } from './useProjects'
 
 const assets = '/stage1/assets'
 const portraits: Record<string, string> = {
@@ -31,7 +33,15 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(projectToday)
   const [notice, setNotice] = useState('')
   const [showFiles, setShowFiles] = useState(false)
+  const projects = useProjects()
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const projectLabel = useRef<HTMLButtonElement>(null)
   const dates = getScheduleDates(selectedDate)
+
+  function closePicker() {
+    setPickerOpen(false)
+    projectLabel.current?.focus()
+  }
 
   useLayoutEffect(() => {
     schedule.current?.scrollTo({ left: 0 })
@@ -55,7 +65,17 @@ export default function App() {
   return (
     <main className="app" lang="ko">
       <header className="hero">
-        <div className="project-label">AI분석프로젝트<img src={`${assets}/57b8b.svg`} alt="" /></div>
+        <button
+          type="button"
+          ref={projectLabel}
+          className="project-label"
+          aria-haspopup="dialog"
+          aria-expanded={pickerOpen}
+          aria-label={`현재 프로젝트 ${projects.current?.name ?? 'AI분석프로젝트'}, 프로젝트 목록 열기`}
+          onClick={() => setPickerOpen(true)}
+        >
+          <span className="project-label-name">{projects.current?.name ?? 'AI분석프로젝트'}</span><img src={`${assets}/57b8b.svg`} alt="" />
+        </button>
         <h1>AI 서비스 시장의<br />현황 분석을 이어서 해요.</h1>
         <p className="last-active"><img src={`${assets}/de2c6.svg`} alt="" />3시간 전 중단</p>
         <div className="hero-art" aria-hidden="true">
@@ -184,6 +204,16 @@ export default function App() {
           <img src="/brand/nav-profile.svg" alt="" />
         </button>
       </nav>
+      {pickerOpen && (
+        <ProjectPicker
+          store={projects}
+          onClose={closePicker}
+          onOpened={(project, created) => {
+            closePicker()
+            setNotice(`'${project.name}' 프로젝트를 ${created ? '만들고 열었어요' : '열었어요'}.`)
+          }}
+        />
+      )}
       {notice && <div className="toast" role="status" onClick={() => setNotice('')}>{notice}<button aria-label="알림 닫기" onClick={() => setNotice('')}><img src="/brand/icon-close.svg" width="24" height="24" alt="" /></button></div>}
       {showFiles && <div className="modal-backdrop" onClick={() => setShowFiles(false)}>
         <section className="file-dialog" role="dialog" aria-modal="true" aria-labelledby="files-title" onClick={(event) => event.stopPropagation()}>
