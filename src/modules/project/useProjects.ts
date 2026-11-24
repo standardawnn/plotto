@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { projectStore, type Project, type ProjectInfo, type StoreError } from '../../projectStore'
+import { createHomeProjectData, readProjectHome, type ProjectHome } from './projectHomeData'
 
 /** Outcome of a picker action: the opened project, or a message for the user. */
 export type ActionResult = { ok: true; project: Project } | { ok: false; message: string }
@@ -19,16 +20,27 @@ export function storeErrorMessage(error: StoreError): string {
 }
 
 /**
- * Project list and current project for the project home, backed by projectStore.
+ * Home data to show for `project`: its stored `home` data, or the default template when
+ * there is no project, no data ({}), or the data is not valid. Read-only: never writes back.
+ */
+function homeOf(project: Project | null): ProjectHome {
+  return readProjectHome(project ? projectStore.getProjectState(project.id) : null)
+}
+
+/**
+ * Project list, current project and its home data for the project home, backed by projectStore.
  * React state mirrors the store; it is re-read from the store after every successful write.
  */
 export function useProjects() {
   const [projects, setProjects] = useState<Project[]>(() => projectStore.listProjects())
   const [current, setCurrent] = useState<Project | null>(() => projectStore.getCurrentProject())
+  const [home, setHome] = useState<ProjectHome>(() => homeOf(projectStore.getCurrentProject()))
 
   function sync() {
+    const next = projectStore.getCurrentProject()
     setProjects(projectStore.listProjects())
-    setCurrent(projectStore.getCurrentProject())
+    setCurrent(next)
+    setHome(homeOf(next))
   }
 
   /** Makes `id` the current project. State changes only when the store accepted it. */
@@ -53,9 +65,11 @@ export function useProjects() {
   return {
     projects,
     current,
+    home,
     samples: projectStore.listSampleProjects(),
     select,
-    createFromSample: (sampleId: string) => openCreated(projectStore.createProjectFromSample(sampleId)),
+    // Sample projects start with their own copy of the default home data (stored as the initial snapshot).
+    createFromSample: (sampleId: string) => openCreated(projectStore.createProjectFromSample(sampleId, createHomeProjectData())),
     create: (info: ProjectInfo) => openCreated(projectStore.createProject(info)),
   }
 }
