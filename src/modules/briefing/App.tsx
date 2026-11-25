@@ -3,10 +3,10 @@ import { korean, mmdd, mmddCompact, mmddDay } from '../../today';
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, AnimatePresence } from "motion/react";
 import DocFlow from "./DocFlow";
-import { DesignFeedbackSheet, DesignProgressSheet, PlanEditor, PlanSheet, ReferenceSheet, TaskProgressSheet, Toast, useToast } from "./HomeSheets";
-import { PROJECT_CHIPS, TASKS, DEADLINES, barColor, type HomeTask } from "./homeData";
+import { DeadlineTaskSheet, DesignFeedbackSheet, DesignProgressSheet, PlanEditor, PlanSheet, ReferenceSheet, TaskProgressSheet, Toast, useToast } from "./HomeSheets";
+import { PROJECT_CHIPS, TASKS, DEADLINES, barColor, type DeadlineSheet, type HomeTask } from "./homeData";
 // 홈 카드 → 팝업 연결. 전용 팝업이 있는 작업은 아래 키로, 나머지 진행 카드는 TaskProgressSheet로 연다.
-type SheetKey = "plan" | "ref" | "feedback" | "design";
+type SheetKey = DeadlineSheet | "ref" | "design";
 const TASK_SHEET: Record<string, SheetKey> = { "mk-ref": "ref", "mk-design": "design" };
 import BriefingCharacter from "../../BriefingCharacter";
 const IS_IOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
@@ -544,7 +544,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
             </div>
             <div className="home-deadline-row flex gap-[13px] mt-3 px-5 overflow-x-auto snap-x snap-mandatory scroll-px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {DEADLINES.map((d) => {
-                const open = () => ("sheet" in d.open ? setSheet(d.open.sheet) : openTask(d.open.task));
+                const open = () => setSheet(d.sheet);
                 return (
                   <div key={d.title} {...tapProps(open, `${d.title} 열기`)}
                     className="snap-start shrink-0 w-full max-w-[480px] flex items-start justify-between gap-3 bg-white px-5 pt-[18px] pb-4 rounded-[20px] border-[1.5px] border-solid border-[#bebfff] cursor-pointer active:scale-[.98] transition-transform">
@@ -618,6 +618,8 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
         {sheet === "ref" && <ReferenceSheet key="ref" onClose={() => setSheet(null)} onToast={showToast} />}
         {sheet === "feedback" && <DesignFeedbackSheet key="feedback" onClose={() => setSheet(null)} onToast={showToast} />}
         {sheet === "design" && <DesignProgressSheet key="design" onClose={() => setSheet(null)} onToast={showToast} />}
+        {(sheet === "refcheck" || sheet === "guicheck") && <DeadlineTaskSheet key={sheet} kind={sheet} onClose={() => setSheet(null)} onToast={showToast}
+          onProgress={(id) => { setSheet(null); openTask(id); }} />}
         {taskSheet && <TaskProgressSheet key={taskSheet.id} task={taskSheet} onClose={() => setTaskSheet(null)} onToast={showToast} />}
       </AnimatePresence>
       <AnimatePresence>

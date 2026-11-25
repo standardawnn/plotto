@@ -199,6 +199,44 @@ const DESIGN_FEEDBACK_TASK: TaskData = {
     { ...TAEHUN, role: "자료조사", title: "참고한 디자인 사례를 함께 확인할 수 있도록" },
   ],
 };
+// 레퍼런스 정리 (자원순환프로젝트, D-3) · GUI 제작 (청년 도움 프로젝트, D-5). 데모용 데이터.
+const DEADLINE_TASKS: Record<"refcheck" | "guicheck", TaskData & { progressId: string }> = {
+  refcheck: {
+    progressId: "rc-ref", project: "자원순환프로젝트", due: "D-3", title: "레퍼런스 정리", label: "확인 요청",
+    desc: "Plotto가 모은 캠페인 사례 중 확인이 필요한 부분을 정리했어요",
+    items: [
+      { title: "사례 범위", who: "태훈", time: "2시간 전", emphasis: "해외 사례까지 넣을지", comment: " 정해야 해.", proposal: "국내 지자체 캠페인 8건을 중심으로 두고, 참고용 해외 사례 2건만 따로 묶어요." },
+      { title: "정리 기준", who: "유진", time: "어제", emphasis: "사례마다 비교 기준이 달라서", comment: " 한눈에 안 들어와.", proposal: "메시지·홍보 채널·참여 방식 세 가지 기준으로 표를 맞춰 정리해요." },
+      { title: "활용 방향", who: "태훈", time: "어제", emphasis: "포스터 시안에 바로 쓸 수 있게", comment: " 정리해 주면 좋겠어.", proposal: "사례마다 포스터에 참고할 문구와 이미지 포인트를 한 줄씩 덧붙여요." },
+    ],
+    sources: [{ name: "자원순환 캠페인 사례 모음", kind: "pdf" }, { name: "10.20 회의록", kind: "doc" }],
+    mates: [
+      { ...YUJIN, role: "PPT 제작", title: "발표 자료에 사례를 넣을 수 있도록" },
+      { ...TAEHUN, role: "자료조사", title: "추가 사례 조사 범위를 맞출 수 있도록" },
+    ],
+  },
+  guicheck: {
+    progressId: "yh-gui", project: "청년 도움 프로젝트", due: "D-5", title: "GUI 제작", label: "확인 요청",
+    desc: "프론트엔드에 전달하기 전에 확인이 필요한 화면을 정리했어요",
+    items: [
+      { title: "메인 화면", who: "유진", time: "3시간 전", emphasis: "주요 버튼 위치가", comment: " 화면마다 조금씩 달라.", proposal: "주요 버튼은 모든 화면에서 하단 고정 위치로 통일해요." },
+      { title: "상세 화면", who: "태훈", time: "어제", emphasis: "정보가 너무 많아서", comment: " 스크롤이 길어.", proposal: "핵심 정보만 먼저 보여 주고, 나머지는 펼쳐 보기로 접어 둬요." },
+      { title: "전달 파일", who: "유진", time: "어제", emphasis: "개발자가 바로 쓸 수 있게", comment: " 간격이랑 색 값을 적어 줘.", proposal: "화면별 간격·색상·폰트 값을 정리한 가이드 파일을 함께 전달해요." },
+    ],
+    sources: [{ name: "GUI 시안 v3", kind: "pdf" }, { name: "화면 구조도", kind: "doc" }],
+    mates: [
+      { ...YUJIN, role: "PPT 제작", title: "발표 자료에 최신 화면을 넣을 수 있도록" },
+      { ...TAEHUN, role: "자료조사", title: "참고한 UI 사례를 함께 확인할 수 있도록" },
+    ],
+  },
+};
+export function DeadlineTaskSheet({ kind, onClose, onToast, onProgress }: { kind: "refcheck" | "guicheck"; onClose: () => void; onToast: (t: string) => void; onProgress: (taskId: string) => void }) {
+  const data = DEADLINE_TASKS[kind];
+  return <TaskSheet data={data} onClose={onClose} onToast={onToast}
+    secondary={["진행 상황 보기", () => onProgress(data.progressId)]}
+    primary={["확인 완료", () => { onClose(); onToast(`${data.title} 확인을 완료했어요`); }]} />;
+}
+
 export function DesignFeedbackSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
   return <TaskSheet data={DESIGN_FEEDBACK_TASK} onClose={onClose} onToast={onToast}
     secondary={["시안 파일 보기", () => onToast("'디자인 시안 v2' 원본 파일은 아직 연결되지 않았어요")]}

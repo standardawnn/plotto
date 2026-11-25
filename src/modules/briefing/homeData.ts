@@ -45,12 +45,14 @@ export const TASKS: HomeTask[] = [
     steps: [["안내 항목 정리", "일정·준비물·연락처 등 안내할 항목을 모으고 있어요"], ["안내문 디자인", "보호자용 안내문으로 정리해요"], ["보호자에게 발송", "완성되면 보호자에게 보내요"]] },
 ];
 
-export type Deadline = { title: string; project: string; due: string; hot?: boolean; open: { sheet: "plan" | "feedback" } | { task: string } };
+// 마감 임박 작업은 모두 같은 카드형 팝업(TaskSheet)으로 연다.
+export type DeadlineSheet = "plan" | "feedback" | "refcheck" | "guicheck";
+export type Deadline = { title: string; project: string; due: string; hot?: boolean; sheet: DeadlineSheet };
 export const DEADLINES: Deadline[] = [
-  { title: "기획안 수정하기", project: "마케팅 공모전", due: "D-DAY", hot: true, open: { sheet: "plan" } },
-  { title: "디자인 피드백", project: "청년 참여 프로젝트", due: "D-1", open: { sheet: "feedback" } },
-  { title: "레퍼런스 정리", project: "자원순환프로젝트", due: "D-3", open: { task: "rc-ref" } },
-  { title: "GUI 제작", project: "청년 도움 프로젝트", due: "D-5", open: { task: "yh-gui" } },
+  { title: "기획안 수정하기", project: "마케팅 공모전", due: "D-DAY", hot: true, sheet: "plan" },
+  { title: "디자인 피드백", project: "청년 참여 프로젝트", due: "D-1", sheet: "feedback" },
+  { title: "레퍼런스 정리", project: "자원순환프로젝트", due: "D-3", sheet: "refcheck" },
+  { title: "GUI 제작", project: "청년 도움 프로젝트", due: "D-5", sheet: "guicheck" },
 ];
 
 /** 진행도 바 색: 높을수록 진하게 (시안: 100% #3524dd, 60% #6c63ff) */
