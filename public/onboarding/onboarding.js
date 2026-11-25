@@ -489,6 +489,7 @@ const copies = [...document.querySelectorAll('.slide-copy')];
 const dotEls = [...document.querySelectorAll('#dots button')];
 const cta = document.getElementById('cta');
 const lblNext = cta.querySelector('[data-l=next]'), lblStart = cta.querySelector('[data-l=start]');
+const skipForward = document.getElementById('skip-forward');
 
 const DELAY = .28, OUT = .24, IN = .42;
 const state = { cur: 0, prev: null, dir: 1, pressAt: -9, lastDotT: 0, dotFrom: 0 };
@@ -562,6 +563,9 @@ function renderAt(T) {
   const last = cur === scenes.length - 1;
   const lk = last ? eio(prog(T - scenes[cur].enter + .1, 0, .4)) : (state.prev && state.prev.idx === scenes.length - 1 ? 1 - eio(prog(T - state.prev.at, 0, .3)) : 0);
   lblNext.style.opacity = (1 - lk).toFixed(3); lblStart.style.opacity = lk.toFixed(3);
+  // 오른쪽 위 버튼: 마지막 장에서는 '건너뛰기' 대신 '시작하기' (누르면 똑같이 다음 단계로 넘어감)
+  const skipLabel = last ? '시작하기' : '건너뛰기';
+  if (skipForward.textContent !== skipLabel) skipForward.textContent = skipLabel;
   const p = bump(prog(T - state.pressAt, 0, .32));
   cta.style.transform = p > 0 ? `scale(${(1 - .035 * p).toFixed(4)})` : '';
 }
