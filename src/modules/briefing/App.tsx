@@ -3,7 +3,11 @@ import { korean, mmdd, mmddCompact, mmddDay } from '../../today';
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, AnimatePresence } from "motion/react";
 import DocFlow from "./DocFlow";
-import { PlanEditor, PlanSheet, ReferenceSheet, Toast, useToast } from "./HomeSheets";
+import { DesignFeedbackSheet, DesignProgressSheet, PlanEditor, PlanSheet, ReferenceSheet, Toast, useToast } from "./HomeSheets";
+// 홈 카드 → 팝업 연결 (진행 카드 제목 / 마감 작업 제목 기준)
+type SheetKey = "plan" | "ref" | "feedback" | "design";
+const PROGRESS_SHEET: Record<string, SheetKey> = { "레퍼런스 정리": "ref", "디자인 시안 수정": "design" };
+const DEADLINE_SHEET: Record<string, SheetKey> = { "기획안 수정하기": "plan", "디자인 피드백": "feedback" };
 import BriefingCharacter from "../../BriefingCharacter";
 const IS_IOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
@@ -548,7 +552,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
  const visibleTasks=PROGRESS.filter(p=>p.project===PROJECT_CHIPS[selectedProject]);
  const pickProject=(i:number)=>{setSelectedProject(i);cardRow.current?.scrollTo({left:0,behavior:"smooth"});};
  // 홈 팝업: 기획안 수정하기 / 레퍼런스 정리. 편집 화면과 수정 파일 보기는 기획안 팝업 위에 쌓인다.
- const [sheet,setSheet]=useState<null|"plan"|"ref">(null);
+ const [sheet,setSheet]=useState<null|SheetKey>(null);
  const [editing,setEditing]=useState(false);
  const [fileOpen,setFileOpen]=useState(false);
  const [toast,showToast]=useToast();
@@ -615,8 +619,8 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
             </div>
             <div ref={cardRow} className="home-task-row flex gap-4 mt-5 pl-[23.6px] pr-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {visibleTasks.map((p, i) => (
-                <div key={`${selectedProject}-${p.title}`} className={`home-task relative shrink-0 h-[210.6px] w-[168.3px] ${p.title === "레퍼런스 정리" ? "cursor-pointer active:scale-[.97] transition-transform" : ""}`} style={{ animationDelay: `${i * 60}ms` }}
-                  {...(p.title === "레퍼런스 정리" ? tapProps(() => setSheet("ref"), "레퍼런스 정리 진행 상황 보기") : {})}>
+                <div key={`${selectedProject}-${p.title}`} className={`home-task relative shrink-0 h-[210.6px] w-[168.3px] ${PROGRESS_SHEET[p.title] ? "cursor-pointer active:scale-[.97] transition-transform" : ""}`} style={{ animationDelay: `${i * 60}ms` }}
+                  {...(PROGRESS_SHEET[p.title] ? tapProps(() => setSheet(PROGRESS_SHEET[p.title]), `${p.title} 진행 상황 보기`) : {})}>
                   <div className="absolute bg-white h-[158px] left-0 rounded-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.2)] top-[34px] w-[168px]" />
                   <div className="absolute bg-[#1c1a3c] h-[35.1px] left-0 rounded-bl-[20.7px] rounded-br-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.15)] top-[157px] w-[168.3px]" />
                   <p className="absolute left-1/2 -translate-x-1/2 top-[97px] font-semibold text-[16.2px] leading-[1.445] text-black whitespace-nowrap">{p.title}</p>
@@ -647,8 +651,8 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
             </div>
             <div className="flex flex-col gap-[10px] px-5 py-2">
               {DEADLINES.map((d) => (
-                <div key={d.title} className={`relative flex flex-wrap items-start justify-between px-[14px] py-4 rounded-[20px] border-[1.5px] border-solid border-[#bebfff] overflow-clip ${d.title === "기획안 수정하기" ? "cursor-pointer active:scale-[.98] transition-transform" : ""}`}
-                  {...(d.title === "기획안 수정하기" ? tapProps(() => setSheet("plan"), "기획안 수정하기 열기") : {})}>
+                <div key={d.title} className={`relative flex flex-wrap items-start justify-between px-[14px] py-4 rounded-[20px] border-[1.5px] border-solid border-[#bebfff] overflow-clip ${DEADLINE_SHEET[d.title] ? "cursor-pointer active:scale-[.98] transition-transform" : ""}`}
+                  {...(DEADLINE_SHEET[d.title] ? tapProps(() => setSheet(DEADLINE_SHEET[d.title]), `${d.title} 열기`) : {})}>
                   <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[rgba(222,219,255,0.5)] to-[rgba(239,195,255,0.5)] mix-blend-overlay pointer-events-none" />
                   <div className="relative flex flex-col gap-2 font-semibold">
                     <p className="text-[15px] leading-[1.467] tracking-[0.144px] text-[#070055]">{d.title}</p>
@@ -679,6 +683,8 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
       <AnimatePresence>
         {sheet === "plan" && <PlanSheet key="plan" onClose={() => setSheet(null)} onEdit={() => setEditing(true)} onViewFile={() => setFileOpen(true)} onToast={showToast} />}
         {sheet === "ref" && <ReferenceSheet key="ref" onClose={() => setSheet(null)} onToast={showToast} />}
+        {sheet === "feedback" && <DesignFeedbackSheet key="feedback" onClose={() => setSheet(null)} onToast={showToast} />}
+        {sheet === "design" && <DesignProgressSheet key="design" onClose={() => setSheet(null)} onToast={showToast} />}
       </AnimatePresence>
       <AnimatePresence>
         {editing && <PlanEditor key="editor" onBack={() => setEditing(false)} onSaved={() => { setEditing(false); showToast("기획안을 저장했어요"); }} />}

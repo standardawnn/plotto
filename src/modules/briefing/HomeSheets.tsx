@@ -121,39 +121,46 @@ function SourceIcon({ kind }: { kind: string }) {
   return kind === "pdf" ? <span className="revision-file-icon"><img src={`${R}pdf.svg`} alt="" /></span> : <DocIcon />;
 }
 
-export function PlanSheet({ onClose, onEdit, onViewFile, onToast }: { onClose: () => void; onEdit: () => void; onViewFile: () => void; onToast: (t: string) => void }) {
+/** 마감 임박 작업 팝업(카드형). 기획안 수정하기 · 디자인 피드백이 같은 틀을 쓴다. */
+type TaskItem = { title: string; who: string; time: string; emphasis: string; comment: string; proposal: string };
+type TaskData = {
+  project: string; due: string; title: string; desc: string; label: string;
+  items: TaskItem[]; sources: { name: string; kind: string }[];
+  mates: { name: string; role: string; title: string; img: string; crop: string }[];
+};
+function TaskSheet({ data, onClose, onToast, secondary, primary }: { data: TaskData; onClose: () => void; onToast: (t: string) => void; secondary: [string, () => void]; primary: [string, () => void] }) {
   return (
-    <BottomSheet title="기획안 수정하기" legacy onClose={onClose}
+    <BottomSheet title={data.title} legacy onClose={onClose}
       head={<>
-        <div className="hs-meta"><span>마케팅 공모전</span><span>·</span><span className="hot">D-DAY</span></div>
-        <h2 className="hs-title">기획안 수정하기</h2>
-        <p className="hs-desc">회의 내용을 바탕으로 Plotto가 {PLAN_TITLE}의 수정할 부분을 정리했어요</p>
+        <div className="hs-meta"><span>{data.project}</span><span>·</span><span className={data.due === "D-DAY" ? "hot" : ""}>{data.due}</span></div>
+        <h2 className="hs-title">{data.title}</h2>
+        <p className="hs-desc">{data.desc}</p>
       </>}
       footer={<div className="hs-foot">
-        <button type="button" className="hs-btn ghost" onClick={onViewFile}>수정 파일 보기</button>
-        <button type="button" className="hs-btn primary" onClick={onEdit}>직접 수정</button>
+        <button type="button" className="hs-btn ghost" onClick={secondary[1]}>{secondary[0]}</button>
+        <button type="button" className="hs-btn primary" onClick={primary[1]}>{primary[0]}</button>
       </div>}>
-      <div className="hs-sec"><img src={`${R}sparkle.svg`} alt="" /><span>수정 제안 <b>{feedback.length}</b>건</span></div>
+      <div className="hs-sec"><img src={`${R}sparkle.svg`} alt="" /><span>{data.label} <b>{data.items.length}</b>건</span></div>
       <div className="hs-sugg">
-        {feedback.map((f, i) => (
-          <div key={f.heading} className="hs-card">
-            <div className="hs-card-top"><span className="hs-num">{i + 1}</span><h3>{f.heading.replace(/^\d+\.\s*/, "")}</h3><span>{f.name} · {f.time}</span></div>
+        {data.items.map((f, i) => (
+          <div key={f.title} className="hs-card">
+            <div className="hs-card-top"><span className="hs-num">{i + 1}</span><h3>{f.title}</h3><span>{f.who} · {f.time}</span></div>
             <p className="hs-comment"><span>{f.emphasis}</span>{f.comment}</p>
-            <p className="hs-proposal">{f.suggestion}</p>
+            <p className="hs-proposal">{f.proposal}</p>
           </div>
         ))}
       </div>
       <div className="hs-sec">참고한 자료</div>
       <div className="hs-chips">
-        {SOURCES.map(s => (
+        {data.sources.map(s => (
           <button type="button" key={s.name} className="hs-chip" onClick={() => onToast(`'${s.name}' 원본 파일은 아직 연결되지 않았어요`)}>
             <SourceIcon kind={s.kind} />{s.name}
           </button>
         ))}
       </div>
-      <div className="hs-sec">공유 필요 팀원 <b>{MATES.length}</b></div>
+      <div className="hs-sec">공유 필요 팀원 <b>{data.mates.length}</b></div>
       <div className="hs-mates">
-        {MATES.map(m => (
+        {data.mates.map(m => (
           <div key={m.name} className="hs-mate">
             <span className="hs-ava"><img alt="" src={m.img} className={m.crop} /></span>
             <div className="hs-mate-txt"><b>{m.name}<small>{m.role}</small></b><p>{m.title}</p></div>
@@ -162,6 +169,39 @@ export function PlanSheet({ onClose, onEdit, onViewFile, onToast }: { onClose: (
       </div>
     </BottomSheet>
   );
+}
+
+const PLAN_TASK: TaskData = {
+  project: "마케팅 공모전", due: "D-DAY", title: "기획안 수정하기", label: "수정 제안",
+  desc: `회의 내용을 바탕으로 Plotto가 ${PLAN_TITLE}의 수정할 부분을 정리했어요`,
+  items: feedback.map(f => ({ title: f.heading.replace(/^\d+\.\s*/, ""), who: f.name, time: f.time, emphasis: f.emphasis, comment: f.comment, proposal: f.suggestion })),
+  sources: SOURCES, mates: MATES.map(m => ({ ...m })),
+};
+
+export function PlanSheet({ onClose, onEdit, onViewFile, onToast }: { onClose: () => void; onEdit: () => void; onViewFile: () => void; onToast: (t: string) => void }) {
+  return <TaskSheet data={PLAN_TASK} onClose={onClose} onToast={onToast} secondary={["수정 파일 보기", onViewFile]} primary={["직접 수정", onEdit]} />;
+}
+
+// 디자인 피드백 (청년 참여 프로젝트). 데모용 데이터: 팀원 의견 → Plotto 정리안.
+const [YUJIN, TAEHUN] = MATES;
+const DESIGN_FEEDBACK_TASK: TaskData = {
+  project: "청년 참여 프로젝트", due: "D-1", title: "디자인 피드백", label: "피드백",
+  desc: "팀원들이 디자인 시안에 남긴 의견을 Plotto가 정리했어요",
+  items: [
+    { title: "메인 컬러", who: "유진", time: "어제", emphasis: "버튼 색이 배경과 비슷해서", comment: " 잘 안 보여.", proposal: "주요 버튼은 브랜드 블루(#536FFA)로 통일하고, 배경과 충분히 대비되도록 바꿔요." },
+    { title: "타이포그래피", who: "태훈", time: "어제", emphasis: "제목과 본문 크기 차이가 작아서", comment: " 위계가 잘 안 느껴져.", proposal: "제목은 22px 굵게, 본문은 15px로 정리해 정보의 순서가 한눈에 보이게 해요." },
+    { title: "아이콘", who: "유진", time: "5시간 전", emphasis: "화면마다 아이콘 스타일이 달라서", comment: " 통일하면 좋겠어.", proposal: "선 두께 1.8px의 라운드 라인 아이콘으로 모든 화면의 아이콘을 맞춰요." },
+  ],
+  sources: [{ name: "디자인 시안 v2", kind: "pdf" }, { name: "피드백 회의록", kind: "doc" }],
+  mates: [
+    { ...YUJIN, role: "PPT 제작", title: "수정된 시안을 발표 자료에 반영할 수 있도록" },
+    { ...TAEHUN, role: "자료조사", title: "참고한 디자인 사례를 함께 확인할 수 있도록" },
+  ],
+};
+export function DesignFeedbackSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
+  return <TaskSheet data={DESIGN_FEEDBACK_TASK} onClose={onClose} onToast={onToast}
+    secondary={["시안 파일 보기", () => onToast("'디자인 시안 v2' 원본 파일은 아직 연결되지 않았어요")]}
+    primary={["확인 완료", () => { onClose(); onToast("디자인 피드백을 확인했어요"); }]} />;
 }
 
 /* ---------------- 직접 수정: 10.11 1차 기획안 편집 ---------------- */
@@ -229,44 +269,68 @@ export function PlanEditor({ onBack, onSaved }: { onBack: () => void; onSaved: (
 
 /* ---------------- 2. 레퍼런스 정리 진행 상황 팝업 ---------------- */
 
-const REF_PDF = "공모전 수상작 레퍼런스 정리_plotto.pdf";
+/** 진행 중인 작업 팝업. 레퍼런스 정리 · 디자인 시안 수정이 같은 틀을 쓴다.
+    done = 완료(파란 체크), wait = 대기 중(모래시계), active = 진행 중, todo = 예정. */
+type Step = { status: "done" | "wait" | "active" | "todo"; title: string; desc: string; file?: string };
+type ProgressData = { project: string; title: string; pct: number; label: string; message: string; char: string; charAlt: string; steps: Step[] };
+const BADGE: Record<Step["status"], string> = { done: "", wait: "대기 중", active: "진행 중", todo: "예정" };
 
-export function ReferenceSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
+function ProgressSheet({ data, onClose, onToast }: { data: ProgressData; onClose: () => void; onToast: (t: string) => void }) {
   return (
-    <BottomSheet title="레퍼런스 정리" sub="마케팅 공모전" onClose={onClose} tight>
+    <BottomSheet title={data.title} sub={data.project} onClose={onClose} tight>
       <div className="hs-hero">
-        <span className="hs-ring"><img src="/extra/p3.png" alt="돋보기로 자료를 살펴보는 Plotto" /></span>
+        <span className="hs-ring" style={{ "--p": `${data.pct}%` } as React.CSSProperties} data-full={data.pct >= 100 || undefined}
+          role="progressbar" aria-label={data.label} aria-valuenow={data.pct} aria-valuemin={0} aria-valuemax={100}>
+          <img src={data.char} alt={data.charAlt} />
+        </span>
         <div className="hs-hero-txt">
-          <b>자료정리 100%</b>
-          <p>팀원들에게 전달할 준비가 완료됐어요</p>
+          <b>{data.label} {data.pct}%</b>
+          <p>{data.message}</p>
         </div>
       </div>
       <ol className="hs-steps">
-        <li className="hs-step done">
-          <span className="hs-dot" aria-label="완료"><CheckIcon /></span>
-          <div className="hs-step-main">
-            <div className="hs-step-row"><b>수상작 사례 수집</b></div>
-            <p>공모전 수상작 이미지를 정리하고 수상 요인을 분석했어요</p>
-          </div>
-        </li>
-        <li className="hs-step done">
-          <span className="hs-dot" aria-label="완료"><CheckIcon /></span>
-          <div className="hs-step-main">
-            <div className="hs-step-row"><b>레퍼런스 파일 정리</b></div>
-            <p>사례별로 컨셉과 시각자료를 묶어서 정리했어요</p>
-            <button type="button" className="hs-file" onClick={() => onToast("PDF 원본 파일은 아직 연결되지 않았어요")}>
-              <i><img src={`${R}pdf.svg`} alt="PDF" /></i><span>{REF_PDF}</span>
-            </button>
-          </div>
-        </li>
-        <li className="hs-step wait">
-          <span className="hs-dot" aria-label="대기 중"><HourglassIcon /></span>
-          <div className="hs-step-main">
-            <div className="hs-step-row"><b>팀원에게 전달</b><span className="hs-badge">대기 중</span></div>
-            <p>정리된 자료를 팀원에게 전달할 수 있어요</p>
-          </div>
-        </li>
+        {data.steps.map(s => (
+          <li key={s.title} className={`hs-step ${s.status}`}>
+            <span className="hs-dot" aria-label={s.status === "done" ? "완료" : BADGE[s.status]}>
+              {s.status === "done" ? <CheckIcon /> : s.status === "wait" ? <HourglassIcon /> : <i className="hs-dot-core" />}
+            </span>
+            <div className="hs-step-main">
+              <div className="hs-step-row"><b>{s.title}</b>{BADGE[s.status] && <span className="hs-badge">{BADGE[s.status]}</span>}</div>
+              <p>{s.desc}</p>
+              {s.file && <button type="button" className="hs-file" onClick={() => onToast(`'${s.file}' 원본 파일은 아직 연결되지 않았어요`)}>
+                <i><img src={`${R}pdf.svg`} alt="PDF" /></i><span>{s.file}</span>
+              </button>}
+            </div>
+          </li>
+        ))}
       </ol>
     </BottomSheet>
   );
+}
+
+const REFERENCE_PROGRESS: ProgressData = {
+  project: "마케팅 공모전", title: "레퍼런스 정리", pct: 100, label: "자료정리", message: "팀원들에게 전달할 준비가 완료됐어요",
+  char: "/extra/p3.png", charAlt: "돋보기로 자료를 살펴보는 Plotto",
+  steps: [
+    { status: "done", title: "수상작 사례 수집", desc: "공모전 수상작 이미지를 정리하고 수상 요인을 분석했어요" },
+    { status: "done", title: "레퍼런스 파일 정리", desc: "사례별로 컨셉과 시각자료를 묶어서 정리했어요", file: "공모전 수상작 레퍼런스 정리_plotto.pdf" },
+    { status: "wait", title: "팀원에게 전달", desc: "정리된 자료를 팀원에게 전달할 수 있어요" },
+  ],
+};
+// 디자인 시안 수정 (마케팅 공모전, 진행도 60%). 데모용 데이터.
+const DESIGN_PROGRESS: ProgressData = {
+  project: "마케팅 공모전", title: "디자인 시안 수정", pct: 60, label: "시안 수정", message: "회의 피드백을 시안에 반영하고 있어요",
+  char: "/extra/q1.png", charAlt: "노트북으로 시안을 수정하는 Plotto",
+  steps: [
+    { status: "done", title: "회의 피드백 정리", desc: "회의에서 나온 시안 수정 요청을 항목별로 정리했어요" },
+    { status: "active", title: "시안 수정", desc: "메인 화면과 상세 화면에 수정 사항을 반영하고 있어요", file: "마케팅 공모전 디자인 시안_v2.pdf" },
+    { status: "todo", title: "팀원 검토 요청", desc: "수정이 끝나면 팀원에게 검토를 요청할 수 있어요" },
+  ],
+};
+
+export function ReferenceSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
+  return <ProgressSheet data={REFERENCE_PROGRESS} onClose={onClose} onToast={onToast} />;
+}
+export function DesignProgressSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
+  return <ProgressSheet data={DESIGN_PROGRESS} onClose={onClose} onToast={onToast} />;
 }
