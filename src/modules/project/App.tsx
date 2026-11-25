@@ -1,9 +1,10 @@
 import { go } from '../../journey';
-import { useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent } from 'react'
 import { dayDifference, getScheduleDates, projectToday, shiftDate } from './scheduleDates'
 import ProjectPicker from './ProjectPicker'
 import { useProjects } from './useProjects'
+import type { HomeTask } from './projectHomeData'
 
 const assets = '/stage1/assets'
 const portraits: Record<string, string> = {
@@ -11,17 +12,21 @@ const portraits: Record<string, string> = {
   tae: 'e8f4a.png',
   yu: '4d45b.png',
 }
-const members = [
-  { name: '나', role: '기획', avatar: 'me' },
-  { name: '태훈', role: '자료조사', avatar: 'tae' },
-  { name: '유진', role: 'PPT', avatar: 'yu' },
-]
 function Avatar({ name, kind }: { name: string; kind: string }) {
   return (
     <span className={`avatar avatar-${kind}`}>
       <img src={`${assets}/${portraits[kind]}`} alt={`${name} 프로필`} />
     </span>
   )
+}
+
+/** A schedule chip. Done chips carry the check icon after the title ('references': before it). */
+function TaskChip({ task }: { task: HomeTask }) {
+  if (!task.done) return <span className={`task ${task.kind}`}>{task.title}</span>
+  const check = <img src={`${assets}/ef293.svg`} alt="완료" />
+  return task.kind === 'references'
+    ? <span className={`task completed ${task.kind}`}>{check}{task.title}</span>
+    : <span className={`task completed ${task.kind}`}>{task.title}{check}</span>
 }
 
 export default function App() {
@@ -36,6 +41,7 @@ export default function App() {
   const projects = useProjects()
   const [pickerOpen, setPickerOpen] = useState(false)
   const projectLabel = useRef<HTMLButtonElement>(null)
+  const home = projects.home
   const dates = getScheduleDates(selectedDate)
 
   function closePicker() {
@@ -76,8 +82,8 @@ export default function App() {
         >
           <span className="project-label-name">{projects.current?.name ?? 'AI분석프로젝트'}</span><img src={`${assets}/57b8b.svg`} alt="" />
         </button>
-        <h1>AI 서비스 시장의<br />현황 분석을 이어서 해요.</h1>
-        <p className="last-active"><img src={`${assets}/de2c6.svg`} alt="" />3시간 전 중단</p>
+        <h1>{home.focus.titleLines.map((line, i) => <Fragment key={i}>{i > 0 && <br />}{line}</Fragment>)}</h1>
+        <p className="last-active"><img src={`${assets}/de2c6.svg`} alt="" />{home.focus.lastActiveLabel}</p>
         <div className="hero-art" aria-hidden="true">
           <picture>
             <source media="(prefers-reduced-motion: reduce)" srcSet={`${assets}/2b675.png`} />
@@ -90,15 +96,21 @@ export default function App() {
       </header>
 
       <section className="activity" aria-labelledby="activity-title">
-        <h2 id="activity-title">새로운 활동 <span>1</span></h2>
-        <button className="activity-card" onClick={() => go('feedback')} aria-label="태훈님이 전달한 파일 2개 보기">
-          <Avatar name="태훈" kind="tae" />
-          <p className="activity-copy">태훈님이<br /><span>2개의 파일</span>을 전달했어요.</p>
-          <p className="activity-time">1시간 전</p>
-          <div className="file-art" aria-hidden="true">
-            <img src={`${assets}/0ffc9.png`} alt="" />
-          </div>
-        </button>
+        <h2 id="activity-title">새로운 활동 <span>{home.activities.length}</span></h2>
+        {home.activities.map((activity, i) => {
+          const actor = home.members.find((member) => member.id === activity.actorId)
+          if (!actor) return null
+          return (
+            <button key={i} className="activity-card" onClick={() => go('feedback')} aria-label={`${actor.name}님이 전달한 파일 ${activity.fileCount}개 보기`}>
+              <Avatar name={actor.name} kind={actor.avatar} />
+              <p className="activity-copy">{`${actor.name}님이`}<br /><span>{`${activity.fileCount}개의 파일`}</span>을 전달했어요.</p>
+              <p className="activity-time">{activity.timeLabel}</p>
+              <div className="file-art" aria-hidden="true">
+                <img src={`${assets}/0ffc9.png`} alt="" />
+              </div>
+            </button>
+          )
+        })}
       </section>
 
       <section className="schedule-section" aria-labelledby="schedule-title">
@@ -168,17 +180,15 @@ export default function App() {
                 ))}
               </div>
               <div className="schedule-rows">
-                {members.map((member, i) => (
-                  <div className="schedule-row" key={member.name}>
+                {home.members.map((member, i) => (
+                  <div className="schedule-row" key={member.id}>
                     <div className="member">
                       <Avatar name={member.name} kind={member.avatar} />
                       <span className="member-name">{member.name}</span>
                       <span className="member-role">{member.role}</span>
                     </div>
                     <div className={`tasks tasks-${i}`}>
-                      {i === 0 && <><span className="task completed planning">기획안 작성<img src={`${assets}/ef293.svg`} alt="완료" /></span><span className="task revision">기획안 수정</span></>}
-                      {i === 1 && <><span className="task completed collecting">자료 수집<img src={`${assets}/ef293.svg`} alt="완료" /></span><span className="task research">자료조사</span><span className="task extra">자료 추가 조사</span></>}
-                      {i === 2 && <><span className="task completed references"><img src={`${assets}/ef293.svg`} alt="완료" />레퍼런스 수집</span><span className="task slides">PPT 제작</span></>}
+                      {(home.tasks[member.id] ?? []).map((task, j) => <TaskChip key={j} task={task} />)}
                     </div>
                   </div>
                 ))}
