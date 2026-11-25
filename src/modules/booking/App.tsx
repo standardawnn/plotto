@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { useDemo } from '../../demo/useDemo';
+import { sessionsOf } from '../../demo/demoStore';
+import { currentDemoProjectId } from '../../demo/currentProject';
+import { TIME_ZONE } from '../../demo/scenario';
 
 const suggestions = ['새로운 AI 서비스 사례를 찾을 필요가 있음', 'AI 서비스 사례에 대한 이해가 어려움', 'AI 서비스 사례를 해당 자료로 찾아온 이유를 알고싶음'];
 const hours = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0'));
@@ -39,12 +43,25 @@ export default function App() {
     const timer = window.setTimeout(() => setPreparingMessage(false), 7000);
     return () => window.clearTimeout(timer);
   }, [step]);
+  // 공동세션 제안 시트에서 확정한 세션이 있으면 주제·시간·초대 문안을 그대로 이어받는다
+  const demo = useDemo();
+  const confirmed = demo.status === 'ready' ? (() => { const pid = currentDemoProjectId(demo.s); return pid ? sessionsOf(demo.s, pid).slice(-1)[0] : undefined; })() : undefined;
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (!confirmed || prefilled.current) return;
+    prefilled.current = true;
+    setTopic(confirmed.title);
+    if (confirmed.slot) {
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit', hour12: true }).formatToParts(new Date(confirmed.slot.startAt)).map(x => [x.type, x.value]));
+      setHour(String(Number(p.hour)).padStart(2, '0')); setMinute(p.minute); setPeriod(p.dayPeriod === 'PM' ? '오후' : '오전');
+    }
+  }, [confirmed]);
   const inputRef = useRef<HTMLInputElement>(null);
   const time = `${period} ${Number(hour)}:${minute}`;
   const selectedMinutes = (Number(hour) % 12 + (period === '오후' ? 12 : 0)) * 60 + Number(minute);
   const isTaehunActiveTime = selectedMinutes >= 19 * 60 + 30 && selectedMinutes <= 20 * 60;
   const titles = [<>공동 세션 주제를<br />알려주세요.</>, <>공동 세션 시간을<br />정해주세요.</>, <>태훈님께 아래 내용으로<br />메세지를 남길게요.</>];
-  const message = '태훈아, 나 지금 AI 서비스 시장 현황 정리하다가 궁금한게 생겼는데 이 사례들을 어떤 기준으로 골랐는지 같이 보면서 공동세션으로 얘기하고 싶어! 오늘 7시 반쯤 괜찮아?';
+  const message = confirmed?.inviteDraft ?? '태훈아, 나 지금 AI 서비스 시장 현황 정리하다가 궁금한게 생겼는데 이 사례들을 어떤 기준으로 골랐는지 같이 보면서 공동세션으로 얘기하고 싶어! 오늘 7시 반쯤 괜찮아?';
   return <main className={`session-app screen-${step}${step === 2 && preparingMessage ? ' is-message-loading' : ''}`}>
     <header className="hero">
       <button className="back-button" aria-label="이전 화면" onClick={() => { setStep(Math.max(0, step - 1)); setSent(false); }}><img src={step === 2 ? '/stage4/assets/13b25.svg' : '/stage4/assets/7531e.svg'} alt="" /></button>
@@ -66,7 +83,7 @@ export default function App() {
         <div className="time-wheels"><Wheel label="시" items={hours} value={hour} onChange={setHour} /><span className="colon">:</span><Wheel label="분" items={minutes} value={minute} onChange={setMinute} /><Wheel label="오전·오후" items={['오전', '오후']} value={period} onChange={setPeriod} /></div>
       </div>}
       {step === 2 && <div className="review-content">
-        <dl className="summary"><div className="reveal reveal-one"><dt>주제</dt><dd>{topic}</dd></div><div className="reveal reveal-two"><dt>시간</dt><dd>{time}</dd></div><div className="reveal reveal-three"><dt>내용</dt><dd>실제 사례에 대한 내용이 부족하여 더욱 다양한 자료가 필요함</dd></div></dl>
+        <dl className="summary"><div className="reveal reveal-one"><dt>주제</dt><dd>{topic}</dd></div><div className="reveal reveal-two"><dt>시간</dt><dd>{time}</dd></div><div className="reveal reveal-three"><dt>내용</dt><dd>{confirmed ? confirmed.agenda.join(' · ') : '실제 사례에 대한 내용이 부족하여 더욱 다양한 자료가 필요함'}</dd></div></dl>
         {preparingMessage ? <div className="message-loading-stage reveal reveal-four">
           <img className="loading-divider" src="/stage4/assets/03654.svg" alt="" />
           <div className="message-loading" role="status">
@@ -75,7 +92,7 @@ export default function App() {
           </div>
         </div> : <div className="message-preview reveal"><img className="divider" src="/stage4/assets/918af.svg" alt="" /><p className="message-label">메시지 내용을 미리 볼 수 있어요.</p><div className="message-bubble">{message}<img className="bubble-tail" src="/stage4/assets/7f995.svg" alt="" /></div></div>}
       </div>}
-      {!(step === 2 && preparingMessage) && <div className="panel-footer"><button className="primary-button" disabled={step === 0 && !topic.trim() || sent} onClick={() => { if (step < 2) { setStep(step + 1); setEditing(false); } else { setSent(true); window.parent.postMessage({type: 'plotto:navigate', stage: 5, session: {topic, hour, minute, period}}, '*'); } }}>{step < 2 ? '다음' : sent ? '메시지를 보냈어요' : '메세지 보내기'}</button>{sent && <p className="sent-notice" role="status">태훈님께 보낼 메시지가 준비되었어요.</p>}</div>}
+      {!(step === 2 && preparingMessage) && <div className="panel-footer"><button className="primary-button" disabled={step === 0 && !topic.trim() || sent} onClick={() => { if (step < 2) { setStep(step + 1); setEditing(false); } else { setSent(true); window.parent.postMessage({type: 'plotto:navigate', stage: 5, session: {topic, hour, minute, period}}, '*'); } }}>{step < 2 ? '다음' : sent ? '초대 문안을 확정했어요' : '초대 문안 확정'}</button>{sent && <p className="sent-notice" role="status">태훈님께 보낼 문안을 준비했어요. 로컬 데모라 실제 메시지는 보내지 않았어요.</p>}</div>}
     </section>
   </main>;
 }

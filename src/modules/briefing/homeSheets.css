@@ -148,3 +148,10 @@ html[data-host="device"] .pe-head{padding-top:max(8px,env(safe-area-inset-top))}
 .pe-foot button{pointer-events:auto;display:block;width:100%;max-width:720px;margin:0 auto;height:54px;border:0;border-radius:12px;background:#536ffa;color:#fff;font-size:16px;font-weight:600;line-height:1.5;transition:transform .15s}
 .pe-foot button:active{transform:scale(.98)}
 @media(prefers-reduced-motion:reduce){.hs-layer *,.pe-screen *{animation:none!important;transition:none!important}}
+
+/* 시나리오 연결: 단계 안의 공유 기록·전달 버튼, 편집 화면 파일 칩 */
+.hs-step-note { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: #1f8a54; }
+.hs-step-action { margin-top: 10px; display: inline-flex; align-items: center; height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: #536ffa; color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.hs-step-action:active { transform: scale(.97); }
+.pe-info button.pe-chip { font-family: inherit; cursor: pointer; }
+.pe-foot button:disabled { opacity: .6; }

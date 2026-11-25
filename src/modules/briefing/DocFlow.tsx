@@ -1,7 +1,12 @@
 import { recordJourney } from "../../journey";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
-import DocumentReview from "./DocumentReview";
+import DocumentReview, { type ReviewItem } from "./DocumentReview";
+import { useDemo } from "../../demo/useDemo";
+import { DemoGate, FileIcon as KindIcon } from "../../demo/DemoUI";
+import { confirmShare, nameOf, roleOf, saveVersion } from "../../demo/demoStore";
+import { dotOf, relativeOf, type DemoFile, type Scenario } from "../../demo/scenario";
+import { changeKind, planDocs } from "./planData";
 import { StatusBarIPhone17Pro } from "../intervention/screens/SessionEnteredScreen";
 const IS_IOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
@@ -19,10 +24,48 @@ const FILE_ICON = {
 type Step = "review" | "done" | "share";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+/** 수정 제안 비교 → 저장(새 버전) → 팀원 공유. 시나리오의 현재 버전과 V2 를 섹션 제목별로 비교한다. */
 export default function DocFlow({ s, onClose }: { s: number; onClose: () => void }) {
+  const demo = useDemo();
+  const reduced = useReducedMotion();
+  if (demo.status !== "ready") return <motion.div className="absolute inset-0 z-40 bg-white" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ duration: reduced ? 0 : 0.45, ease: EASE }}>
+    <div style={{ paddingTop: 120 }}><DemoGate demo={demo}>{() => null}</DemoGate></div>
+    <BackButton s={s} onClick={onClose} />
+  </motion.div>;
+  return <ScenarioDocFlow s={s} sc={demo.s} onClose={onClose} />;
+}
+
+function ScenarioDocFlow({ s, sc, onClose }: { s: number; sc: Scenario; onClose: () => void }) {
   const reduced = useReducedMotion();
   const [step, setStep] = useState<Step>("review");
+  const [docs] = useState(() => planDocs(sc));
+  const [saved, setSaved] = useState<DemoFile | null>(null);
   const back = () => (step === "share" ? setStep("review") : onClose());
+  if (!docs) return <div className="absolute inset-0 z-40 bg-white"><div className="dm-state error" role="alert" style={{ marginTop: 120 }}><b>비교할 기획안을 찾지 못했어요</b><button type="button" onClick={onClose}>닫기</button></div></div>;
+  const { current, proposal, headings, bodyOf, nowEvent, meeting, meetingAt } = docs;
+  const items: ReviewItem[] = headings.map((h, i) => {
+    const before = bodyOf(current, h), after = bodyOf(proposal, h);
+    const kind = changeKind(before, after);
+    return {
+      heading: `${i + 1}. ${h}`, name: "플로토", time: nowEvent ? relativeOf(sc.demoNow, nowEvent.at) : "",
+      source: meeting ? meeting.title : "", file: meeting?.kind === "pdf" ? "pdf" : "doc", before: [], after: [],
+      passage: before || "(현재 버전에 없는 항목)", suggestion: after,
+      emphasis: kind === "kept" ? "기존 문장은 그대로 두고" : `${meetingAt ? dotOf(meetingAt) + " " : ""}회의 합의 사항`,
+      comment: kind === "kept" ? " 내용을 보완했어요. 범위는 바뀌지 않아요." : "을 반영한 수정 제안이에요.",
+    };
+  });
+  /** 적용한 항목만 V2 문장으로 바꿔 새 버전으로 저장. 현재 버전과 V2 는 그대로 남는다. */
+  const onSave = (applied: boolean[]) => {
+    const sections = current.sections.map(sec => {
+      const i = headings.indexOf(sec.heading);
+      return i >= 0 && applied[i] ? { heading: sec.heading, body: bodyOf(proposal, sec.heading) } : sec;
+    });
+    const r = saveVersion(sc, { baseFileId: current.id, sections, source: "apply" });
+    if (!r.ok) return r.error;
+    setSaved(r.value);
+    setStep("done");
+    return null;
+  };
 
   return (
     <motion.div
@@ -41,9 +84,9 @@ export default function DocFlow({ s, onClose }: { s: number; onClose: () => void
           exit={{ opacity: 0, x: -24 * s }}
           transition={{ duration: reduced ? 0 : 0.3, ease: EASE }}
         >
-          {step === "review" && <DocumentReview s={s} onBack={back} onSave={() => setStep("done")} />}
+          {step === "review" && <DocumentReview s={s} items={items} title={`V${current.version} ↔ V${proposal.version} 수정 제안`} stateKey={`plotto-demo:v1:${current.projectId}:${sc.viewerId}:review:${current.id}:${proposal.id}`} onBack={back} onSave={onSave} />}
           {step === "done" && <Done s={s} onNext={() => setStep("share")} />}
-          {step === "share" && <Share s={s} onBack={back} onFinish={onClose} />}
+          {step === "share" && <Share s={s} sc={sc} file={saved ?? current} candidates={docs.task.shareCandidateIds ?? []} onBack={back} onFinish={onClose} />}
         </motion.div>
       </AnimatePresence>
       <div className="integration-home-indicator" style={{position:'absolute',zIndex:50}} aria-hidden="true"/>
@@ -113,9 +156,14 @@ export const MATES = [
   { name: "태훈", role: "자료조사", title: "새 사용자에 맞는 조사 내용 전달", sub: "관련 AI 서비스 사례를 보완할 수 있도록", img: imgAvatarTaehun, crop: "top-[-6.66%]" },
 ];
 
-function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinish: () => void }) {
-  const [picked, setPicked] = useState([true, true]);
+const MATE_IMG: Record<string, { img: string; crop: string }> = { yujin: { img: imgAvatarYujin, crop: "top-[-2.22%]" }, taehun: { img: imgAvatarTaehun, crop: "top-[-6.66%]" } };
+
+/** 저장한 버전을 공유 후보(같은 프로젝트 팀원)에게 공유. 확인(공유하기)을 눌러야 공유 이력이 생기고, 같은 공유는 한 번만 기록된다. */
+function Share({ s, sc, file, candidates, onBack, onFinish }: { s: number; sc: Scenario; file: DemoFile; candidates: string[]; onBack: () => void; onFinish: () => void }) {
+  const MATES = candidates.map(id => ({ id, name: nameOf(sc, id), role: roleOf(sc, file.projectId, id), title: `${file.title} 확인 요청`, sub: `${roleOf(sc, file.projectId, id)} 작업에 반영할 수 있도록`, img: MATE_IMG[id]?.img ?? "", crop: MATE_IMG[id]?.crop ?? "" }));
+  const [picked, setPicked] = useState(() => candidates.map(() => true));
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
   const count = picked.filter(Boolean).length;
   useEffect(() => {
     if (!sent) return;
@@ -125,8 +173,12 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
 
   const send = () => {
     if (!count || sent) return;
+    const recipientIds = candidates.filter((_, i) => picked[i]);
+    const r = confirmShare(sc, { fileId: file.id, recipientIds });
+    if (!r.ok) { setError(r.error); return; }
+    setError("");
     setSent(true);
-    recordJourney({sharedWith: ["유진", "태훈"].filter((_, index) => picked[index])});
+    recordJourney({ sharedWith: recipientIds.map(id => nameOf(sc, id)) });
   };
 
   return (
@@ -147,13 +199,13 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
       {/* File */}
       <div className="absolute flex flex-col items-center bg-[#f2f2ff] rounded-[20px]" style={{ left: 20 * s, right: 20 * s, top: 232 * s, height: 168 * s, paddingTop: 20 * s }}>
         <div style={{width:72*s,height:72*s,borderRadius:'50%',background:'white',position:'relative'}}>
-          <img alt="PDF" src="/assets/revision/pdf.svg" style={{position:'absolute',left:21*s,top:16*s,width:30*s,height:40*s}}/>
+          {file.kind === "pdf" ? <img alt="PDF" src="/assets/revision/pdf.svg" style={{position:'absolute',left:21*s,top:16*s,width:30*s,height:40*s}}/> : <span style={{position:'absolute',inset:0,display:'grid',placeItems:'center'}}><KindIcon kind={file.kind} /></span>}
         </div>
         <p className="font-semibold text-[#536ffa]" style={{ marginTop: 12 * s, fontSize: 17 * s, lineHeight: 1.412 }}>
-          기획안_수정.pdf
+          {file.origin === "local" ? file.title : file.displayFileName}
         </p>
         <p className="text-[#7b899e]" style={{ marginTop: 5 * s, fontSize: 13 * s, lineHeight: 1.5, letterSpacing: -0.6 * s }}>
-          원본 반영과 팀원에게 전달은 각각 확인해요
+          {file.version ? `V${file.version} · ` : ""}{file.origin === "local" ? "이 브라우저에 저장한 버전이에요" : "샘플 버전이에요"}
         </p>
       </div>
       <p className="absolute font-semibold text-[#363636]" style={{ left: 20 * s, top: 426 * s, fontSize: 18 * s, lineHeight: 1.445 }}>
@@ -210,6 +262,7 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
           공유하기
         </button>
       </div>
+      {error && <p className="revision-error" role="alert" style={{ position: "absolute", left: 20 * s, right: 20 * s, bottom: 104 * s }}>{error}</p>}
       {/* Sent toast */}
       <AnimatePresence>
         {sent && (
@@ -220,7 +273,7 @@ function Share({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinis
             exit={{ opacity: 0 }}
             style={{ bottom: 114 * s, paddingInline: 18 * s, paddingBlock: 10 * s, fontSize: 14 * s }}
           >
-            팀원 {count}명에게 공유했어요
+            팀원 {count}명에게 공유 이력을 남겼어요
           </motion.div>
         )}
       </AnimatePresence>

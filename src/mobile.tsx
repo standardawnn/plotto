@@ -3,7 +3,8 @@ import { installCarousels } from './carousel';
 import { installIdentity } from './identity';
 import { createRoot } from 'react-dom/client';
 import type { ComponentType } from 'react';
-import { flows } from './journey';
+import { flows, go, type Flow } from './journey';
+import { FileViewerHost } from './demo/DemoUI';
 
 const query = new URLSearchParams(location.search);
 let flow = (flows as readonly string[]).includes(query.get('flow') || '') ? query.get('flow')! : 'briefing';
@@ -30,7 +31,7 @@ await mobileCss;
 document.documentElement.dataset.flow = flow;
 document.documentElement.dataset.embed = '';
 const chrome = ['project','proposal','booking','classification','session','intervention','feedback'].includes(flow);
-createRoot(document.getElementById('root')!).render(<><ErrorBoundary label={flow}><App /></ErrorBoundary>{chrome && <div className={`integration-status ${['project','proposal','classification','intervention'].includes(flow)?'light':''}`} aria-hidden="true"><span>9:41</span><i/><img src="/assets/intervention/8b917.svg" alt=""/></div>}{chrome && <div className="integration-home-indicator" aria-hidden="true"/>}</>);
+createRoot(document.getElementById('root')!).render(<><ErrorBoundary label={flow}><App /></ErrorBoundary><ErrorBoundary label="file-viewer"><FileViewerHost /></ErrorBoundary>{chrome && <div className={`integration-status ${['project','proposal','classification','intervention'].includes(flow)?'light':''}`} aria-hidden="true"><span>9:41</span><i/><img src="/assets/intervention/8b917.svg" alt=""/></div>}{chrome && <div className="integration-home-indicator" aria-hidden="true"/>}</>);
 if (window.parent !== window) window.parent.postMessage({ type: 'plotto:route', flow, entry: query.get('entry') || '' }, location.origin);
 }
 installIdentity();
@@ -42,4 +43,10 @@ window.addEventListener('keydown', event => {
   }
 });
 
-window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window||e.data?.type!=='plotto:navigate')return;});
+// mobile.html 로 직접 들어온 경우(셸 iframe 밖): 셸과 같은 표로 다음 화면으로 이동한다.
+window.addEventListener('message',e=>{
+  if(e.origin!==location.origin||e.source!==window||e.data?.type!=='plotto:navigate'||window.parent!==window)return;
+  const map: Record<number, Flow> = e.data.stage ? { 2: 'intervention', 3: 'proposal', 4: 'booking', 5: 'session' } : { 1: 'project', 2: 'feedback', 3: 'classification' };
+  const next = map[e.data.stage || e.data.screen];
+  if (next) go(next, 'chat');
+});

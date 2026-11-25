@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { mmdd } from '../../today';
 import OpinionReview from './OpinionReview';
+import { useDemo } from '../../demo/useDemo';
 const assetPathPrefix = "/assets/screen2";
 const imgSend = `${assetPathPrefix}/c578c.svg`;
 const imgSendActive = `${assetPathPrefix}/f5a38.svg`;
@@ -33,6 +34,9 @@ const opinionExample = '경쟁 서비스의 차이가 잘 보이는 문서와 �
 
 
 export default function App() {
+  // 의견 예시는 시나리오의 feedbackInput(서연의 의견)을 쓴다. 불러오기 전에는 기존 문구.
+  const demo = useDemo();
+  const example = demo.status === 'ready' && demo.s.feedbackInput ? demo.s.feedbackInput.text : opinionExample;
   const [open, setOpen] = useState(false);
   const [selectedFile,setSelectedFile]=useState<string|null>(null);
   const [ready, setReady] = useState(false);
@@ -58,21 +62,21 @@ export default function App() {
   useEffect(() => {
     if (!typing || !open) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setText(opinionExample);
+      setText(example);
       setTyping(false);
       return;
     }
     let index = 0;
     const timer = window.setInterval(() => {
       index += 1;
-      setText(opinionExample.slice(0, index));
-      if (index >= opinionExample.length) {
+      setText(example.slice(0, index));
+      if (index >= example.length) {
         window.clearInterval(timer);
         setTyping(false);
       }
     }, 65);
     return () => window.clearInterval(timer);
-  }, [typing, open]);
+  }, [typing, open, example]);
   useEffect(() => {
     if (!inputRef.current) return;
     inputRef.current.style.height = '0px';
@@ -501,7 +505,7 @@ export default function App() {
         </div>
         <div className={`input-pill ${text ? 'has-text' : ''}`}><textarea ref={inputRef} rows={1} value={text} onClick={startExample} onChange={e => { setTyping(false); setExampleStarted(true); setText(e.target.value); }} inputMode="none" placeholder="작업을 이어가요..." aria-label="의견 입력" aria-description="누르면 예시 의견이 타이핑됩니다." onKeyDown={e => { if (e.key === 'Escape') close(); }} /><button type="button" className="send-icon" aria-label="의견 보내기" onClick={previewOpinion}><img src={isSendActive ? imgSendActive : imgSend} alt="" /></button></div>
       </div></div>}
-      {reviewing && <OpinionReview text={text.trim() || opinionExample} onClose={() => { setReviewing(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-node-id="1:1825"]')?.focus()); }} />}
+      {reviewing && <OpinionReview text={text.trim() || example} onClose={() => { setReviewing(false); requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-node-id="1:1825"]')?.focus()); }} />}
     </div>
   );
 }

@@ -1,6 +1,11 @@
 import { entry, go } from "../../journey";
-import { korean, mmdd, mmddCompact, mmddDay } from '../../today';
 import { useEffect, useRef, useState } from "react";
+import { useDemo } from "../../demo/useDemo";
+import { DemoGate } from "../../demo/DemoUI";
+import { dueLabel, mmddDayOf } from "../../demo/scenario";
+import { BeforeDetail, NextDetail, NowDetail, buildSteps } from "./BriefingDetails";
+import { PLAN_TASK_ID, planShare, referenceState } from "./planData";
+import { taskOf } from "../../demo/demoStore";
 import { animate, motion, AnimatePresence } from "motion/react";
 import DocFlow from "./DocFlow";
 import { DeadlineTaskSheet, DesignProgressSheet, PlanEditor, ReferenceSheet, TaskFileView, TaskProgressSheet, Toast, useToast, type TaskKind } from "./HomeSheets";
@@ -58,12 +63,7 @@ const HOME_TOP_BG =
 const BRIEF_CARD_BG =
   "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 362 196' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(-18.1 17.944 -33.142 -15.102 181 16.559)'><stop stop-color='rgba(48,45,110,1)' offset='0'/><stop stop-color='rgba(38,36,85,1)' offset='0.25'/><stop stop-color='rgba(28,26,59,1)' offset='0.5'/><stop stop-color='rgba(18,17,34,1)' offset='0.75'/><stop stop-color='rgba(12,12,21,1)' offset='0.875'/><stop stop-color='rgba(7,7,8,1)' offset='1'/></radialGradient></defs></svg>\")";
 
-const STEPS = [
-  { label: "Before", title: `${mmddCompact(-4)} 회의 진행`, body: [`${mmdd(-4)} 유진님과 태훈님의`, "기획안 회의가 진행됐어요"] },
-  { label: "Now", title: "수정 기획안 확인", body: [`${korean(-4)} 회의를 기반으로`, "Plotto가 기획안을 수정했어요"] },
-  { label: "Next", title: "최종 기획안 공유", body: ["최종 확정된 기획안을 연관된", "팀원과 공유해야 해요"] },
-  { label: "Extra", title: "기업분석 보고서 작성", body: ["그 다음 진행해야 할 일이에요", "태훈님이 기다리고 있어요"] },
-];
+// 다이얼 카드 문구는 시나리오(briefing·events·tasks)에서 만든다: BriefingDetails.buildSteps
 // Collapsed stack (design 10:166): Now in front, the rest as offset ghost cards
 const STACK = [
   { x: 30, y: 392, o: 0.7 },
@@ -80,7 +80,7 @@ const HEADER_BOTTOM = 200; // header safe boundary (design px)
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-type View = "dial" | "before" | "now";
+type View = "dial" | "before" | "now" | "next";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 function DeviceChrome({light=false}:{light?:boolean}) {
@@ -108,6 +108,11 @@ export default function App() {
 }
 
 function Briefing({ onExit }: { onExit: () => void }) {
+  const demo = useDemo();
+  const sc = demo.status === "ready" ? demo.s : null;
+  const STEPS = buildSteps(sc);
+  const [refOpen, setRefOpen] = useState(false);
+  const [toast, showToast] = useToast();
   const screenRef = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(BASE_W);
   // dialRotation in step units: 0 = Before active, 3 = Extra active
@@ -228,10 +233,10 @@ function Briefing({ onExit }: { onExit: () => void }) {
     const d = drag.current;
     if (!d) return;
     drag.current = null;
-    // tap (no real drag) on Before / Now card → open its detail screen
-    if (d.moved < 6 && (d.tap === 0 || d.tap === 1)) {
+    // tap (no real drag) on a card → open its detail screen (Next·Extra 는 다음 할 일 목록)
+    if (d.moved < 6 && d.tap !== null && d.tap >= 0 && d.tap <= 3) {
       if (d.tap !== Math.round(rotRef.current)) snapTo(d.tap);
-      setView(d.tap === 0 ? "before" : "now");
+      setView(d.tap === 0 ? "before" : d.tap === 1 ? "now" : "next");
       return;
     }
     const now = performance.now();
@@ -282,8 +287,8 @@ function Briefing({ onExit }: { onExit: () => void }) {
   const header =
     view === "now" || (view === "dial" && expanded && activeIdx === 1)
       ? ["수정된 기획안을", "확인해주세요"]
-      : view === "dial" && expanded && activeIdx >= 2
-        ? ["모든 팀원에게", "공유할 작업이에요"]
+      : view === "next" || (view === "dial" && expanded && activeIdx >= 2)
+        ? ["이어서 해야 할", "작업이에요"]
         : view === "before" || sp > 0.5
         ? ["서연님이 자리를 비운 동안", "회의가 진행됐어요"]
         : ["프로젝트가 어떻게", "진행되는지 함께 살펴요."];
@@ -357,13 +362,7 @@ function Briefing({ onExit }: { onExit: () => void }) {
             const lt = lerp(isNow ? 1 : 0, t, sp);
             const labelOpacity = isNow ? 1 : sp;
             const contentOpacity = isNow ? 1 : clamp(sp * 1.6 - 0.2, 0, 1);
-            const body = isNow
-              ? sp < 0.5
-                ? [`${korean(-4)} 회의를 기반으로`, "수정된 기획안이에요"]
-                : tNow > 0.5
-                  ? [`${korean(-4)} 회의를 기반으로`, "Plotto가 기획안을 수정했어요"]
-                  : step.body
-              : step.body;
+            const body = isNow && sp < 0.5 ? [step.body[0], "수정된 기획안이에요"] : step.body;
             return (
               <div
                 key={step.label}
@@ -389,7 +388,7 @@ function Briefing({ onExit }: { onExit: () => void }) {
                 </p>
                 <div
                   data-step={i}
-                  className={`bg-white overflow-clip ${i <= 1 && expanded ? "cursor-pointer" : ""}`}
+                  className={`bg-white overflow-clip ${expanded ? "cursor-pointer" : ""}`}
                   style={{
                     width: lerp(214, 200, sp) * s,
                     padding: 20 * s,
@@ -448,7 +447,10 @@ function Briefing({ onExit }: { onExit: () => void }) {
               exit={{ opacity: 0, y: 24 * s }}
               transition={{ duration: 0.45, ease: EASE }}
             >
-              {view === "before" ? <BeforeDetail s={s} /> : <NowDetail s={s} onOpen={() => setDocOpen(true)} />}
+              {sc ? (view === "before" ? <BeforeDetail s={s} sc={sc} />
+                : view === "now" ? <NowDetail s={s} sc={sc} onCompare={() => setDocOpen(true)} />
+                : <NextDetail s={s} sc={sc} onCompare={() => setDocOpen(true)} onReference={() => setRefOpen(true)} />)
+                : <div className="bf-card" style={{ left: 20 * s, right: 20 * s, top: 315 * s }}><DemoGate demo={demo}>{() => null}</DemoGate></div>}
             </motion.div>
           )}
         </AnimatePresence>
@@ -471,9 +473,11 @@ function Briefing({ onExit }: { onExit: () => void }) {
           </div>
         </div>
 
-        <BriefingCharacter view={view} spread={sp} scale={s} progress={rot} />
+        <BriefingCharacter view={view === "next" ? "now" : view}spread={sp} scale={s} progress={rot} />
         <AnimatePresence>{docOpen && <DocFlow s={s} onClose={() => setDocOpen(false)} />}</AnimatePresence>
       </div>
+      <AnimatePresence>{refOpen && <ReferenceSheet key="ref" onClose={() => setRefOpen(false)} onToast={showToast} />}</AnimatePresence>
+      <Toast text={toast} />
     </div>
   );
 }
@@ -485,6 +489,13 @@ type Ring = { src: string; l: number; t: number; w: number; h: number; inset?: s
 function Home({ onBriefing }: { onBriefing: () => void }) {
  const [selectedProject,setSelectedProject]=useState(0);
  const cardRow=useRef<HTMLDivElement>(null);
+ const demo=useDemo();
+ const sc=demo.status==="ready"?demo.s:null;
+ // 시나리오 상태를 홈 카드에 반영: 기획안 마감(D-DAY)과 레퍼런스 전달 여부
+ const planTask=sc?taskOf(sc,PLAN_TASK_ID):undefined;
+ const ref=sc?referenceState(sc):null;
+ const dueOf=(d:{sheet:string;due:string})=>d.sheet==="plan"&&sc&&planTask?.dueAt?dueLabel(sc.demoNow,planTask.dueAt):d.due;
+ const statusOf=(p:HomeTask)=>p.id==="mk-ref"&&sc&&ref?.share?`${ref.recipients.map(r=>sc.people.find(x=>x.id===r)?.name).join("·")}님에게 전달 완료`:p.status;
  const visibleTasks=TASKS.filter(p=>p.project===PROJECT_CHIPS[selectedProject]);
  const pickProject=(i:number)=>{setSelectedProject(i);cardRow.current?.scrollTo({left:0,behavior:"smooth"});};
  // 홈 팝업. 편집 화면과 수정 파일 보기는 기획안 팝업 위에 쌓인다.
@@ -517,7 +528,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
             <div className="flex gap-3 items-center px-5 py-6 rounded-[24px] overflow-hidden" style={{ backgroundImage: BRIEF_CARD_BG }}>
               <div className="flex flex-col gap-[18px] min-w-0 flex-1 max-w-[240px] min-[700px]:max-w-[420px] text-white">
                 <div className="flex flex-col gap-[6px]">
-                  <p className="font-light text-[14px] leading-[22px]">{mmddDay()}</p>
+                  <p className="font-light text-[14px] leading-[22px]">{sc?mmddDayOf(sc.demoNow):""}</p>
                   <p className="font-semibold text-[19px] leading-[28px] [word-break:keep-all]">서연님이 자리를 비운 동안<br />변경된 내용을 정리했어요</p>
                 </div>
                 <button
@@ -555,7 +566,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
                       <p className="font-medium text-[12.5px] leading-[1.35] text-[#a9b1c1]">{d.project}</p>
                     </div>
                     <div className="flex items-center gap-1 h-[23px] font-medium text-[13px] leading-[1.385] text-[#929aaa] whitespace-nowrap">
-                      <span className={d.hot ? "text-[#ff6928]" : ""}>{d.due}</span><span>·</span><span>30분 예상</span>
+                      <span className={dueOf(d) === "D-DAY" ? "text-[#ff6928]" : ""}>{dueOf(d)}</span><span>·</span><span>30분 예상</span>
                     </div>
                   </div>
                 );
@@ -588,7 +599,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
                   className="home-task relative shrink-0 h-[190px] w-[168px] cursor-pointer active:scale-[.97] transition-transform" style={{ animationDelay: `${i * 60}ms` }}>
                   <div className="absolute inset-x-0 top-[31px] bottom-0 bg-white rounded-[20px] shadow-[0px_0px_5px_0px_rgba(0,0,0,0.12)] overflow-hidden">
                     <p className="absolute inset-x-2 top-[64px] text-center font-semibold text-[16px] leading-[1.445] text-[#111] truncate">{p.title}</p>
-                    <p className="absolute inset-x-2 top-[90px] text-center font-medium text-[12.5px] leading-[1.445] text-[#a9b1c1] truncate">{p.status}</p>
+                    <p className="absolute inset-x-2 top-[90px] text-center font-medium text-[12.5px] leading-[1.445] text-[#a9b1c1] truncate">{statusOf(p)}</p>
                     <div className="absolute inset-x-0 bottom-0 h-[35px] flex items-center justify-center gap-[6px]" style={{ background: barColor(p.pct) }}>
                       <img alt="" src={imgHourglass} className="block brightness-0 invert" style={{ width: 11, height: 15 }} />
                       <span className="font-medium text-[14px] leading-[1.445] text-white whitespace-nowrap">진행도 {p.pct}%</span>
@@ -623,7 +634,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
         {taskSheet && <TaskProgressSheet key={taskSheet.id} task={taskSheet} onClose={() => setTaskSheet(null)} onToast={showToast} />}
       </AnimatePresence>
       <AnimatePresence>
-        {editing && <PlanEditor key={`editor-${editing}`} kind={editing} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); showToast(editing === "plan" ? "기획안을 저장했어요" : "수정 내용을 저장했어요"); }} />}
+        {editing && <PlanEditor key={`editor-${editing}`} kind={editing} onBack={() => setEditing(null)} onSaved={(msg) => { setEditing(null); showToast(msg ?? "수정 내용을 저장했어요"); }} />}
       </AnimatePresence>
       <AnimatePresence>
         {fileOpen === "plan" && <div key="file" className="absolute inset-0 z-[60]" data-no-lift><DocFlow s={homeW / BASE_W} onClose={() => setFileOpen(null)} /></div>}
@@ -648,123 +659,3 @@ function RingImg({ r }: { r: Ring }) {
   );
 }
 
-function DetailShell({ s, label, height, title, subtitle, children }: { s: number; label: string; height: number; title: string; subtitle: string; children: React.ReactNode }) {
-  return (
-    <>
-      <p className="absolute font-['Pretendard'] font-bold text-white whitespace-nowrap" style={{ left: 27 * s, top: 279 * s, fontSize: 17 * s, lineHeight: 1.412 }}>
-        {label}
-      </p>
-      <div
-        className="absolute bg-white overflow-clip font-['Pretendard'] not-italic"
-        style={{ left: 26 * s, top: 315 * s, width: 402 * s, height: height * s, borderRadius: 22.305 * s, boxShadow: `${4.461 * s}px ${4.461 * s}px ${4.461 * s}px rgba(0,0,0,0.08)` }}
-      >
-        <div className="absolute left-0 bg-[#ebefff]" style={{ top: 98 * s, width: 387 * s, height: 379 * s }} />
-        
-        <p className="absolute font-semibold text-black whitespace-nowrap" style={{ left: 24.537 * s, top: 22.303 * s, fontSize: 20 * s, lineHeight: 1.4, letterSpacing: -0.24 * s }}>
-          {title}
-        </p>
-        <p className="absolute font-normal text-[#808289] whitespace-nowrap" style={{ left: 25 * s, top: 59 * s, fontSize: 16 * s, lineHeight: 1.5, letterSpacing: 0.0912 * s }}>
-          {subtitle}
-        </p>
-        <div className="absolute flex flex-col" style={{ left: 6 * s, top: 113 * s, width: 361.8 * s, gap: 16.2 * s }}>
-          {children}
-        </div>
-      </div>
-    </>
-  );
-}
-
-function SparkleRow({ s, text }: { s: number; text: string }) {
-  return (
-    <div className="flex items-start w-full" style={{ gap: 4.5 * s, paddingInline: 18 * s }}>
-      <img alt="" src={imgSparkle} className="block shrink-0" style={{ width: 21.6 * s, height: 21.6 * s }} />
-      <p className="font-medium text-[#111] whitespace-nowrap" style={{ fontSize: 18 * s, lineHeight: `${23.4 * s}px` }}>
-        {text}
-      </p>
-    </div>
-  );
-}
-
-function Bullets({ s, items }: { s: number; items: string[] }) {
-  return (
-    <ul className="list-disc font-medium text-[#57595d]" style={{ fontSize: 13.5 * s, letterSpacing: 0.1296 * s }}>
-      {items.map((t, i) => (
-        <li key={t} style={{ marginInlineStart: 20.25 * s, marginBottom: i < items.length - 1 ? 7.2 * s : 0, lineHeight: 1.6 }}>
-          {t}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function BeforeDetail({ s }: { s: number }) {
-  return (
-    <DetailShell s={s} label="Before" height={334} title={`${mmddCompact(-4)} 회의 진행`} subtitle="유진님과 태훈님이 기획안 회의를 진행했어요">
-      <div className="flex flex-col items-end" style={{ gap: 16.2 * s }}>
-        <div className="flex flex-col w-full" style={{ gap: 16 * s }}>
-          <SparkleRow s={s} text="회의 중 중요한 내용을 요약했어요." />
-          <div className="w-full" style={{ paddingInline: 18 * s }}>
-            <Bullets
-              s={s}
-              items={[
-                "주요 사용자는 여러 프로젝트와 업무를 동시에 관리해야 하는 대학생, 직장인, 프로젝트 팀원이다.",
-                "사용자가 바뀌면서 조사해야 하는 AI 서비스 사례도 변화해야 한다.",
-              ]}
-            />
-          </div>
-        </div>
-        <button className="flex items-center justify-center bg-[#9693ff]" style={{ gap: 6 * s, paddingInline: 16 * s, paddingBlock: 12 * s, borderRadius: 30 * s }}>
-          <span className="font-medium text-white whitespace-nowrap" style={{ fontSize: 16 * s, lineHeight: 1.5, letterSpacing: 0.0912 * s }}>
-            회의록 확인하기
-          </span>
-          <img alt="" src={imgChevronRight} className="block" style={{ width: 24 * s, height: 24 * s }} />
-        </button>
-      </div>
-    </DetailShell>
-  );
-}
-
-function NowDetail({ s, onOpen }: { s: number; onOpen: () => void }) {
-  return (
-    <DetailShell s={s} label="NOW" height={402} title="수정 기획안 확인" subtitle="회의를 기반으로 Plotto가 기획안을 수정했어요">
-      <SparkleRow s={s} text="기획안을 확인해주세요." />
-      <div className="flex flex-col w-full" style={{ gap: 9 * s, paddingInline: 18 * s }}>
-        <div
-          className="relative flex items-center justify-between overflow-clip border-solid border-[#4b3bff] w-full"
-          style={{ borderWidth: 0.9 * s, paddingInline: 12.6 * s, paddingBlock: 14.4 * s, borderRadius: 13 * s }}
-        >
-          <div aria-hidden className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-r from-[rgba(7,0,85,0.3)] to-[rgba(0,0,0,0.3)] mix-blend-plus-lighter" />
-            <div className="absolute inset-0 bg-[rgba(255,255,255,0.9)] backdrop-blur-[13.5px]" />
-          </div>
-          <div className="relative flex items-center" style={{ gap: 10.8 * s }}>
-            <img src="/assets/revision/pdf.svg" alt="PDF" className="block shrink-0" style={{width:27*s,height:36*s}}/>
-            <p className="font-medium text-black whitespace-nowrap" style={{ fontSize: 13.5 * s, lineHeight: 1.467, letterSpacing: 0.1296 * s }}>
-              기획안_수정.pdf
-            </p>
-          </div>
-          <button
-            onClick={onOpen}
-            className="relative font-medium text-[#4b3bff] whitespace-nowrap active:opacity-60"
-            style={{ fontSize: 11.7 * s, lineHeight: 1.385, letterSpacing: 0.227 * s, padding: 6 * s, margin: -6 * s }}
-          >
-            열기
-          </button>
-        </div>
-        <div
-          className="relative bg-white border-solid border-[#dbe3ee] shrink-0"
-          style={{ borderWidth: 1.35 * s, width: 325.8 * s, height: 149 * s, borderRadius: 12.6 * s }}
-        >
-          <div className="absolute bg-[#f4f4fe]" style={{ left: 15.3 * s, top: 13.5 * s, width: 27.9 * s, height: 27.9 * s, borderRadius: 6.3 * s }} />
-          <img alt="" src={imgListCheck} className="absolute block" style={{ left: 20 * s, top: 18.117 * s, width: 18 * s, height: 18 * s }} />
-          <p className="absolute font-semibold text-[#1e2838] whitespace-nowrap" style={{ left: 57.15 * s, top: 15.75 * s, fontSize: 14.4 * s, lineHeight: 1.445 }}>
-            어떤 내용이 바뀌었나요?
-          </p>
-          <div className="absolute" style={{ left: 16.65 * s, top: 56 * s, width: 286.2 * s }}>
-            <Bullets s={s} items={["핵심(메인) 타깃의 변화: 대학생, 직장인, 프로젝트 팀원", "핵심 기능의 일부 추가: AI 업무 브리핑"]} />
-          </div>
-        </div>
-      </div>
-    </DetailShell>
-  );
-}

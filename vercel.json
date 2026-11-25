@@ -5,6 +5,24 @@
   "outputDirectory": "dist",
   "headers": [
     {
+      "source": "/demo/plotto/scenario.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/demo/plotto/files/(.*)\\.docx",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        }
+      ]
+    },
+    {
       "source": "/(.*).html",
       "headers": [
         {
