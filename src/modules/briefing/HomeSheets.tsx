@@ -82,7 +82,7 @@ export function useToast(): [string, (t: string) => void] {
 }
 
 /** 화면 아래에서 올라오는 팝업. 뒤 배경을 어둡게 깔고, X·배경·Esc로 닫는다. */
-function BottomSheet({ title, sub, left, onClose, footer, tight, children }: { title: string; sub: string; left?: ReactNode; onClose: () => void; footer?: ReactNode; tight?: boolean; children: ReactNode }) {
+function BottomSheet({ title, sub, left, head, legacy, onClose, footer, tight, children }: { title: string; sub?: string; left?: ReactNode; head?: ReactNode; legacy?: boolean; onClose: () => void; footer?: ReactNode; tight?: boolean; children: ReactNode }) {
   const reduced = useReducedMotion();
   const sheet = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -95,13 +95,15 @@ function BottomSheet({ title, sub, left, onClose, footer, tight, children }: { t
   return (
     <div className="hs-layer" data-no-lift>
       <motion.div className="hs-dim" onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : .25 }} />
-      <motion.div ref={sheet} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className="hs-sheet"
+      <motion.div ref={sheet} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className={`hs-sheet ${legacy ? "legacy" : ""}`}
         initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ duration: reduced ? 0 : .42, ease: EASE }}>
         <div className="hs-grab" aria-hidden="true"><i /></div>
         <div className="hs-head">
-          {left && <span className="hs-head-left">{left}</span>}
-          <h2 className="hs-title">{title}</h2>
-          <p className="hs-sub">{sub}</p>
+          {head ?? <>
+            {left && <span className="hs-head-left">{left}</span>}
+            <h2 className="hs-title">{title}</h2>
+            {sub && <p className="hs-sub">{sub}</p>}
+          </>}
           <button type="button" className="hs-close" aria-label="닫기" onClick={onClose}><CloseIcon /></button>
         </div>
         <div className={`hs-body ${tight ? "tight" : ""}`}>{children}</div>
@@ -113,29 +115,48 @@ function BottomSheet({ title, sub, left, onClose, footer, tight, children }: { t
 
 /* ---------------- 1. 기획안 수정하기 팝업 ---------------- */
 
+// 1차 구현 UI: 수정 제안을 카드(의견 + 제안 문장)로 보여 주는 버전
+const SOURCES = feedback.reduce<{ name: string; kind: string }[]>((list, f) => list.some(x => x.name === f.source) ? list : [...list, { name: f.source, kind: f.file }], []);
+function SourceIcon({ kind }: { kind: string }) {
+  return kind === "pdf" ? <span className="revision-file-icon"><img src={`${R}pdf.svg`} alt="" /></span> : <DocIcon />;
+}
+
 export function PlanSheet({ onClose, onEdit, onViewFile, onToast }: { onClose: () => void; onEdit: () => void; onViewFile: () => void; onToast: (t: string) => void }) {
   return (
-    <BottomSheet title="기획안 수정하기" sub="마케팅 공모전" left="D-DAY" onClose={onClose}
+    <BottomSheet title="기획안 수정하기" legacy onClose={onClose}
+      head={<>
+        <div className="hs-meta"><span>마케팅 공모전</span><span>·</span><span className="hot">D-DAY</span></div>
+        <h2 className="hs-title">기획안 수정하기</h2>
+        <p className="hs-desc">회의 내용을 바탕으로 Plotto가 {PLAN_TITLE}의 수정할 부분을 정리했어요</p>
+      </>}
       footer={<div className="hs-foot">
-        <button type="button" className="hs-btn ghost" onClick={onEdit}>직접 수정</button>
-        <button type="button" className="hs-btn primary" onClick={onViewFile}>수정 파일 보기</button>
+        <button type="button" className="hs-btn ghost" onClick={onViewFile}>수정 파일 보기</button>
+        <button type="button" className="hs-btn primary" onClick={onEdit}>직접 수정</button>
       </div>}>
-      <p className="hs-sugg-title"><img src={`${R}sparkle.svg`} alt="" />수정 제안 {feedback.length}건</p>
-      <p className="hs-sugg-desc">회의 의견을 바탕으로 기획안의 세 항목에 수정안을 준비했어요.</p>
-      <ul className="hs-sugg-box">
-        {feedback.map(f => <li key={f.heading}>{f.heading.replace(/^\d+\.\s*/, "")}</li>)}
-      </ul>
+      <div className="hs-sec"><img src={`${R}sparkle.svg`} alt="" /><span>수정 제안 <b>{feedback.length}</b>건</span></div>
+      <div className="hs-sugg">
+        {feedback.map((f, i) => (
+          <div key={f.heading} className="hs-card">
+            <div className="hs-card-top"><span className="hs-num">{i + 1}</span><h3>{f.heading.replace(/^\d+\.\s*/, "")}</h3><span>{f.name} · {f.time}</span></div>
+            <p className="hs-comment"><span>{f.emphasis}</span>{f.comment}</p>
+            <p className="hs-proposal">{f.suggestion}</p>
+          </div>
+        ))}
+      </div>
       <div className="hs-sec">참고한 자료</div>
       <div className="hs-chips">
-        <button type="button" className="hs-chip" onClick={() => onToast("'10.14 회의록' 파일은 아직 연결되지 않았어요")}><DocIcon />10.14 회의록</button>
-        <button type="button" className="hs-chip" onClick={onEdit}><DocIcon />{PLAN_TITLE}</button>
+        {SOURCES.map(s => (
+          <button type="button" key={s.name} className="hs-chip" onClick={() => onToast(`'${s.name}' 원본 파일은 아직 연결되지 않았어요`)}>
+            <SourceIcon kind={s.kind} />{s.name}
+          </button>
+        ))}
       </div>
-      <div className="hs-sec">공유 필요 팀원</div>
+      <div className="hs-sec">공유 필요 팀원 <b>{MATES.length}</b></div>
       <div className="hs-mates">
         {MATES.map(m => (
           <div key={m.name} className="hs-mate">
             <span className="hs-ava"><img alt="" src={m.img} className={m.crop} /></span>
-            <span><b>{m.name}</b><small>{m.role}</small></span>
+            <div className="hs-mate-txt"><b>{m.name}<small>{m.role}</small></b><p>{m.title}</p></div>
           </div>
         ))}
       </div>

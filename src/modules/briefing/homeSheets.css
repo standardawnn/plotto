@@ -44,6 +44,44 @@
 .hs-btn:active{transform:scale(.97)}
 .hs-btn.ghost{background:#fff;border:1px solid #c9cfe0;color:#525966;font-weight:500}
 .hs-btn.primary{background:#536ffa;border:0;color:#fff;font-weight:600}
+/* 기획안 수정하기 팝업: 1차 구현 UI (수정 제안 카드형). .legacy 안에서만 적용 */
+.hs-sheet.legacy{border-radius:28px 28px 0 0;box-shadow:0 -4px 24px rgba(7,0,85,.12)}
+.legacy .hs-grab{padding:10px 0 2px}
+.legacy .hs-grab i{width:40px;height:4px;border-radius:2px;background:#dde1ec}
+.legacy .hs-head{align-items:stretch;text-align:left;padding:12px 64px 14px 20px}
+.legacy .hs-close{top:6px}
+.legacy .hs-meta{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;line-height:1.385;letter-spacing:.2522px;color:#929aaa}
+.legacy .hs-meta .hot{color:#ff3700}
+.legacy .hs-title{margin:4px 0 0;font-size:22px;line-height:1.364;letter-spacing:-.4268px}
+.legacy .hs-desc{margin:4px 0 0;font-size:14px;line-height:1.571;letter-spacing:.203px;color:#7c8494;word-break:keep-all}
+.legacy .hs-body{padding:2px 20px 20px}
+.legacy .hs-sec{display:flex;align-items:center;gap:6px;margin:18px 2px 10px;font-size:16px;font-weight:600;line-height:1.445;color:#363636}
+.legacy .hs-sec:first-child{margin-top:6px}
+.legacy .hs-sec b{color:#536ffa;font-weight:600}
+.legacy .hs-sec img{width:18px;height:18px}
+.legacy .hs-sugg{display:flex;flex-direction:column;gap:8px}
+.legacy .hs-card{border:1.5px solid #ebefff;background:#f8f9ff;border-radius:16px;padding:14px 14px 12px}
+.legacy .hs-card-top{display:flex;align-items:center;gap:8px}
+.legacy .hs-num{flex:none;width:22px;height:22px;border-radius:50%;background:#536ffa;color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+.legacy .hs-card-top h3{margin:0;flex:1;font-size:16px;font-weight:600;line-height:1.445;color:#070055}
+.legacy .hs-card-top span{font-size:12px;font-weight:500;color:#929aaa;white-space:nowrap}
+.legacy .hs-comment{margin:8px 0 0;font-size:14px;line-height:1.571;color:#7c8494;word-break:keep-all}
+.legacy .hs-comment span{color:#536ffa}
+.legacy .hs-proposal{margin:8px 0 0;border-radius:8px;background:#ebefff;padding:8px 12px;font-size:14px;line-height:1.571;color:#3f4450;word-break:keep-all}
+.legacy .hs-chips{gap:8px}
+.legacy .hs-chip{height:auto;border-radius:8px;padding:7px 10px;font-size:13px;line-height:1.334;letter-spacing:.3024px}
+.legacy .hs-chip .revision-file-icon{transform:scale(1.1);margin:0}
+.legacy .hs-mates{flex-direction:column;flex-wrap:nowrap;gap:8px}
+.legacy .hs-mate{gap:12px;border:1.5px solid #dde4ee;border-radius:15px;padding:12px 14px}
+.legacy .hs-ava{width:40px;height:40px;background:#eceaff}
+.legacy .hs-mate-txt{flex:1;min-width:0}
+.legacy .hs-mate-txt b{font-size:16px;font-weight:600;color:#363636}
+.legacy .hs-mate-txt b small{margin-left:8px;font-size:14px;font-weight:500;color:#929aaa}
+.legacy .hs-mate-txt b small::before{content:none}
+.legacy .hs-mate-txt p{margin:2px 0 0;font-size:13px;line-height:1.5;color:#a9b1c1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.legacy .hs-foot{gap:12px;padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 24px);box-shadow:0 -1px 0 #f1f3fa}
+.legacy .hs-btn{height:54px;font-size:16px;font-weight:600}
+.legacy .hs-btn.ghost{border:1.5px solid #dde4ee;color:#1f2b3b;font-weight:600}
 /* 레퍼런스 진행 상황 */
 .hs-hero{display:flex;align-items:center;gap:16px;margin:0 0 20px}
 .hs-ring{flex:none;position:relative;width:68px;height:68px;border-radius:50%;border:4px solid #536ffa;background:#fff;overflow:hidden}
