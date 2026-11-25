@@ -12,10 +12,16 @@
 
 html, body, #root { height: 100%; margin: 0; overflow: hidden; background: #070708; }
 
-.home-walk{position:absolute;width:258px;height:145px;max-width:none;left:50%;top:-10px;transform:translateX(-50%);object-fit:contain}.home-walk-still{display:none}@media(prefers-reduced-motion:reduce){.home-walk{display:none}.home-walk-still{display:block}}
+/* 브리핑 카드 캐릭터: 고해상도 정지 이미지 + 가볍게 떠다니는 모션 */
+.home-char{animation:home-char-float 3.2s ease-in-out infinite;will-change:transform}
+.home-char img{-webkit-user-drag:none;image-rendering:auto}
+@keyframes home-char-float{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-6px) rotate(1.5deg)}}
+@media(prefers-reduced-motion:reduce){.home-char{animation:none}}
 
 .progress-click{cursor:pointer;transition:transform .16s}.progress-click:active{transform:scale(.97)}.progress-click:focus-visible{outline:2px solid #536ffa;outline-offset:3px}
 
 .overflow-x-auto{cursor:grab;overscroll-behavior-x:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}.overflow-x-auto>*{scroll-snap-align:start;user-select:none}.overflow-x-auto img{-webkit-user-drag:none}
 
 .overflow-x-auto{scroll-snap-type:none!important;scroll-behavior:auto}.overflow-x-auto>*{scroll-snap-align:none!important}.home-task{animation:home-task-in .32s cubic-bezier(.2,.8,.2,1) both}@keyframes home-task-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.home-chip{cursor:pointer;-webkit-tap-highlight-color:transparent}.home-chip:active{filter:none!important;transform:scale(.97)}@media (prefers-reduced-motion:reduce){.home-task{animation:none}}
+/* 확인이 필요한 작업: 카드 한 장씩 넘어가도록 스냅 (위의 전역 snap 해제보다 우선) */
+.overflow-x-auto.home-deadline-row{scroll-snap-type:x mandatory!important;cursor:auto}.overflow-x-auto.home-deadline-row>*{scroll-snap-align:start!important}

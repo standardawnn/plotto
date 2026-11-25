@@ -532,8 +532,10 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
                 </button>
               </div>
               <div className="relative h-[125px] w-[109px] shrink-0 overflow-hidden">
-                {IS_IOS ? <img className="home-walk" alt="걸으며 회의 자료를 확인하는 Plotto" src={`${A}/home-walk.png`} /> : <video className="home-walk" autoPlay loop muted playsInline preload="auto" aria-label="걸으며 회의 자료를 확인하는 Plotto" src={`${A}/home-walk.webm`} />}
-                <img alt="Plotto" src={imgCharacter} className="home-walk-still absolute h-[110.04%] left-[-33.65%] max-w-none top-[-7.28%] w-[152.11%]" />
+                {/* 저해상도 크로마키 애니메이션(home-walk.png/webm)은 휴대폰에서 가장자리가 깨져 보여서, 고해상도 정지 이미지에 떠다니는 모션을 준다 */}
+                <div className="home-char absolute inset-0">
+                  <img alt="태블릿으로 회의 자료를 확인하는 Plotto" src={imgCharacter} className="absolute h-[110.04%] left-[-33.65%] max-w-none top-[-7.28%] w-[152.11%]" />
+                </div>
               </div>
             </div>
           </div>
