@@ -3,11 +3,11 @@ import { korean, mmdd, mmddCompact, mmddDay } from '../../today';
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, AnimatePresence } from "motion/react";
 import DocFlow from "./DocFlow";
-import { DesignFeedbackSheet, DesignProgressSheet, PlanEditor, PlanSheet, ReferenceSheet, Toast, useToast } from "./HomeSheets";
-// 홈 카드 → 팝업 연결 (진행 카드 제목 / 마감 작업 제목 기준)
+import { DesignFeedbackSheet, DesignProgressSheet, PlanEditor, PlanSheet, ReferenceSheet, TaskProgressSheet, Toast, useToast } from "./HomeSheets";
+import { PROJECT_CHIPS, TASKS, DEADLINES, barColor, type HomeTask } from "./homeData";
+// 홈 카드 → 팝업 연결. 전용 팝업이 있는 작업은 아래 키로, 나머지 진행 카드는 TaskProgressSheet로 연다.
 type SheetKey = "plan" | "ref" | "feedback" | "design";
-const PROGRESS_SHEET: Record<string, SheetKey> = { "레퍼런스 정리": "ref", "디자인 시안 수정": "design" };
-const DEADLINE_SHEET: Record<string, SheetKey> = { "기획안 수정하기": "plan", "디자인 피드백": "feedback" };
+const TASK_SHEET: Record<string, SheetKey> = { "mk-ref": "ref", "mk-design": "design" };
 import BriefingCharacter from "../../BriefingCharacter";
 const IS_IOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
@@ -481,78 +481,16 @@ function Briefing({ onExit }: { onExit: () => void }) {
 /* ---------------- Home (design 10:498) ---------------- */
 
 type Ring = { src: string; l: number; t: number; w: number; h: number; inset?: string };
-const PROGRESS: { project: string; title: string; sub: string; pct: string; rings: Ring[]; char?: { src: string; l: number; t: number; w: number; h: number; img: string } }[] = [
-  {
-    project: "마케팅 공모전",
-    title: "레퍼런스 정리",
-    sub: "공모전 수상작 참고하여 정리",
-    pct: "진행도 100%",
-    rings: [
-      { src: imgE323, l: 48.03, t: 6.16, w: 75, h: 75 },
-      { src: imgE262, l: 45.4, t: 4, w: 78.737, h: 78.737, inset: "-4.3%" },
-    ],
-    char: { src: imgChars, l: 61.48, t: 18.39, w: 49.837, h: 50.915, img: "h-[112.29%] left-[-240.55%] top-[-7.75%] w-[344.16%]" },
-  },
-  {
-    project: "마케팅 공모전",
-    title: "디자인 시안 수정",
-    sub: `${mmddCompact(-7)} 회의 기반 수정`,
-    pct: "진행도 60%",
-    rings: [
-      { src: imgE325, l: 47.66, t: 6.4, w: 73.118, h: 73.118 },
-      { src: imgE326, l: 41.26, t: 0, w: 85, h: 85 },
-      { src: imgE261, l: 41.26, t: 0, w: 85, h: 61.905 },
-    ],
-    char: { src: imgChar3492, l: 53.14, t: 19.2, w: 59.409, h: 47.527, img: "h-[108.82%] left-[-7.65%] top-[-5.88%] w-[130.59%]" },
-  },
-  {
-    project: "청년 도움 프로젝트",
-    title: "GUI 제작",
-    sub: "프론트앤드 전달용",
-    pct: "진행도 40%",
-    rings: [
-      { src: imgE324, l: 48.11, t: 6.4, w: 73.118, h: 73.118 },
-      { src: imgE326, l: 41.4, t: 0, w: 85, h: 85 },
-      { src: imgE263, l: 49.31, t: 3.66, w: 73.434, h: 38.844, inset: "-9.41% -4.98%" },
-      { src: imgE264, l: 49.31, t: 3.66, w: 73.434, h: 38.844, inset: "-9.41% -4.98%" },
-    ],
-    char: { src: imgChars, l: 54.3, t: 18.66, w: 55.327, h: 44.177, img: "h-[127.4%] left-[-99.04%] top-[-17.31%] w-[305.18%]" },
-  },
-  {
-    project: "청년 도움 프로젝트",
-    title: "개발 일정 정리",
-    sub: "팀원들 스케줄에 맞춰 정리",
-    pct: "진행도 25%",
-    rings: [
-      { src: imgE325, l: 47.66, t: 6.4, w: 73.118, h: 73.118 },
-      { src: imgE326, l: 41.26, t: 0, w: 85, h: 85 },
-      { src: imgE265, l: 75.71, t: 3.66, w: 46.891, h: 38.844, inset: "-9.41% -7.8%" },
-      { src: imgE266, l: 75.71, t: 3.66, w: 46.891, h: 38.844, inset: "-9.41% -7.8%" },
-    ],
-    char: { src: imgChars, l: 57.27, t: 15.55, w: 53.78, h: 54.944, img: "h-[112.29%] left-[-240.55%] top-[-7.75%] w-[344.16%]" },
-  },
-];
-// Extra sample tasks for the other projects (same card art as the tasks above).
-PROGRESS.push(
-  { ...PROGRESS[1], project: "자원순환프로젝트", title: "캠페인 포스터 시안", sub: "분리배출 캠페인 홍보용", pct: "진행도 60%" },
-  { ...PROGRESS[3], project: "자원순환프로젝트", title: "수거 일정 정리", sub: "지역별 수거 요일 정리", pct: "진행도 25%" },
-  { ...PROGRESS[2], project: "아동자립캠프", title: "프로그램 기획", sub: "캠프 3일차 활동 구성", pct: "진행도 40%" },
-  { ...PROGRESS[0], project: "아동자립캠프", title: "참가자 명단 정리", sub: "신청서 기반 명단 확정", pct: "진행도 100%" },
-);
-const PROJECT_CHIPS = ["마케팅 공모전", "청년 도움 프로젝트", "자원순환프로젝트", "아동자립캠프"];
-const DEADLINES = [
-  { title: "기획안 수정하기", project: "마케팅 공모전", due: "D-DAY", hot: true },
-  { title: "디자인 피드백", project: "청년 참여 프로젝트", due: "D-1" },
-  { title: "레퍼런스 정리", project: "자원순환프로젝트", due: "D-3" },
-];
 
 function Home({ onBriefing }: { onBriefing: () => void }) {
  const [selectedProject,setSelectedProject]=useState(0);
  const cardRow=useRef<HTMLDivElement>(null);
- const visibleTasks=PROGRESS.filter(p=>p.project===PROJECT_CHIPS[selectedProject]);
+ const visibleTasks=TASKS.filter(p=>p.project===PROJECT_CHIPS[selectedProject]);
  const pickProject=(i:number)=>{setSelectedProject(i);cardRow.current?.scrollTo({left:0,behavior:"smooth"});};
- // 홈 팝업: 기획안 수정하기 / 레퍼런스 정리. 편집 화면과 수정 파일 보기는 기획안 팝업 위에 쌓인다.
+ // 홈 팝업. 편집 화면과 수정 파일 보기는 기획안 팝업 위에 쌓인다.
  const [sheet,setSheet]=useState<null|SheetKey>(null);
+ const [taskSheet,setTaskSheet]=useState<HomeTask|null>(null);
+ const openTask=(id:string)=>{const t=TASKS.find(x=>x.id===id);if(!t)return;if(TASK_SHEET[id])setSheet(TASK_SHEET[id]);else setTaskSheet(t);};
  const [editing,setEditing]=useState(false);
  const [fileOpen,setFileOpen]=useState(false);
  const [toast,showToast]=useToast();
@@ -577,20 +515,20 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
           {/* Briefing card */}
           <div className="relative px-5 py-2">
             <div className="flex gap-3 items-center px-5 py-6 rounded-[24px] overflow-hidden" style={{ backgroundImage: BRIEF_CARD_BG }}>
-              <div className="flex flex-col gap-[18px] min-w-0 flex-1 max-w-[230px] min-[700px]:max-w-[420px] text-white">
+              <div className="flex flex-col gap-[18px] min-w-0 flex-1 max-w-[240px] min-[700px]:max-w-[420px] text-white">
                 <div className="flex flex-col gap-[6px]">
-                  <p className="font-light text-[15px] leading-[26px]">{mmddDay()}</p>
-                  <p className="font-semibold text-[20px] leading-[30px] [word-break:keep-all] [text-wrap:balance]">서연님이 자리를 비운 동안 회의가 진행됐어요</p>
+                  <p className="font-light text-[14px] leading-[22px]">{mmddDay()}</p>
+                  <p className="font-semibold text-[19px] leading-[28px] [word-break:keep-all]">서연님이 자리를 비운 동안<br />변경된 내용을 정리했어요</p>
                 </div>
                 <button
                   onClick={onBriefing}
-                  className="relative h-[38px] w-[103px] rounded-[32px] overflow-hidden text-left transition-transform active:scale-95"
+                  className="relative self-start h-[42px] px-4 rounded-[32px] overflow-hidden transition-transform active:scale-95"
                   style={{
                     backgroundImage:
                       "conic-gradient(from 90deg, rgb(220, 223, 255) 0%, rgb(220, 223, 255) 6.7308%, rgb(245, 234, 255) 26.923%, rgb(220, 223, 255) 53.846%, rgb(245, 234, 255) 80.769%, rgb(220, 223, 255) 100%)",
                   }}
                 >
-                  <span className="absolute left-[15px] top-[6px] font-semibold text-[16px] leading-[26px] text-[#111] whitespace-nowrap">브리핑 보기</span>
+                  <span className="font-semibold text-[15px] leading-[26px] text-[#111] whitespace-nowrap">브리핑 확인하기</span>
                 </button>
               </div>
               <div className="relative h-[125px] w-[109px] shrink-0 overflow-hidden">
@@ -599,69 +537,64 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
               </div>
             </div>
           </div>
-          {/* Working on */}
-          <div className="relative mt-[21px]">
-            <div className="flex items-center h-[38px] px-5 py-2">
-              <p className="font-semibold text-[18px] leading-[22px] text-[#354052]">열심히 일하고 있어요</p>
+          {/* 확인이 필요한 작업 — 옆으로 넘겨 보는 카드 */}
+          <div className="relative mt-[22px]">
+            <div className="flex items-center px-5 py-1">
+              <p className="font-semibold text-[17px] leading-[24px] text-[#111]">확인이 필요한 작업이에요</p>
             </div>
-            <div className="flex gap-3 px-5 mt-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="home-deadline-row flex gap-[13px] mt-3 px-5 overflow-x-auto snap-x snap-mandatory scroll-px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {DEADLINES.map((d) => {
+                const open = () => ("sheet" in d.open ? setSheet(d.open.sheet) : openTask(d.open.task));
+                return (
+                  <div key={d.title} {...tapProps(open, `${d.title} 열기`)}
+                    className="snap-start shrink-0 w-full max-w-[480px] flex items-start justify-between gap-3 bg-white px-5 pt-[18px] pb-4 rounded-[20px] border-[1.5px] border-solid border-[#bebfff] cursor-pointer active:scale-[.98] transition-transform">
+                    <div className="flex flex-col gap-[6px] min-w-0">
+                      <p className="font-semibold text-[16px] leading-[1.45] text-[#070055] truncate">{d.title}</p>
+                      <p className="font-medium text-[12.5px] leading-[1.35] text-[#a9b1c1]">{d.project}</p>
+                    </div>
+                    <div className="flex items-center gap-1 h-[23px] font-medium text-[13px] leading-[1.385] text-[#929aaa] whitespace-nowrap">
+                      <span className={d.hot ? "text-[#ff6928]" : ""}>{d.due}</span><span>·</span><span>30분 예상</span>
+                    </div>
+                  </div>
+                );
+              })}
+              <div aria-hidden className="shrink-0 w-[7px]" />
+            </div>
+          </div>
+          {/* plotto가 열심히 작업중이에요 — 프로젝트별 작업 4개 */}
+          <div className="relative mt-[26px]">
+            <div className="flex items-center gap-[6px] px-5 py-1">
+              <img alt="" src="/assets/revision/sparkle.svg" className="block size-[22px]" />
+              <p className="font-semibold text-[17px] leading-[24px] text-[#111]">plotto가 열심히 작업중이에요</p>
+            </div>
+            <div className="flex gap-[9px] px-5 mt-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {PROJECT_CHIPS.map((c, i) => (
                 <button
                   type="button"
                   key={c}
                   aria-pressed={i === selectedProject}
                   onClick={() => pickProject(i)}
-                  className={`home-chip shrink-0 flex items-center justify-center px-3 py-1 rounded-[23px] border-[1.5px] border-solid transition-colors duration-200 ${i === selectedProject ? "bg-[rgba(83,111,250,0.2)] border-[#536ffa]" : "bg-[#ebedf6] border-[#c2c5cf]"}`}
+                  className={`home-chip shrink-0 flex items-center justify-center px-[13px] h-[36px] rounded-[23px] border-[1.5px] border-solid transition-colors duration-200 ${i === selectedProject ? "bg-[rgba(83,111,250,0.2)] border-[#536ffa] text-[#1d2a8a]" : "bg-[#ebedf6] border-[#d5d8e2] text-[#555b6a]"}`}
                 >
-                  <p className="font-medium text-[14px] leading-[22px] text-black whitespace-nowrap">{c}</p>
+                  <span className="font-medium text-[14px] leading-[22px] whitespace-nowrap">{c}</span>
                 </button>
               ))}
             </div>
-            <div ref={cardRow} className="home-task-row flex gap-4 mt-5 pl-[23.6px] pr-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div ref={cardRow} className="home-task-row flex gap-[15px] mt-[15px] px-5 pb-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {visibleTasks.map((p, i) => (
-                <div key={`${selectedProject}-${p.title}`} className={`home-task relative shrink-0 h-[210.6px] w-[168.3px] ${PROGRESS_SHEET[p.title] ? "cursor-pointer active:scale-[.97] transition-transform" : ""}`} style={{ animationDelay: `${i * 60}ms` }}
-                  {...(PROGRESS_SHEET[p.title] ? tapProps(() => setSheet(PROGRESS_SHEET[p.title]), `${p.title} 진행 상황 보기`) : {})}>
-                  <div className="absolute bg-white h-[158px] left-0 rounded-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.2)] top-[34px] w-[168px]" />
-                  <div className="absolute bg-[#1c1a3c] h-[35.1px] left-0 rounded-bl-[20.7px] rounded-br-[20.7px] shadow-[0px_0px_5.4px_0px_rgba(0,0,0,0.15)] top-[157px] w-[168.3px]" />
-                  <p className="absolute left-1/2 -translate-x-1/2 top-[97px] font-semibold text-[16.2px] leading-[1.445] text-black whitespace-nowrap">{p.title}</p>
-                  <p className="absolute left-1/2 -translate-x-1/2 top-[125px] font-medium text-[12.6px] leading-[1.445] text-[#95989f] whitespace-nowrap">{p.sub}</p>
-                  {p.rings.slice(0, 1).map((r, k) => (
-                    <RingImg key={k} r={r} />
-                  ))}
-                  {p.char && (
-                    <div className="absolute overflow-hidden pointer-events-none" style={{ left: p.char.l, top: p.char.t, width: p.char.w, height: p.char.h }}>
-                      <img alt="" src={p.char.src} className={`absolute max-w-none ${p.char.img}`} />
+                <div key={`${selectedProject}-${p.id}`} {...tapProps(() => openTask(p.id), `${p.title} 진행 상황 보기`)}
+                  className="home-task relative shrink-0 h-[190px] w-[168px] cursor-pointer active:scale-[.97] transition-transform" style={{ animationDelay: `${i * 60}ms` }}>
+                  <div className="absolute inset-x-0 top-[31px] bottom-0 bg-white rounded-[20px] shadow-[0px_0px_5px_0px_rgba(0,0,0,0.12)] overflow-hidden">
+                    <p className="absolute inset-x-2 top-[64px] text-center font-semibold text-[16px] leading-[1.445] text-[#111] truncate">{p.title}</p>
+                    <p className="absolute inset-x-2 top-[90px] text-center font-medium text-[12.5px] leading-[1.445] text-[#a9b1c1] truncate">{p.status}</p>
+                    <div className="absolute inset-x-0 bottom-0 h-[35px] flex items-center justify-center gap-[6px]" style={{ background: barColor(p.pct) }}>
+                      <img alt="" src={imgHourglass} className="block brightness-0 invert" style={{ width: 11, height: 15 }} />
+                      <span className="font-medium text-[14px] leading-[1.445] text-white whitespace-nowrap">진행도 {p.pct}%</span>
                     </div>
-                  )}
-                  {p.rings.slice(1).map((r, k) => (
-                    <RingImg key={k} r={r} />
-                  ))}
-                  <div className="absolute flex items-center justify-center gap-[6px] left-0 w-[168.3px] top-[164.59px]">
-                    <img alt="" src={imgHourglass} className="block" style={{ width: 11, height: 15 }} />
-                    <p className="font-medium text-[13.758px] leading-[1.445] text-white whitespace-nowrap">{p.pct}</p>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* Deadlines */}
-          <div className="relative mt-[25px]">
-            <div className="flex items-center px-5 py-2">
-              <p className="font-semibold text-[18px] leading-[22px] text-[#354052]">마감이 임박한 작업이에요!</p>
-            </div>
-            <div className="flex flex-col gap-[10px] px-5 py-2">
-              {DEADLINES.map((d) => (
-                <div key={d.title} className={`relative flex flex-wrap items-start justify-between px-[14px] py-4 rounded-[20px] border-[1.5px] border-solid border-[#bebfff] overflow-clip ${DEADLINE_SHEET[d.title] ? "cursor-pointer active:scale-[.98] transition-transform" : ""}`}
-                  {...(DEADLINE_SHEET[d.title] ? tapProps(() => setSheet(DEADLINE_SHEET[d.title]), `${d.title} 열기`) : {})}>
-                  <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[rgba(222,219,255,0.5)] to-[rgba(239,195,255,0.5)] mix-blend-overlay pointer-events-none" />
-                  <div className="relative flex flex-col gap-2 font-semibold">
-                    <p className="text-[15px] leading-[1.467] tracking-[0.144px] text-[#070055]">{d.title}</p>
-                    <p className="text-[12px] leading-[1.334] tracking-[0.3024px] text-[#929aaa]">{d.project}</p>
-                  </div>
-                  <div className="relative flex items-center gap-1 h-[22px] font-medium text-[13px] leading-[1.385] tracking-[0.2522px] text-[#7c8494] whitespace-nowrap">
-                    <p className={d.hot ? "text-[#ff3700]" : ""}>{d.due}</p>
-                    <p>·</p>
-                    <p>30분 예상</p>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-0 size-[84px] rounded-full"
+                    style={{ background: `radial-gradient(closest-side,#fff calc(100% - 6px),transparent calc(100% - 5.5px)),conic-gradient(#536ffa ${p.pct}%,#dedfe4 0)` }}>
+                    <img alt="" src={p.char} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 block w-[58px] h-[58px] object-contain pointer-events-none" />
                   </div>
                 </div>
               ))}
@@ -685,6 +618,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
         {sheet === "ref" && <ReferenceSheet key="ref" onClose={() => setSheet(null)} onToast={showToast} />}
         {sheet === "feedback" && <DesignFeedbackSheet key="feedback" onClose={() => setSheet(null)} onToast={showToast} />}
         {sheet === "design" && <DesignProgressSheet key="design" onClose={() => setSheet(null)} onToast={showToast} />}
+        {taskSheet && <TaskProgressSheet key={taskSheet.id} task={taskSheet} onClose={() => setTaskSheet(null)} onToast={showToast} />}
       </AnimatePresence>
       <AnimatePresence>
         {editing && <PlanEditor key="editor" onBack={() => setEditing(false)} onSaved={() => { setEditing(false); showToast("기획안을 저장했어요"); }} />}

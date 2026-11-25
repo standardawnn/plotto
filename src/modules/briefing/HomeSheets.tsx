@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { feedback } from "./revisionData";
 import { MATES } from "./DocFlow";
+import type { HomeTask } from "./homeData";
 import "./revision.css";
 import "./homeSheets.css";
 
@@ -327,6 +328,19 @@ const DESIGN_PROGRESS: ProgressData = {
     { status: "todo", title: "팀원 검토 요청", desc: "수정이 끝나면 팀원에게 검토를 요청할 수 있어요" },
   ],
 };
+
+/** 그 밖의 진행 카드: 진행도에 맞춰 3단계 상태를 정한다.
+    100% → 완료·완료·대기 중 / 30% 이상 → 완료·진행 중·예정 / 그 미만 → 진행 중·예정·예정 */
+export function TaskProgressSheet({ task, onClose, onToast }: { task: HomeTask; onClose: () => void; onToast: (t: string) => void }) {
+  const st: Step["status"][] = task.pct >= 100 ? ["done", "done", "wait"] : task.pct >= 30 ? ["done", "active", "todo"] : ["active", "todo", "todo"];
+  const data: ProgressData = {
+    project: task.project, title: task.title, pct: task.pct, label: "진행도",
+    message: task.pct >= 100 ? "작업을 마치고 다음 단계를 기다리고 있어요" : `${task.status}이에요`,
+    char: task.char, charAlt: `${task.title} 작업 중인 Plotto`,
+    steps: task.steps.map(([title, desc], i) => ({ status: st[i], title, desc })),
+  };
+  return <ProgressSheet data={data} onClose={onClose} onToast={onToast} />;
+}
 
 export function ReferenceSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
   return <ProgressSheet data={REFERENCE_PROGRESS} onClose={onClose} onToast={onToast} />;
