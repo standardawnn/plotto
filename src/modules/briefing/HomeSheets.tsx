@@ -40,18 +40,20 @@ const PLAN_ORIGINAL: PlanSection[] = [
   },
 ];
 
-export function readPlan(): PlanSection[] {
+/** 편집 문서 저장/불러오기 (브라우저 localStorage). 문서마다 키가 다르다. */
+function readDoc(key: string, original: PlanSection[]): PlanSection[] {
   try {
-    const v = JSON.parse(localStorage.getItem(PLAN_KEY) || "null");
-    if (v && Array.isArray(v.sections) && v.sections.length === PLAN_ORIGINAL.length
+    const v = JSON.parse(localStorage.getItem(key) || "null");
+    if (v && Array.isArray(v.sections) && v.sections.length === original.length
       && v.sections.every((s: PlanSection) => typeof s?.heading === "string" && Array.isArray(s.blocks) && s.blocks.every(b => typeof b === "string")))
       return v.sections;
   } catch { /* storage unavailable → original text */ }
-  return PLAN_ORIGINAL;
+  return original;
 }
-function savePlan(sections: PlanSection[]) {
-  localStorage.setItem(PLAN_KEY, JSON.stringify({ title: PLAN_TITLE, sections, savedAt: new Date().toISOString() }));
+function saveDoc(key: string, title: string, sections: PlanSection[]) {
+  localStorage.setItem(key, JSON.stringify({ title, sections, savedAt: new Date().toISOString() }));
 }
+export const readPlan = () => readDoc(PLAN_KEY, PLAN_ORIGINAL);
 
 /* ---------------- shared bits ---------------- */
 
@@ -122,14 +124,14 @@ function SourceIcon({ kind }: { kind: string }) {
   return kind === "pdf" ? <span className="revision-file-icon"><img src={`${R}pdf.svg`} alt="" /></span> : <DocIcon />;
 }
 
-/** 마감 임박 작업 팝업(카드형). 기획안 수정하기 · 디자인 피드백이 같은 틀을 쓴다. */
-type TaskItem = { title: string; who: string; time: string; emphasis: string; comment: string; proposal: string };
+/** 마감 임박 작업 팝업(카드형). 네 작업 모두 같은 틀·같은 버튼(직접 수정 / 수정 파일 보기)을 쓴다. */
+type TaskItem = { title: string; who: string; time: string; emphasis: string; comment: string; proposal: string; original?: string };
 type TaskData = {
   project: string; due: string; title: string; desc: string; label: string;
   items: TaskItem[]; sources: { name: string; kind: string }[];
   mates: { name: string; role: string; title: string; img: string; crop: string }[];
 };
-function TaskSheet({ data, onClose, onToast, secondary, primary }: { data: TaskData; onClose: () => void; onToast: (t: string) => void; secondary: [string, () => void]; primary: [string, () => void] }) {
+function TaskSheet({ data, onClose, onToast, onEdit, onViewFile }: { data: TaskData; onClose: () => void; onToast: (t: string) => void; onEdit: () => void; onViewFile: () => void }) {
   return (
     <BottomSheet title={data.title} legacy onClose={onClose}
       head={<>
@@ -138,8 +140,8 @@ function TaskSheet({ data, onClose, onToast, secondary, primary }: { data: TaskD
         <p className="hs-desc">{data.desc}</p>
       </>}
       footer={<div className="hs-foot">
-        <button type="button" className="hs-btn ghost" onClick={secondary[1]}>{secondary[0]}</button>
-        <button type="button" className="hs-btn primary" onClick={primary[1]}>{primary[0]}</button>
+        <button type="button" className="hs-btn ghost" onClick={onEdit}>직접 수정</button>
+        <button type="button" className="hs-btn primary" onClick={onViewFile}>수정 파일 보기</button>
       </div>}>
       <div className="hs-sec"><img src={`${R}sparkle.svg`} alt="" /><span>{data.label} <b>{data.items.length}</b>건</span></div>
       <div className="hs-sugg">
@@ -179,19 +181,18 @@ const PLAN_TASK: TaskData = {
   sources: SOURCES, mates: MATES.map(m => ({ ...m })),
 };
 
-export function PlanSheet({ onClose, onEdit, onViewFile, onToast }: { onClose: () => void; onEdit: () => void; onViewFile: () => void; onToast: (t: string) => void }) {
-  return <TaskSheet data={PLAN_TASK} onClose={onClose} onToast={onToast} secondary={["수정 파일 보기", onViewFile]} primary={["직접 수정", onEdit]} />;
-}
-
 // 디자인 피드백 (청년 참여 프로젝트). 데모용 데이터: 팀원 의견 → Plotto 정리안.
 const [YUJIN, TAEHUN] = MATES;
 const DESIGN_FEEDBACK_TASK: TaskData = {
   project: "청년 참여 프로젝트", due: "D-1", title: "디자인 피드백", label: "피드백",
   desc: "팀원들이 디자인 시안에 남긴 의견을 Plotto가 정리했어요",
   items: [
-    { title: "메인 컬러", who: "유진", time: "어제", emphasis: "버튼 색이 배경과 비슷해서", comment: " 잘 안 보여.", proposal: "주요 버튼은 브랜드 블루(#536FFA)로 통일하고, 배경과 충분히 대비되도록 바꿔요." },
-    { title: "타이포그래피", who: "태훈", time: "어제", emphasis: "제목과 본문 크기 차이가 작아서", comment: " 위계가 잘 안 느껴져.", proposal: "제목은 22px 굵게, 본문은 15px로 정리해 정보의 순서가 한눈에 보이게 해요." },
-    { title: "아이콘", who: "유진", time: "5시간 전", emphasis: "화면마다 아이콘 스타일이 달라서", comment: " 통일하면 좋겠어.", proposal: "선 두께 1.8px의 라운드 라인 아이콘으로 모든 화면의 아이콘을 맞춰요." },
+    { title: "메인 컬러", who: "유진", time: "어제", emphasis: "버튼 색이 배경과 비슷해서", comment: " 잘 안 보여.", proposal: "주요 버튼은 브랜드 블루(#536FFA)로 통일하고, 배경과 충분히 대비되도록 바꿔요.",
+      original: "주요 버튼은 연보라색(#C9CFFD) 배경에 흰 글씨로 표시한다." },
+    { title: "타이포그래피", who: "태훈", time: "어제", emphasis: "제목과 본문 크기 차이가 작아서", comment: " 위계가 잘 안 느껴져.", proposal: "제목은 22px 굵게, 본문은 15px로 정리해 정보의 순서가 한눈에 보이게 해요.",
+      original: "제목은 18px, 본문은 16px로 표시한다." },
+    { title: "아이콘", who: "유진", time: "5시간 전", emphasis: "화면마다 아이콘 스타일이 달라서", comment: " 통일하면 좋겠어.", proposal: "선 두께 1.8px의 라운드 라인 아이콘으로 모든 화면의 아이콘을 맞춰요.",
+      original: "화면마다 필요한 아이콘을 각각 골라 사용한다." },
   ],
   sources: [{ name: "디자인 시안 v2", kind: "pdf" }, { name: "피드백 회의록", kind: "doc" }],
   mates: [
@@ -205,9 +206,12 @@ const DEADLINE_TASKS: Record<"refcheck" | "guicheck", TaskData & { progressId: s
     progressId: "rc-ref", project: "자원순환프로젝트", due: "D-3", title: "레퍼런스 정리", label: "확인 요청",
     desc: "Plotto가 모은 캠페인 사례 중 확인이 필요한 부분을 정리했어요",
     items: [
-      { title: "사례 범위", who: "태훈", time: "2시간 전", emphasis: "해외 사례까지 넣을지", comment: " 정해야 해.", proposal: "국내 지자체 캠페인 8건을 중심으로 두고, 참고용 해외 사례 2건만 따로 묶어요." },
-      { title: "정리 기준", who: "유진", time: "어제", emphasis: "사례마다 비교 기준이 달라서", comment: " 한눈에 안 들어와.", proposal: "메시지·홍보 채널·참여 방식 세 가지 기준으로 표를 맞춰 정리해요." },
-      { title: "활용 방향", who: "태훈", time: "어제", emphasis: "포스터 시안에 바로 쓸 수 있게", comment: " 정리해 주면 좋겠어.", proposal: "사례마다 포스터에 참고할 문구와 이미지 포인트를 한 줄씩 덧붙여요." },
+      { title: "사례 범위", who: "태훈", time: "2시간 전", emphasis: "해외 사례까지 넣을지", comment: " 정해야 해.", proposal: "국내 지자체 캠페인 8건을 중심으로 두고, 참고용 해외 사례 2건만 따로 묶어요.",
+        original: "국내외 자원순환 캠페인 사례를 구분 없이 수집한다." },
+      { title: "정리 기준", who: "유진", time: "어제", emphasis: "사례마다 비교 기준이 달라서", comment: " 한눈에 안 들어와.", proposal: "메시지·홍보 채널·참여 방식 세 가지 기준으로 표를 맞춰 정리해요.",
+        original: "사례마다 눈에 띄는 특징을 자유롭게 메모해 정리한다." },
+      { title: "활용 방향", who: "태훈", time: "어제", emphasis: "포스터 시안에 바로 쓸 수 있게", comment: " 정리해 주면 좋겠어.", proposal: "사례마다 포스터에 참고할 문구와 이미지 포인트를 한 줄씩 덧붙여요.",
+        original: "수집한 사례는 팀 회의 참고 자료로 사용한다." },
     ],
     sources: [{ name: "자원순환 캠페인 사례 모음", kind: "pdf" }, { name: "10.20 회의록", kind: "doc" }],
     mates: [
@@ -219,9 +223,12 @@ const DEADLINE_TASKS: Record<"refcheck" | "guicheck", TaskData & { progressId: s
     progressId: "yh-gui", project: "청년 도움 프로젝트", due: "D-5", title: "GUI 제작", label: "확인 요청",
     desc: "프론트엔드에 전달하기 전에 확인이 필요한 화면을 정리했어요",
     items: [
-      { title: "메인 화면", who: "유진", time: "3시간 전", emphasis: "주요 버튼 위치가", comment: " 화면마다 조금씩 달라.", proposal: "주요 버튼은 모든 화면에서 하단 고정 위치로 통일해요." },
-      { title: "상세 화면", who: "태훈", time: "어제", emphasis: "정보가 너무 많아서", comment: " 스크롤이 길어.", proposal: "핵심 정보만 먼저 보여 주고, 나머지는 펼쳐 보기로 접어 둬요." },
-      { title: "전달 파일", who: "유진", time: "어제", emphasis: "개발자가 바로 쓸 수 있게", comment: " 간격이랑 색 값을 적어 줘.", proposal: "화면별 간격·색상·폰트 값을 정리한 가이드 파일을 함께 전달해요." },
+      { title: "메인 화면", who: "유진", time: "3시간 전", emphasis: "주요 버튼 위치가", comment: " 화면마다 조금씩 달라.", proposal: "주요 버튼은 모든 화면에서 하단 고정 위치로 통일해요.",
+        original: "주요 버튼은 화면 구성에 맞춰 위치를 정한다." },
+      { title: "상세 화면", who: "태훈", time: "어제", emphasis: "정보가 너무 많아서", comment: " 스크롤이 길어.", proposal: "핵심 정보만 먼저 보여 주고, 나머지는 펼쳐 보기로 접어 둬요.",
+        original: "상세 화면에는 작업에 필요한 모든 정보를 한 번에 보여 준다." },
+      { title: "전달 파일", who: "유진", time: "어제", emphasis: "개발자가 바로 쓸 수 있게", comment: " 간격이랑 색 값을 적어 줘.", proposal: "화면별 간격·색상·폰트 값을 정리한 가이드 파일을 함께 전달해요.",
+        original: "완성된 화면 이미지를 프론트엔드 담당에게 전달한다." },
     ],
     sources: [{ name: "GUI 시안 v3", kind: "pdf" }, { name: "화면 구조도", kind: "doc" }],
     mates: [
@@ -230,17 +237,23 @@ const DEADLINE_TASKS: Record<"refcheck" | "guicheck", TaskData & { progressId: s
     ],
   },
 };
-export function DeadlineTaskSheet({ kind, onClose, onToast, onProgress }: { kind: "refcheck" | "guicheck"; onClose: () => void; onToast: (t: string) => void; onProgress: (taskId: string) => void }) {
-  const data = DEADLINE_TASKS[kind];
-  return <TaskSheet data={data} onClose={onClose} onToast={onToast}
-    secondary={["진행 상황 보기", () => onProgress(data.progressId)]}
-    primary={["확인 완료", () => { onClose(); onToast(`${data.title} 확인을 완료했어요`); }]} />;
+/* 작업별 문서: '직접 수정'은 원문(original)을 편집, '수정 파일 보기'는 제안이 반영된 수정본을 보여 준다.
+   기획안은 기존 1차 기획안 편집 화면과 기존 '기획안_수정' 검토 화면(DocFlow)을 그대로 쓴다. */
+export type TaskKind = "plan" | "feedback" | "refcheck" | "guicheck";
+type TaskDoc = { data: TaskData; docTitle: string; key: string };
+const TASK_DOCS: Record<TaskKind, TaskDoc> = {
+  plan: { data: PLAN_TASK, docTitle: PLAN_TITLE, key: PLAN_KEY },
+  feedback: { data: DESIGN_FEEDBACK_TASK, docTitle: "디자인 시안 v2", key: "plotto-doc-design-feedback-v1" },
+  refcheck: { data: DEADLINE_TASKS.refcheck, docTitle: "자원순환 캠페인 사례 모음", key: "plotto-doc-reference-v1" },
+  guicheck: { data: DEADLINE_TASKS.guicheck, docTitle: "GUI 시안 v3", key: "plotto-doc-gui-v1" },
+};
+function docOriginal(kind: TaskKind): PlanSection[] {
+  if (kind === "plan") return PLAN_ORIGINAL;
+  return TASK_DOCS[kind].data.items.map((it, i) => ({ heading: `${i + 1}. ${it.title}`, blocks: [it.original ?? ""] }));
 }
 
-export function DesignFeedbackSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
-  return <TaskSheet data={DESIGN_FEEDBACK_TASK} onClose={onClose} onToast={onToast}
-    secondary={["시안 파일 보기", () => onToast("'디자인 시안 v2' 원본 파일은 아직 연결되지 않았어요")]}
-    primary={["확인 완료", () => { onClose(); onToast("디자인 피드백을 확인했어요"); }]} />;
+export function DeadlineTaskSheet({ kind, onClose, onToast, onEdit, onViewFile }: { kind: TaskKind; onClose: () => void; onToast: (t: string) => void; onEdit: () => void; onViewFile: () => void }) {
+  return <TaskSheet data={TASK_DOCS[kind].data} onClose={onClose} onToast={onToast} onEdit={onEdit} onViewFile={onViewFile} />;
 }
 
 /* ---------------- 직접 수정: 10.11 1차 기획안 편집 ---------------- */
@@ -253,9 +266,10 @@ function AutoText({ value, onChange, label }: { value: string; onChange: (v: str
   return <textarea ref={ref} className="pe-text" aria-label={label} value={value} rows={1} spellCheck={false} onChange={e => onChange(e.target.value)} />;
 }
 
-export function PlanEditor({ onBack, onSaved }: { onBack: () => void; onSaved: () => void }) {
+export function PlanEditor({ kind = "plan", onBack, onSaved }: { kind?: TaskKind; onBack: () => void; onSaved: () => void }) {
   const reduced = useReducedMotion();
-  const [saved] = useState<PlanSection[]>(readPlan);
+  const doc = TASK_DOCS[kind];
+  const [saved] = useState<PlanSection[]>(() => readDoc(doc.key, docOriginal(kind)));
   const [draft, setDraft] = useState<PlanSection[]>(saved);
   const [error, setError] = useState("");
   const [confirm, setConfirm] = useState(false);
@@ -264,7 +278,7 @@ export function PlanEditor({ onBack, onSaved }: { onBack: () => void; onSaved: (
   useEffect(() => { if (confirm) dialog.current?.showModal(); else if (dialog.current?.open) dialog.current.close(); }, [confirm]);
 
   const save = () => {
-    try { savePlan(draft); setError(""); onSaved(); }
+    try { saveDoc(doc.key, doc.docTitle, draft); setError(""); onSaved(); }
     catch { setError("저장하지 못했어요. 다시 시도해 주세요."); }
   };
   const back = () => (dirty ? setConfirm(true) : onBack());
@@ -276,11 +290,11 @@ export function PlanEditor({ onBack, onSaved }: { onBack: () => void; onSaved: (
       <header className="pe-head">
         <div className="pe-bar">
           <button type="button" className="pe-back" aria-label="뒤로가기" onClick={back}><img src={`${R}back.svg`} alt="" /></button>
-          <h1>{PLAN_TITLE}</h1>
+          <h1>{doc.docTitle}</h1>
           <button type="button" className="pe-more" aria-label="더보기" tabIndex={-1} style={{ cursor: "default" }}><img src={`${R}more.svg`} alt="" /></button>
         </div>
         <div className="pe-info">
-          <span className="pe-chip"><DocIcon />{PLAN_TITLE}</span>
+          <span className="pe-chip"><DocIcon />{doc.docTitle}</span>
           <span className="pe-state" aria-live="polite"><i aria-hidden="true" />수정중</span>
         </div>
       </header>
@@ -302,6 +316,41 @@ export function PlanEditor({ onBack, onSaved }: { onBack: () => void; onSaved: (
         <p id="pe-confirm-title">저장하지 않은 수정 내용이 있어요.</p>
         <div><button type="button" autoFocus onClick={() => setConfirm(false)}>계속 수정하기</button><button type="button" onClick={() => { setConfirm(false); onBack(); }}>저장 안 하고 나가기</button></div>
       </dialog>
+    </motion.div>
+  );
+}
+
+/* ---------------- 수정 파일 보기 (기획안 외 작업) ----------------
+   제안이 반영된 수정본을 읽기 전용으로 보여 준다. 바뀐 문장은 기획안_수정 화면처럼 연파랑 하이라이트. */
+export function TaskFileView({ kind, onBack }: { kind: Exclude<TaskKind, "plan">; onBack: () => void }) {
+  const reduced = useReducedMotion();
+  const doc = TASK_DOCS[kind];
+  const fileName = `${doc.docTitle}_수정`;
+  return (
+    <motion.div className="pe-screen" data-no-lift initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ duration: reduced ? 0 : .45, ease: EASE }}>
+      <div className="integration-status" style={{ position: "absolute", zIndex: 5 }} aria-hidden="true"><span>9:41</span><i /><img src="/assets/intervention/8b917.svg" alt="" /></div>
+      <header className="pe-head">
+        <div className="pe-bar">
+          <button type="button" className="pe-back" aria-label="뒤로가기" onClick={onBack}><img src={`${R}back.svg`} alt="" /></button>
+          <h1>{fileName}</h1>
+          <button type="button" className="pe-more" aria-label="더보기" tabIndex={-1} style={{ cursor: "default" }}><img src={`${R}more.svg`} alt="" /></button>
+        </div>
+        <div className="pe-info">
+          <span className="pe-chip"><img src={`${R}pdf.svg`} alt="" style={{ width: 12, height: 16 }} />{fileName}</span>
+          <span className="pe-state"><i aria-hidden="true" style={{ background: "#536ffa" }} />수정 {doc.data.items.length}건 반영</span>
+        </div>
+      </header>
+      <div className="pe-scroll">
+        <div className="pe-doc" style={{ paddingBottom: 60 }}>
+          {doc.data.items.map((it, i) => (
+            <section key={it.title} className="pe-section">
+              <h2>{i + 1}. {it.title}</h2>
+              <p className="pf-text"><span>{it.proposal}</span></p>
+              <p className="pf-note"><b>{it.who}</b> {it.emphasis}{it.comment}</p>
+            </section>
+          ))}
+        </div>
+      </div>
     </motion.div>
   );
 }

@@ -3,7 +3,7 @@ import { korean, mmdd, mmddCompact, mmddDay } from '../../today';
 import { useEffect, useRef, useState } from "react";
 import { animate, motion, AnimatePresence } from "motion/react";
 import DocFlow from "./DocFlow";
-import { DeadlineTaskSheet, DesignFeedbackSheet, DesignProgressSheet, PlanEditor, PlanSheet, ReferenceSheet, TaskProgressSheet, Toast, useToast } from "./HomeSheets";
+import { DeadlineTaskSheet, DesignProgressSheet, PlanEditor, ReferenceSheet, TaskFileView, TaskProgressSheet, Toast, useToast, type TaskKind } from "./HomeSheets";
 import { PROJECT_CHIPS, TASKS, DEADLINES, barColor, type DeadlineSheet, type HomeTask } from "./homeData";
 // 홈 카드 → 팝업 연결. 전용 팝업이 있는 작업은 아래 키로, 나머지 진행 카드는 TaskProgressSheet로 연다.
 type SheetKey = DeadlineSheet | "ref" | "design";
@@ -491,8 +491,8 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
  const [sheet,setSheet]=useState<null|SheetKey>(null);
  const [taskSheet,setTaskSheet]=useState<HomeTask|null>(null);
  const openTask=(id:string)=>{const t=TASKS.find(x=>x.id===id);if(!t)return;if(TASK_SHEET[id])setSheet(TASK_SHEET[id]);else setTaskSheet(t);};
- const [editing,setEditing]=useState(false);
- const [fileOpen,setFileOpen]=useState(false);
+ const [editing,setEditing]=useState<TaskKind|null>(null);
+ const [fileOpen,setFileOpen]=useState<TaskKind|null>(null);
  const [toast,showToast]=useToast();
  const homeRef=useRef<HTMLDivElement>(null);
  const [homeW,setHomeW]=useState(BASE_W);
@@ -614,18 +614,19 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
         </div>
       </nav>
       <AnimatePresence>
-        {sheet === "plan" && <PlanSheet key="plan" onClose={() => setSheet(null)} onEdit={() => setEditing(true)} onViewFile={() => setFileOpen(true)} onToast={showToast} />}
+        {sheet && sheet !== "ref" && sheet !== "design" && <DeadlineTaskSheet key={sheet} kind={sheet} onClose={() => setSheet(null)} onToast={showToast}
+          onEdit={() => setEditing(sheet)} onViewFile={() => setFileOpen(sheet)} />}
         {sheet === "ref" && <ReferenceSheet key="ref" onClose={() => setSheet(null)} onToast={showToast} />}
-        {sheet === "feedback" && <DesignFeedbackSheet key="feedback" onClose={() => setSheet(null)} onToast={showToast} />}
         {sheet === "design" && <DesignProgressSheet key="design" onClose={() => setSheet(null)} onToast={showToast} />}
-        {(sheet === "refcheck" || sheet === "guicheck") && <DeadlineTaskSheet key={sheet} kind={sheet} onClose={() => setSheet(null)} onToast={showToast}
-          onProgress={(id) => { setSheet(null); openTask(id); }} />}
         {taskSheet && <TaskProgressSheet key={taskSheet.id} task={taskSheet} onClose={() => setTaskSheet(null)} onToast={showToast} />}
       </AnimatePresence>
       <AnimatePresence>
-        {editing && <PlanEditor key="editor" onBack={() => setEditing(false)} onSaved={() => { setEditing(false); showToast("기획안을 저장했어요"); }} />}
+        {editing && <PlanEditor key={`editor-${editing}`} kind={editing} onBack={() => setEditing(null)} onSaved={() => { setEditing(null); showToast(editing === "plan" ? "기획안을 저장했어요" : "수정 내용을 저장했어요"); }} />}
       </AnimatePresence>
-      <AnimatePresence>{fileOpen && <div key="file" className="absolute inset-0 z-[60]" data-no-lift><DocFlow s={homeW / BASE_W} onClose={() => setFileOpen(false)} /></div>}</AnimatePresence>
+      <AnimatePresence>
+        {fileOpen === "plan" && <div key="file" className="absolute inset-0 z-[60]" data-no-lift><DocFlow s={homeW / BASE_W} onClose={() => setFileOpen(null)} /></div>}
+        {fileOpen && fileOpen !== "plan" && <TaskFileView key={`file-${fileOpen}`} kind={fileOpen} onBack={() => setFileOpen(null)} />}
+      </AnimatePresence>
       <Toast text={toast} />
     </div>
   );

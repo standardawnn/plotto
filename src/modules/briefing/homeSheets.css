@@ -140,6 +140,10 @@ html[data-host="device"] .pe-head{padding-top:max(8px,env(safe-area-inset-top))}
 .pe-text{display:block;width:100%;border:0;outline:none;resize:none;overflow:hidden;background:transparent;padding:0;margin:0;font:400 16px/1.7 Pretendard,sans-serif;letter-spacing:.5px;color:#525966;word-break:normal;overflow-wrap:anywhere;border-radius:4px;transition:background-color .2s}
 .pe-text+.pe-text{margin-top:8px}
 .pe-text:focus{background:rgba(83,111,250,.06)}
+.pf-text{margin:0;font-size:16px;line-height:1.7;letter-spacing:.5px;color:#525966}
+.pf-text span{background:#e7edff;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.pf-note{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:#fff;font-size:13px;line-height:1.5;color:#7c8494}
+.pf-note b{color:#3f4450;font-weight:600;margin-right:4px}
 .pe-foot{position:absolute;left:0;right:0;bottom:0;padding:18px 20px calc(env(safe-area-inset-bottom,0px) + 29px);pointer-events:none}
 .pe-foot button{pointer-events:auto;display:block;width:100%;max-width:720px;margin:0 auto;height:54px;border:0;border-radius:12px;background:#536ffa;color:#fff;font-size:16px;font-weight:600;line-height:1.5;transition:transform .15s}
 .pe-foot button:active{transform:scale(.98)}
