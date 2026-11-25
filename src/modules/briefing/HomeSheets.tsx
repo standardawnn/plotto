@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { feedback } from "./revisionData";
 import { MATES } from "./DocFlow";
-import type { HomeTask } from "./homeData";
+import { CHAR_SEARCH, type HomeTask } from "./homeData";
 import "./revision.css";
 import "./homeSheets.css";
 
@@ -398,7 +398,7 @@ function ProgressSheet({ data, onClose, onToast }: { data: ProgressData; onClose
 
 const REFERENCE_PROGRESS: ProgressData = {
   project: "마케팅 공모전", title: "레퍼런스 정리", pct: 100, label: "자료정리", message: "팀원들에게 전달할 준비가 완료됐어요",
-  char: "/extra/p3.png", charAlt: "돋보기로 자료를 살펴보는 Plotto",
+  char: CHAR_SEARCH, charAlt: "돋보기로 자료를 살펴보는 Plotto",
   steps: [
     { status: "done", title: "수상작 사례 수집", desc: "공모전 수상작 이미지를 정리하고 수상 요인을 분석했어요" },
     { status: "done", title: "레퍼런스 파일 정리", desc: "사례별로 컨셉과 시각자료를 묶어서 정리했어요", file: "공모전 수상작 레퍼런스 정리_plotto.pdf" },

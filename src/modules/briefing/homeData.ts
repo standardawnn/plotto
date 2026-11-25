@@ -8,9 +8,11 @@ export type HomeTask = {
 };
 
 const X = "/extra/";
+// 돋보기 Plotto: extra/p3.png는 스프라이트에서 잘라내며 위쪽에 다른 캐릭터 조각이 붙어 있어 고해상도 원본을 쓴다
+export const CHAR_SEARCH = "/assets/reference-motion/char_qurious.webp";
 export const TASKS: HomeTask[] = [
   // 마케팅 공모전
-  { id: "mk-ref", project: "마케팅 공모전", title: "레퍼런스 정리", status: "팀원에게 자료 전달 대기 중", pct: 100, char: `${X}p3.png`, steps: [] },
+  { id: "mk-ref", project: "마케팅 공모전", title: "레퍼런스 정리", status: "팀원에게 자료 전달 대기 중", pct: 100, char: CHAR_SEARCH, steps: [] },
   { id: "mk-design", project: "마케팅 공모전", title: "디자인 시안 수정", status: "수정안 작성 중", pct: 60, char: `${X}desk.png`, steps: [] },
   { id: "mk-copy", project: "마케팅 공모전", title: "홍보 문구 작성", status: "카피 초안 작성 중", pct: 40, char: `${X}q1.png`,
     steps: [["브랜드 톤 정리", "기획안의 핵심 메시지와 말투를 정리했어요"], ["카피 초안 작성", "SNS용 홍보 문구 초안을 쓰고 있어요"], ["팀원 검토 요청", "초안이 완성되면 팀원에게 검토를 요청해요"]] },
@@ -21,7 +23,7 @@ export const TASKS: HomeTask[] = [
     steps: [["화면 구조 정리", "주요 화면과 이동 흐름을 정리했어요"], ["GUI 디자인", "메인·상세 화면 GUI를 만들고 있어요"], ["프론트엔드 전달", "완성되면 개발 담당에게 전달해요"]] },
   { id: "yh-schedule", project: "청년 도움 프로젝트", title: "개발 일정 정리", status: "팀원 스케줄 취합 중", pct: 25, char: `${X}q2.png`,
     steps: [["팀원 스케줄 취합", "팀원별 가능한 시간을 모으고 있어요"], ["개발 일정표 작성", "기능별 개발 순서와 기간을 정리해요"], ["팀원에게 공유", "확정된 일정을 팀원에게 공유해요"]] },
-  { id: "yh-interview", project: "청년 도움 프로젝트", title: "사용자 인터뷰 정리", status: "인사이트 정리 중", pct: 80, char: `${X}p3.png`,
+  { id: "yh-interview", project: "청년 도움 프로젝트", title: "사용자 인터뷰 정리", status: "인사이트 정리 중", pct: 80, char: CHAR_SEARCH,
     steps: [["인터뷰 녹취 정리", "인터뷰 5건의 녹취를 정리했어요"], ["인사이트 도출", "공통으로 나온 불편함을 묶어서 정리하고 있어요"], ["기획 반영 요청", "정리가 끝나면 기획 담당에게 전달해요"]] },
   { id: "yh-feedback", project: "청년 도움 프로젝트", title: "디자인 피드백 반영", status: "피드백 3건 반영 중", pct: 60, char: `${X}desk.png`,
     steps: [["피드백 정리", "팀원들이 남긴 디자인 의견 3건을 정리했어요"], ["시안 반영", "컬러·타이포·아이콘 의견을 시안에 반영하고 있어요"], ["팀원 확인 요청", "반영이 끝나면 팀원에게 확인을 요청해요"]] },
@@ -30,7 +32,7 @@ export const TASKS: HomeTask[] = [
     steps: [["캠페인 메시지 정리", "분리배출 캠페인의 핵심 문구를 정했어요"], ["포스터 시안 제작", "시안 2종을 만들고 있어요"], ["팀원 투표", "완성되면 팀원 투표로 최종안을 골라요"]] },
   { id: "rc-pickup", project: "자원순환프로젝트", title: "수거 일정 정리", status: "지역별 수거 요일 확인 중", pct: 25, char: `${X}q2.png`,
     steps: [["지역별 요일 확인", "구청 공지에서 지역별 수거 요일을 확인하고 있어요"], ["일정표 정리", "한눈에 볼 수 있는 표로 정리해요"], ["홍보물에 반영", "정리한 일정을 홍보물에 넣어요"]] },
-  { id: "rc-ref", project: "자원순환프로젝트", title: "레퍼런스 정리", status: "캠페인 사례 수집 중", pct: 70, char: `${X}p3.png`,
+  { id: "rc-ref", project: "자원순환프로젝트", title: "레퍼런스 정리", status: "캠페인 사례 수집 중", pct: 70, char: CHAR_SEARCH,
     steps: [["캠페인 사례 수집", "다른 지역의 자원순환 캠페인 사례를 모았어요"], ["레퍼런스 파일 정리", "사례별로 메시지와 홍보 방식을 정리하고 있어요"], ["팀원에게 전달", "정리가 끝나면 팀원에게 전달해요"]] },
   { id: "rc-survey", project: "자원순환프로젝트", title: "설문지 제작", status: "팀원 검토 대기 중", pct: 100, char: `${X}check.png`,
     steps: [["문항 구성", "분리배출 습관을 묻는 문항 12개를 만들었어요"], ["설문지 완성", "설문 폼으로 옮겨 응답 흐름을 확인했어요"], ["팀원 검토", "팀원 검토를 기다리고 있어요"]] },
