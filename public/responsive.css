@@ -306,3 +306,113 @@ html.ov:not(.ov-done) .experience > .composer,
 html.ov:not(.ov-done) .experience > .idle-character,
 html.ov:not(.ov-done) .experience > .bottom-glow { visibility: hidden !important; }
 html.ov .experience > .close-button { visibility: visible !important; z-index: 50; }
+
+/* while the question panel is shown, no typing at all */
+html.ov-open .composer-area, html.ov-open .keyboard { pointer-events: none !important; }
+.phase-pull .composer, .phase-reveal .composer, .phase-pull .composer input, .phase-reveal .composer input { pointer-events: none !important; -webkit-user-select: none; user-select: none; }
+
+/* question panel shown: freeze page scrolling/panning so the screen cannot slide away */
+html.ov-open, html.ov-open body { overscroll-behavior: none !important; touch-action: none; }
+html.ov:not(.ov-done), html.ov:not(.ov-done) body { overflow: hidden !important; overscroll-behavior: none !important; touch-action: manipulation; }
+html.ov:not(.ov-done) input { pointer-events: none !important; }
+
+/* topic recommendation box: breathing room around the two white cards */
+html[data-flow="intervention"] .recommendations { padding: 22px 20px 22px !important; }
+html[data-flow="intervention"] .recommendations h2 { margin: 0 0 18px !important; }
+html[data-flow="intervention"] .topic-options { gap: 14px !important; }
+
+
+/* ---- 2026-10-28: edge-to-edge. Screens extend behind the status bar (like edgesIgnoringSafeArea(.top));
+   --sat is the safe-area top inset, injected by the shell. Hero/header artwork grows by --sat and its content moves down by --sat. ---- */
+html[data-flow="project"] .hero { height: calc(288px + var(--sat, 0px)) !important; padding-top: calc(32px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .hero-art { top: calc(100px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .continue-button { top: calc(216px + var(--sat, 0px)) !important; }
+html[data-flow="intervention"] .page-header { height: calc(75px + var(--sat, 0px)) !important; padding-top: calc(32px + var(--sat, 0px)) !important; }
+html[data-flow="intervention"] .page-header .back-button { top: calc(22px + var(--sat, 0px)) !important; }
+html[data-flow="booking"] .hero { height: calc(283px + var(--sat, 0px)) !important; flex-basis: calc(283px + var(--sat, 0px)) !important; }
+html[data-flow="booking"] .screen-1 .hero { height: calc(282px + var(--sat, 0px)) !important; flex-basis: calc(282px + var(--sat, 0px)) !important; }
+html[data-flow="booking"] .back-button { top: calc(22px + var(--sat, 0px)) !important; }
+html[data-flow="booking"] h1 { top: calc(70px + var(--sat, 0px)) !important; }
+html[data-flow="booking"] .character { top: calc(153px + var(--sat, 0px)) !important; }
+html[data-flow="feedback"] .page { margin-top: calc(-40px + var(--sat, 0px)) !important; }
+html[data-flow="classification"] .experience { margin-top: calc(-40px + var(--sat, 0px)) !important; }
+
+/* ---- 2026-10-28 project home spacing ---- */
+/* title block sat at a fixed 120px while the chip moved down by the status bar: keep the same gap */
+html[data-flow="project"] .hero h1 { top: calc(120px + var(--sat, 0px)) !important; }
+/* clock line under the title moves with it */
+html[data-flow="project"] .last-active { top: calc(180px + var(--sat, 0px)) !important; }
+
+/* ---- 2026-10-28b project home: tighter top margin (status bar + 12px), character sits right on the button ---- */
+html[data-flow="project"] .hero { height: calc(268px + var(--sat, 0px)) !important; padding-top: calc(12px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .hero h1 { top: calc(84px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .last-active { top: calc(144px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .hero-art { top: calc(102px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .continue-button { top: calc(196px + var(--sat, 0px)) !important; }
+
+/* ---- project home (2): tighter spacing, clean edge fades, only the chips under the dotted line are coloured ---- */
+html[data-flow="project"] .hero { height: calc(250px + var(--sat, 0px)) !important; padding-top: calc(10px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .hero h1 { top: calc(62px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .last-active { top: calc(122px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .hero-art { top: calc(84px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .continue-button { top: calc(178px + var(--sat, 0px)) !important; }
+html[data-flow="project"] .schedule-viewport:before,
+html[data-flow="project"] .schedule-viewport:after { filter: none !important; height: 52px !important; top: 0 !important; z-index: 4; }
+html[data-flow="project"] .schedule-viewport:before { left: 0 !important; width: 112px !important; background: linear-gradient(to right, #f4f7fd 0, #f4f7fd 62%, rgba(244,247,253,0) 100%) !important; transform: none !important; }
+html[data-flow="project"] .schedule-viewport:after { right: 0 !important; width: 48px !important; background: linear-gradient(to left, #f4f7fd 0, rgba(244,247,253,0) 100%) !important; transform: none !important; }
+html[data-flow="project"] .date.selected, html[data-flow="project"] .selected-date-line { z-index: 6; }
+html[data-flow="project"] .schedule-row .task { background: #c1c8d8 !important; transition: background-color .15s; }
+html[data-flow="project"] .schedule-row .task.plotto-hit { background: #9693ff !important; }
+
+/* ---- project schedule: the marker tag is a separate overlay (schedule-pin.js); the in-row "selected" date is a plain date ---- */
+html[data-flow="project"] .date.selected { background: transparent !important; border-color: transparent !important; color: #7c8494 !important; flex-basis: var(--schedule-day-width) !important; margin: 0 !important; font-size: 11px !important; font-weight: 400 !important; line-height: 1.273 !important; }
+html[data-flow="project"] .date.selected span:last-child { color: #929aaa !important; font-size: 11px !important; font-weight: 500 !important; }
+html[data-flow="project"] .plotto-pin-chip { position: absolute; width: 52px; height: 50px; box-sizing: border-box; padding: 8px; border-radius: 13px; background: #536ffa; border: 1px solid #536ffa; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; font-size: 12px; font-weight: 600; line-height: 1.334; letter-spacing: .3024px; white-space: nowrap; }
+html[data-flow="project"] .plotto-pin-chip span:last-child { font-size: 11px; font-weight: 500; line-height: 1.273; letter-spacing: .3421px; }
+
+
+/* ---- briefing home: all three deadline cards share one background (the last one sat on the page's bottom gradient and turned lavender) ---- */
+html[data-flow="briefing"] div.rounded-\[20px\].border-\[\#bebfff\] { background-color: #f8f9ff; isolation: isolate; }
+
+/* ---- file-handing character: one pose, smooth horizontal slide only (no up/down, no frame swapping) ---- */
+.handoff-character .handoff-frames { animation: none !important; background-position: 0 100% !important; will-change: transform; }
+.handoff-character.offering .handoff-frames { animation: plotto-handoff-slide 2.8s cubic-bezier(.45, 0, .25, 1) infinite !important; }
+.handoff-character.waiting .handoff-frames { background-position: 0 0 !important; animation: none !important; transform: none; }
+@keyframes plotto-handoff-slide {
+  0%   { transform: translate3d(-24px, 0, 0); }
+  42%  { transform: translate3d(16px, 0, 0); }
+  62%  { transform: translate3d(16px, 0, 0); }
+  100% { transform: translate3d(-24px, 0, 0); }
+}
+
+/* briefing: same page background as the other screens (it was near-black behind the content) */
+html[data-flow="briefing"], html[data-flow="briefing"] body, html[data-flow="briefing"] #root { background: #f4f7fd !important; }
+
+/* briefing dial: the pinch hint hand pulsed (scale 1 -> 1.06) all the time and felt like the screen was shaking/zooming; keep it still */
+html[data-flow="briefing"] img[class*="pinch_1.6s"] { animation: none !important; }
+
+/* proposal (공동세션 제안): the panel overshot (115 -> 482 -> 473) and the grabbing character wobbled -8 / -10 / +5 deg, which looked jittery.
+   One smooth pull, no overshoot; the character just eases in, rides the panel edge and fades out. */
+@keyframes plotto-unfold { 0% { height: calc(115 * var(--v)); } 100% { height: calc(473 * var(--v)); } }
+@keyframes plotto-pull-grip { 0% { opacity: 0; transform: translateY(-8px); } 18% { opacity: 1; transform: translateY(0); } 82% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(0); } }
+html[data-flow="proposal"] .phase-pull .panel-motion { animation: plotto-unfold 1.35s cubic-bezier(.33, 0, .15, 1) forwards !important; }
+html[data-flow="proposal"] .phase-pull .pull-character { animation: plotto-pull-grip 1.65s ease both !important; }
+
+/* co-session: Plotto pulls the file in from the left. No up/down hopping, one smooth slide (character, folder and rope share the same timing so they stay together) */
+html[data-flow="session"] .delivery-character > .asset { animation: none !important; transform: none !important; }
+html[data-flow="session"] .file-delivery .delivery-folder,
+html[data-flow="session"] .delivery-character,
+html[data-flow="session"] .delivery-character::before { animation-duration: 1.35s !important; animation-timing-function: cubic-bezier(.4, 0, .2, 1) !important; will-change: transform; }
+
+html[data-flow="classification"] .analysis-header { margin-top: calc(-1 * max(0px, var(--sat, 0px) - 40px)) !important; height: calc(329px + max(0px, var(--sat, 0px) - 40px)) !important; }
+html[data-flow="classification"] .analysis-header .header-character { top: calc(67px + max(0px, var(--sat, 0px) - 40px)) !important; }
+html[data-flow="classification"] .analysis-header h1 { top: calc(108px + max(0px, var(--sat, 0px) - 40px)) !important; }
+html[data-flow="classification"] .analysis-header .comment { top: calc(192px + max(0px, var(--sat, 0px) - 40px)) !important; }
+html[data-flow="classification"] .experience { overflow-x: clip !important; overflow-y: visible !important; }
+html[data-flow="classification"] .experience { display: flow-root !important; }
+
+/* CTA position unified: bottom edge always 14px above the home-indicator zone (bottom-lift keeps the rest) */
+html[data-flow="booking"] .panel-footer { height: auto !important; padding-bottom: 0 !important; min-height: 0 !important; }
+
+/* 분류 플로우: 전달 후 안내 문구가 CTA를 밀어올리지 않도록 버튼 아래에 띄워 배치 */
+.actions .sent-message{position:absolute;left:0;right:0;top:100%;margin-top:4px;text-align:center}

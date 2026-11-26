@@ -78,6 +78,13 @@ function usePathCheck(url: string | null): PathState {
   return state;
 }
 
+/** 원본 문서를 새 페이지(viewer.html)로 연다. 새 창이 막히면 같은 창에서 열고, 문서 페이지의 뒤로가기로 돌아온다. */
+function openOriginal(fileId: string) {
+  const url = `/viewer.html?file=${encodeURIComponent(fileId)}`;
+  const w = window.open(url, "_blank");
+  if (!w) (window.top ?? window).location.href = url;
+}
+
 function downloadText(file: DemoFile) {
   const text = `${file.title}\n\n${file.sections.map(x => `${x.heading}\n${x.body}`).join("\n\n")}\n`;
   const a = document.createElement("a");
@@ -103,10 +110,8 @@ function FileBody({ s, file, onOpen }: { s: Scenario; file: DemoFile; onOpen: (i
       {file.origin === "sample" && path === "checking" && <p className="dm-note" role="status">파일 경로를 확인하는 중이에요…</p>}
       {file.origin === "sample" && path === "missing" && <p className="dm-error" role="alert">파일 경로를 열 수 없어요: {file.url}<br />본문은 아래에서 읽을 수 있어요.</p>}
       {file.origin === "sample" && path === "ok" && file.url && <div className="dm-actions">
-        {file.kind === "pdf" && <a className="dm-btn primary" href={file.url} target="_blank" rel="noopener">브라우저에서 PDF 보기</a>}
-        <a className="dm-btn ghost" href={file.url} download={file.displayFileName} type={file.mimeType}>{file.kind === "pdf" ? "PDF 다운로드" : "원본 DOCX 다운로드"}</a>
+        <button type="button" className="dm-btn primary" onClick={() => openOriginal(file.id)}>{file.kind === "pdf" ? "PDF 열기" : "DOCX로 열기"}</button>
       </div>}
-      {file.origin === "sample" && file.kind === "docx" && <p className="dm-note">DOCX는 앱에서 본문을 읽고, 원본은 이 샘플 버전({versionLabel(file)}) 파일을 내려받아요.</p>}
       {file.origin === "local" && <>
         <p className="dm-note">이 브라우저에 저장한 버전이에요. 원본 DOCX 파일은 없고, 저장한 본문만 있어요.</p>
         <div className="dm-actions"><button type="button" className="dm-btn ghost" onClick={() => downloadText(file)}>저장한 본문 .txt로 내려받기</button></div>

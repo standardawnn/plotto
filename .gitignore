@@ -3,3 +3,5 @@ dist/
 .qa/
 .vercel
 .env*
+_backup/
+_sheet.png
