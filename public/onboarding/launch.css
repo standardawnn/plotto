@@ -68,3 +68,11 @@ body{background:#f4f7fd url(assets/bg.png) center top/cover no-repeat}
 html,body{overscroll-behavior:none}
 
 #launcher{display:none!important}
+
+/* Done page: keep the motion, title, text and button from overlapping on any screen height.
+   The motion is 26% from the top and up to 44vw/240px tall, while the title/text sat at fixed 447px/518px:
+   on tall or wide screens the motion ran into the title, on short screens the text ran into the button.
+   Phone sizes (375x812, 390x844, 402x874) keep the original 447px/518px; the text only moves when it would overlap. */
+#spin,#spin-fallback{width:min(44vw,240px,22vh)!important;height:min(44vw,240px,22vh)!important}
+#done h2{top:max(calc(26% + min(44vw,240px,22vh) + 24px),min(447px,calc(100% - 235px)))!important}
+#done p{top:calc(max(calc(26% + min(44vw,240px,22vh) + 24px),min(447px,calc(100% - 235px))) + 71px)!important}

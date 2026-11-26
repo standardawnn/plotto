@@ -3,17 +3,24 @@ import { useEffect, useRef, useState } from "react";
 import { useDemo } from "../../demo/useDemo";
 import { DemoGate } from "../../demo/DemoUI";
 import { dueLabel, mmddDayOf } from "../../demo/scenario";
-import { BeforeDetail, NextDetail, NowDetail, buildSteps } from "./BriefingDetails";
+import { BeforeDetail, NowDetail, buildSteps } from "./BriefingDetails"; // Next/Extra detail: StepDetails (dial owner)
 import { PLAN_TASK_ID, planShare, referenceState } from "./planData";
 import { taskOf } from "../../demo/demoStore";
 import { animate, motion, AnimatePresence } from "motion/react";
 import DocFlow from "./DocFlow";
+import ShareEntry from "./ShareEntry";
+import Messages from "./messages/Messages";
+import { touchAiTask } from "./messages/store";
+import { ExtraDetail, NextDetail, extraHeader, NEXT_HEADER, usesDialCharacter } from "./StepDetails";
 import { DeadlineTaskSheet, DesignProgressSheet, PlanEditor, ReferenceSheet, TaskFileView, TaskProgressSheet, Toast, useToast, type TaskKind } from "./HomeSheets";
 import { PROJECT_CHIPS, TASKS, DEADLINES, barColor, type DeadlineSheet, type HomeTask } from "./homeData";
 // 홈 카드 → 팝업 연결. 전용 팝업이 있는 작업은 아래 키로, 나머지 진행 카드는 TaskProgressSheet로 연다.
 type SheetKey = DeadlineSheet | "ref" | "design";
 const TASK_SHEET: Record<string, SheetKey> = { "mk-ref": "ref", "mk-design": "design" };
 import BriefingCharacter from "../../BriefingCharacter";
+import { getWorkStatus, recordBriefingChecked, useWorkStatus } from "../../workStatus";
+import { consumeDemoReset, useDemoWork } from "./demoScenario";
+import { appBack, pushNav, readNav, replaceNav, setNavHere, useNav } from "../../navHistory";
 const IS_IOS = typeof navigator !== 'undefined' && (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
 const A = "/assets/briefing";
@@ -51,10 +58,11 @@ const imgE263 = `${A}/13d51.svg`;
 const imgE264 = `${A}/0edcb.svg`;
 const imgE265 = `${A}/463be.svg`;
 const imgE266 = `${A}/700d0.svg`;
-const imgNavHome = "/brand/nav-home-active.svg";
-const imgNavGrid = "/brand/nav-project.svg";
-const imgNavChat = "/brand/nav-chat.svg";
-const imgNavMy = "/brand/nav-profile.svg";
+const imgNavHomeBar = `${A}/49e20.svg`;
+const imgNavHome = `${A}/e4e8a.svg`;
+const imgNavGrid = `${A}/de536.svg`;
+const imgNavChat = `${A}/fdd84.svg`;
+const imgNavMy = `${A}/d609e.svg`;
 
 const BG =
   "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 402 874' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(-20.1 80.016 -36.804 -67.343 201 73.838)'><stop stop-color='rgba(48,45,110,1)' offset='0'/><stop stop-color='rgba(38,36,85,1)' offset='0.25'/><stop stop-color='rgba(28,26,59,1)' offset='0.5'/><stop stop-color='rgba(18,17,34,1)' offset='0.75'/><stop stop-color='rgba(12,12,21,1)' offset='0.875'/><stop stop-color='rgba(7,7,8,1)' offset='1'/></radialGradient></defs></svg>\"), linear-gradient(180deg, rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0) 51.954%), linear-gradient(270deg, rgb(186, 184, 255) 0%, rgb(180, 225, 255) 40.919%, rgb(232, 246, 255) 76.67%, rgb(199, 233, 255) 89.494%)";
@@ -64,6 +72,12 @@ const BRIEF_CARD_BG =
   "url(\"data:image/svg+xml;utf8,<svg viewBox='0 0 362 196' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'><rect x='0' y='0' height='100%' width='100%' fill='url(%23grad)' opacity='1'/><defs><radialGradient id='grad' gradientUnits='userSpaceOnUse' cx='0' cy='0' r='10' gradientTransform='matrix(-18.1 17.944 -33.142 -15.102 181 16.559)'><stop stop-color='rgba(48,45,110,1)' offset='0'/><stop stop-color='rgba(38,36,85,1)' offset='0.25'/><stop stop-color='rgba(28,26,59,1)' offset='0.5'/><stop stop-color='rgba(18,17,34,1)' offset='0.75'/><stop stop-color='rgba(12,12,21,1)' offset='0.875'/><stop stop-color='rgba(7,7,8,1)' offset='1'/></radialGradient></defs></svg>\")";
 
 // 다이얼 카드 문구는 시나리오(briefing·events·tasks)에서 만든다: BriefingDetails.buildSteps
+// Card index of the current work (workStatus.currentStep)
+const STEP_INDEX = { now: 1, next: 2, extra: 3 } as const;
+const DIAL_STEPS = [
+  { label: "Next", title: "최종 기획안 공유", body: ["최종 확정된 기획안을 연관된", "팀원과 공유해야 해요"] },
+  { label: "Extra", title: "기업분석 보고서 작성", body: ["그 다음 진행해야 할 일이에요", "태훈님이 기다리고 있어요"] },
+];
 // Collapsed stack (design 10:166): Now in front, the rest as offset ghost cards
 const STACK = [
   { x: 30, y: 392, o: 0.7 },
@@ -80,25 +94,32 @@ const HEADER_BOTTOM = 200; // header safe boundary (design px)
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-type View = "dial" | "before" | "now" | "next";
+type View = "dial" | "before" | "now" | "next" | "extra";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-function DeviceChrome({light=false}:{light?:boolean}) {
-  return <><div className={`integration-status ${light?'light':''}`} style={{position:'absolute',zIndex:35}} aria-hidden="true"><span>9:41</span><i/><img src="/assets/intervention/8b917.svg" alt=""/></div><div className="integration-home-indicator" style={{position:'absolute',zIndex:35,background:light?'white':'black'}} aria-hidden="true"/></>;
+function DeviceChrome({light=false,darkIndicator=false}:{light?:boolean;darkIndicator?:boolean}) {
+  return <><div className={`integration-status ${light?'light':''}`} style={{position:'absolute',zIndex:35}} aria-hidden="true"><span>9:41</span><i/><img src="/assets/intervention/8b917.svg" alt=""/></div><div className="integration-home-indicator" style={{position:'absolute',zIndex:35,background:light&&!darkIndicator?'white':'black'}} aria-hidden="true"/></>;
 }
 
 export default function App() {
-  const [screen, setScreen] = useState<"home" | "briefing">(entry === "briefing" ? "briefing" : "home");
+  consumeDemoReset(); // demo only: ?demoReset=1 starts a fresh walk-through
+  // Screen state is kept in the history entry (navHistory.ts): back returns along the path that was taken.
+  const screen = useNav<"home" | "briefing" | "messages">("screen", entry === "messages" ? "messages" : entry === "briefing" ? "briefing" : "home"); // entry=messages: opened from another screen's GNB
+  const toHome = () => setNavHere({ screen: "home" }); // first screen of the app: nothing to go back to
   return (
     <div className="relative w-full h-full overflow-hidden">
       <AnimatePresence mode="wait" initial={false}>
         {screen === "home" ? (
           <motion.div key="home" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-            <Home onBriefing={() => setScreen("briefing")} />
+            <Home onBriefing={() => pushNav({ screen: "briefing", dialView: undefined, docOpen: undefined, shareOpen: undefined, dialRot: undefined })} onMessages={() => pushNav({ screen: "messages", msgRoute: undefined, msgSheet: undefined, aiSheet: undefined })} />
+          </motion.div>
+        ) : screen === "messages" ? (
+          <motion.div key="messages" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+            <Messages onBack={() => appBack(toHome)} onHome={() => pushNav({ screen: "home" })} chrome={(light, dark) => <DeviceChrome light={light} darkIndicator={dark} />} />
           </motion.div>
         ) : (
           <motion.div key="briefing" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-            <Briefing onExit={() => setScreen("home")} />
+            <Briefing onExit={() => appBack(toHome)} onOpenTask={(id) => pushNav({ screen: "messages", msgRoute: { kind: "ai", id }, msgSheet: undefined, aiSheet: undefined })} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -107,24 +128,40 @@ export default function App() {
   );
 }
 
-function Briefing({ onExit }: { onExit: () => void }) {
+function Briefing({ onExit, onOpenTask }: { onExit: () => void; onOpenTask: (id: string) => void }) {
   const demo = useDemo();
   const sc = demo.status === "ready" ? demo.s : null;
-  const STEPS = buildSteps(sc);
+  // Before/Now cards come from the scenario (their details are the scenario details); Next/Extra keep the dial's own
+  // cards so they match the Next/Extra details, the AI chat and the co-session flow (StepDetails).
+  const STEPS = [...buildSteps(sc).slice(0, 2), ...DIAL_STEPS];
   const [refOpen, setRefOpen] = useState(false);
   const [toast, showToast] = useToast();
   const screenRef = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(BASE_W);
   // dialRotation in step units: 0 = Before active, 3 = Extra active
-  const [rot, setRot] = useState(0);
-  const rotRef = useRef(0);
+  // On first entry the dial starts on the current work card (afterwards only the user moves it).
+  // Coming back to the dial (from a detail, the document flow or the AI chat) keeps the card the person was on.
+  const [startRot] = useState<number>(() => readNav("dialRot", STEP_INDEX[getWorkStatus().currentStep]));
+  const [rot, setRot] = useState(startRot);
+  const rotRef = useRef(startRot);
   // spread: 0 = collapsed stack, 1 = fanned out on the dial.
   // Once fanned out it stays that way for this visit, so coming back doesn't start over.
   const wasSpread = (() => { try { return sessionStorage.getItem("plotto-briefing-spread") === "1"; } catch { return false; } })();
   const [sp, setSp] = useState(wasSpread ? 1 : 0);
   const spRef = useRef(wasSpread ? 1 : 0);
-  const [view, setView] = useState<View>("dial");
-  const [docOpen, setDocOpen] = useState(false);
+  // Detail view / document flow / share are history entries: opening pushes, back = history.back().
+  const view = useNav<View>("dialView", "dial");
+  const docOpen = useNav<boolean>("docOpen", false);
+  const shareOpen = useNav<boolean>("shareOpen", false);
+  const setView = (v: View) => pushNav({ dialView: v === "dial" ? undefined : v });
+  const setDocOpen = (open: boolean) => (open ? pushNav({ docOpen: true }) : appBack(() => setNavHere({ docOpen: undefined })));
+  const setShareOpen = (open: boolean) => (open ? pushNav({ shareOpen: true }) : appBack(() => setNavHere({ shareOpen: undefined })));
+  // Shared work status (revision/journey values are re-read when returning from the document flow or a detail view).
+  const [realWork, refreshWork] = useWorkStatus();
+  const work = useDemoWork(realWork); // real values + demo stand-ins (see demoScenario.ts)
+  // Current work card (state: Now -> Next -> Extra). Separate from activeIdx, which is the card the user is browsing.
+  const currentIdx = STEP_INDEX[work.currentStep];
+  useEffect(refreshWork, [docOpen, shareOpen, view, refreshWork]);
   const anim = useRef<ReturnType<typeof animate> | null>(null);
   const spAnim = useRef<ReturnType<typeof animate> | null>(null);
   useEffect(() => () => { anim.current?.stop(); spAnim.current?.stop(); }, []);
@@ -155,6 +192,7 @@ function Briefing({ onExit }: { onExit: () => void }) {
     anim.current?.stop();
     // velocity in steps/s keeps the flick's momentum, so the dial glides into place
     anim.current = animate(rotRef.current, target, { type: "spring", stiffness: 240, damping: 30, velocity, onUpdate: setRotation });
+    replaceNav({ dialRot: target }); // remembered in this history entry
   };
   const spreadTo = (target: number) => {
     spAnim.current?.stop();
@@ -233,10 +271,10 @@ function Briefing({ onExit }: { onExit: () => void }) {
     const d = drag.current;
     if (!d) return;
     drag.current = null;
-    // tap (no real drag) on a card → open its detail screen (Next·Extra 는 다음 할 일 목록)
+    // tap (no real drag) on a card → open its detail screen
     if (d.moved < 6 && d.tap !== null && d.tap >= 0 && d.tap <= 3) {
       if (d.tap !== Math.round(rotRef.current)) snapTo(d.tap);
-      setView(d.tap === 0 ? "before" : d.tap === 1 ? "now" : "next");
+      setView((["before", "now", "next", "extra"] as const)[d.tap]);
       return;
     }
     const now = performance.now();
@@ -270,9 +308,9 @@ function Briefing({ onExit }: { onExit: () => void }) {
   };
 
   const onBack = () => {
-    if (view !== "dial") setView("dial");
+    if (view !== "dial") appBack(() => setNavHere({ dialView: undefined }));
     else if (sp > 0) {
-      snapTo(0);
+      snapTo(currentIdx);
       spreadTo(0);
     } else onExit();
   };
@@ -287,15 +325,17 @@ function Briefing({ onExit }: { onExit: () => void }) {
   const header =
     view === "now" || (view === "dial" && expanded && activeIdx === 1)
       ? ["수정된 기획안을", "확인해주세요"]
-      : view === "next" || (view === "dial" && expanded && activeIdx >= 2)
-        ? ["이어서 해야 할", "작업이에요"]
+      : view === "next" || (view === "dial" && expanded && activeIdx === 2)
+        ? [...NEXT_HEADER]
+        : view === "extra" || (view === "dial" && expanded && activeIdx === 3)
+        ? [...extraHeader(work.extraPhase)]
         : view === "before" || sp > 0.5
         ? ["서연님이 자리를 비운 동안", "회의가 진행됐어요"]
         : ["프로젝트가 어떻게", "진행되는지 함께 살펴요."];
 
   return (
     <div ref={screenRef} className="relative w-full h-full overflow-hidden select-none touch-none" style={{ backgroundImage: BG }}>
-      {!docOpen && <DeviceChrome light/>}
+      {!docOpen && !shareOpen && <DeviceChrome light/>}
       <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-[520px] overflow-clip">
         {/* DialBackground — static: the circles never rotate */}
         <img
@@ -352,17 +392,19 @@ function Briefing({ onExit }: { onExit: () => void }) {
             const dScale = 1 - 0.11 * clamp(d, 0, 1) - 0.09 * clamp(d - 1, 0, 1);
             const dOpacity = 1 - 0.38 * clamp(d, 0, 1) - 0.32 * clamp(d - 1, 0, 1);
             const ang = ((ACTIVE_DEG - offset * GAP_DEG) * Math.PI) / 180;
-            const st = STACK[i];
+            const others = [0, 1, 2, 3].filter(k => k !== currentIdx);
+            const isFront = i === currentIdx; // current work card sits in front of the collapsed stack
+            const st = isFront ? STACK[1] : STACK[[0, 2, 3][others.indexOf(i)]];
             const x = lerp(st.x * s, cx + R * Math.cos(ang), sp);
             const y = lerp(st.y * s, cy + R * Math.sin(ang), sp) - HEADER_BOTTOM * s;
             const scale = lerp(1, dScale, sp);
             const opacity = lerp(st.o, dOpacity, sp);
             const isNow = i === 1;
             // label: Now is shown above the stack while collapsed; others appear as it spreads
-            const lt = lerp(isNow ? 1 : 0, t, sp);
-            const labelOpacity = isNow ? 1 : sp;
-            const contentOpacity = isNow ? 1 : clamp(sp * 1.6 - 0.2, 0, 1);
-            const body = isNow && sp < 0.5 ? [step.body[0], "수정된 기획안이에요"] : step.body;
+            const lt = lerp(isFront ? 1 : 0, t, sp);
+            const labelOpacity = isFront ? 1 : sp;
+            const contentOpacity = isFront ? 1 : clamp(sp * 1.6 - 0.2, 0, 1);
+            const body = isNow && sp < 0.5 ? [step.body[0], "수정된 기획안이에요"] : step.body; // card text from the scenario (BriefingDetails.buildSteps)
             return (
               <div
                 key={step.label}
@@ -370,7 +412,7 @@ function Briefing({ onExit }: { onExit: () => void }) {
                 style={{
                   transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`,
                   opacity,
-                  zIndex: isNow && sp < 0.5 ? 20 : 10 - Math.round(lerp(i === 0 ? 1 : i, d, sp)),
+                  zIndex: isFront && sp < 0.5 ? 20 : 10 - Math.round(lerp(isFront ? 1 : others.indexOf(i) + 1, d, sp)),
                 }}
                 aria-current={expanded && i === activeIdx ? "step" : undefined}
               >
@@ -388,12 +430,13 @@ function Briefing({ onExit }: { onExit: () => void }) {
                 </p>
                 <div
                   data-step={i}
+                  data-current={i === currentIdx ? "true" : undefined}
                   className={`bg-white overflow-clip ${expanded ? "cursor-pointer" : ""}`}
                   style={{
                     width: lerp(214, 200, sp) * s,
                     padding: 20 * s,
                     borderRadius: 20 * s,
-                    boxShadow: `inset 0 0 0 ${2 * s}px rgba(255,105,40,${isNow ? 1 : 0}), ${4 * s}px ${4 * s}px ${4 * s}px rgba(0,0,0,0.08)`,
+                    boxShadow: `inset 0 0 0 ${2 * s}px rgba(255,105,40,${i === currentIdx && !work.workComplete ? 1 : 0}), ${4 * s}px ${4 * s}px ${4 * s}px rgba(0,0,0,0.08)`,
                   }}
                 >
                   <div className="font-['Pretendard'] not-italic" style={{ minHeight: 96 * s, opacity: contentOpacity }}>
@@ -412,7 +455,7 @@ function Briefing({ onExit }: { onExit: () => void }) {
                 {isNow && (
                   <div
                     className="absolute flex items-center pointer-events-none"
-                    style={{ left: (200 + 15) * s, top: 64 * s, gap: 6 * s, opacity: tNow }}
+                    style={{ left: (200 + 15) * s, top: 64 * s, gap: 6 * s, opacity: work.revisionCompleted ? 0 : tNow }}
                   >
                     <img alt="" src={imgWarning} className="block" style={{ width: 14 * s, height: 12 * s }} />
                     <p className="font-['Pretendard'] font-semibold text-white whitespace-nowrap" style={{ fontSize: 13 * s, lineHeight: 1.385, letterSpacing: 0.2522 * s }}>
@@ -447,10 +490,10 @@ function Briefing({ onExit }: { onExit: () => void }) {
               exit={{ opacity: 0, y: 24 * s }}
               transition={{ duration: 0.45, ease: EASE }}
             >
-              {sc ? (view === "before" ? <BeforeDetail s={s} sc={sc} />
-                : view === "now" ? <NowDetail s={s} sc={sc} onCompare={() => setDocOpen(true)} />
-                : <NextDetail s={s} sc={sc} onCompare={() => setDocOpen(true)} onReference={() => setRefOpen(true)} />)
-                : <div className="bf-card" style={{ left: 20 * s, right: 20 * s, top: 315 * s }}><DemoGate demo={demo}>{() => null}</DemoGate></div>}
+              {view === "before" || view === "now" ? (sc ? (view === "before" ? <BeforeDetail s={s} sc={sc} /> : <NowDetail s={s} sc={sc} onCompare={() => setDocOpen(true)} />)
+                  : <div className="bf-card" style={{ left: 20 * s, right: 20 * s, top: 315 * s }}><DemoGate demo={demo}>{() => null}</DemoGate></div>)
+                : view === "next" ? <NextDetail s={s} work={work} onShare={() => (work.revisionCompleted ? setShareOpen(true) : setDocOpen(true))} />
+                : <ExtraDetail s={s} work={work} onResume={() => { touchAiTask("market"); onOpenTask("market"); }} onBriefing={recordBriefingChecked} />}
             </motion.div>
           )}
         </AnimatePresence>
@@ -473,8 +516,11 @@ function Briefing({ onExit }: { onExit: () => void }) {
           </div>
         </div>
 
-        <BriefingCharacter view={view === "next" ? "now" : view}spread={sp} scale={s} progress={rot} />
+        {!(view === "extra" && !usesDialCharacter(work.extraPhase)) && (
+          <BriefingCharacter view={view === "next" || view === "extra" ? "now" : view} spread={sp} scale={s} progress={rot} />
+        )}
         <AnimatePresence>{docOpen && <DocFlow s={s} onClose={() => setDocOpen(false)} />}</AnimatePresence>
+        <AnimatePresence>{shareOpen && <ShareEntry s={s} onClose={() => setShareOpen(false)} />}</AnimatePresence>
       </div>
       <AnimatePresence>{refOpen && <ReferenceSheet key="ref" onClose={() => setRefOpen(false)} onToast={showToast} />}</AnimatePresence>
       <Toast text={toast} />
@@ -486,7 +532,8 @@ function Briefing({ onExit }: { onExit: () => void }) {
 
 type Ring = { src: string; l: number; t: number; w: number; h: number; inset?: string };
 
-function Home({ onBriefing }: { onBriefing: () => void }) {
+function Home({ onBriefing, onMessages }: { onBriefing: () => void; onMessages: () => void }) {
+  const [work] = useWorkStatus();
  const [selectedProject,setSelectedProject]=useState(0);
  const cardRow=useRef<HTMLDivElement>(null);
  const demo=useDemo();
@@ -499,11 +546,18 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
  const visibleTasks=TASKS.filter(p=>p.project===PROJECT_CHIPS[selectedProject]);
  const pickProject=(i:number)=>{setSelectedProject(i);cardRow.current?.scrollTo({left:0,behavior:"smooth"});};
  // 홈 팝업. 편집 화면과 수정 파일 보기는 기획안 팝업 위에 쌓인다.
- const [sheet,setSheet]=useState<null|SheetKey>(null);
- const [taskSheet,setTaskSheet]=useState<HomeTask|null>(null);
+ // Sheets, editor and file view are history entries (navHistory.ts): back / browser back close the top one first.
+ const sheet=useNav<null|SheetKey>("homeSheet",null);
+ const taskSheetId=useNav<string|null>("homeTask",null);
+ const taskSheet:HomeTask|null=TASKS.find(x=>x.id===taskSheetId)??null;
+ const layer=(key:string)=>(v:unknown)=>(v?pushNav({[key]:v}):appBack(()=>setNavHere({[key]:undefined})));
+ const setSheet=layer("homeSheet") as (v:SheetKey|null)=>void;
+ const setTaskSheet=(t:HomeTask|null)=>layer("homeTask")(t?t.id:null);
  const openTask=(id:string)=>{const t=TASKS.find(x=>x.id===id);if(!t)return;if(TASK_SHEET[id])setSheet(TASK_SHEET[id]);else setTaskSheet(t);};
- const [editing,setEditing]=useState<TaskKind|null>(null);
- const [fileOpen,setFileOpen]=useState<TaskKind|null>(null);
+ const editing=useNav<TaskKind|null>("homeEdit",null);
+ const fileOpen=useNav<TaskKind|null>("homeFile",null);
+ const setEditing=layer("homeEdit") as (v:TaskKind|null)=>void;
+ const setFileOpen=layer("homeFile") as (v:TaskKind|null)=>void;
  const [toast,showToast]=useToast();
  const homeRef=useRef<HTMLDivElement>(null);
  const [homeW,setHomeW]=useState(BASE_W);
@@ -520,7 +574,7 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
             <img alt="plotto" src={imgPlotto} className="absolute left-5 top-1/2 -translate-y-1/2 block" style={{ width: 72, height: 20 }} />
             <div className="absolute right-5 top-3 size-6">
               <img alt="알림" src={imgBell} className="block size-full" />
-              <img alt="" src={imgBellDot} className="absolute block size-[10px] -right-[0.1px] -top-[2px]" />
+              {work.unreadNotifications > 0 && <img alt="" src={imgBellDot} className="absolute block size-[10px] -right-[0.1px] -top-[2px]" />}
             </div>
           </div>
           {/* Briefing card */}
@@ -619,10 +673,11 @@ function Home({ onBriefing }: { onBriefing: () => void }) {
       <nav className="absolute left-1/2 -translate-x-1/2 bottom-9 w-max bg-white drop-shadow-[0px_0px_3.5px_rgba(0,0,0,0.2)] px-5 py-4 rounded-[36px]">
         <div className="flex gap-6 items-center">
           <div className="relative shrink-0 w-6 h-6">
-            <img alt="홈" src={imgNavHome} className="absolute block max-w-none" style={{ left: 0, top: 0, width: 24, height: 24 }} />
+            <img alt="" src={imgNavHomeBar} className="absolute block max-w-none" style={{ left: 11, top: 15, width: 2, height: 8 }} />
+            <img alt="홈" src={imgNavHome} className="absolute block max-w-none" style={{ left: 2.6, top: 2.23, width: 18.7999, height: 19.1705 }} />
           </div>
           {[imgNavGrid, imgNavChat, imgNavMy].map((src, i) => (
-            <img key={src} {...(i < 2 ? {role: "button", tabIndex: 0, "aria-label": i === 0 ? "프로젝트" : "채팅", onClick: () => go("intervention", i === 0 ? "project" : "chat"), onKeyDown: (e: React.KeyboardEvent) => {if(e.key === "Enter" || e.key === " ") go("intervention", i === 0 ? "project" : "chat");}} : {})} alt="" src={src} className="block shrink-0 max-w-none" style={{ width: 24, height: 24 }} />
+            <img key={src} {...(i < 2 ? {role: "button", tabIndex: 0, "aria-label": i === 0 ? "프로젝트" : "메시지", onClick: () => (i === 0 ? go("intervention", "project") : onMessages()), onKeyDown: (e: React.KeyboardEvent) => {if(e.key === "Enter" || e.key === " ") (i === 0 ? go("intervention", "project") : onMessages());}} : {})} alt="" src={src} className="block shrink-0 max-w-none" style={{ width: 24, height: 24 }} />
           ))}
         </div>
       </nav>

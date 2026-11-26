@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { recordJourney } from '../../journey'; // dial/work status: reservation done
+import { appBack, pushNav, useNav } from '../../navHistory'; // steps are history entries: in-app back = browser back
 import { useDemo } from '../../demo/useDemo';
 import { sessionsOf } from '../../demo/demoStore';
 import { currentDemoProjectId } from '../../demo/currentProject';
@@ -26,13 +28,15 @@ function Character() {
 }
 
 export default function App() {
-  const [step, setStep] = useState(0);
+  const step = useNav<number>('bookingStep', 0);
+  const setStep = (next: number) => pushNav({ bookingStep: next });
   const [topic, setTopic] = useState('협업 과정에서 쓰이는 AI 서비스 사례를 알고싶음');
   const [editing, setEditing] = useState(false);
   const [hour, setHour] = useState('07');
   const [minute, setMinute] = useState('30');
   const [period, setPeriod] = useState('오후');
   const [sent, setSent] = useState(false);
+  useEffect(() => { setSent(false); }, [step]); // browser back to an earlier step re-enables it, like the in-app back
   const [preparingMessage, setPreparingMessage] = useState(true);
   useEffect(() => {
     if (step !== 2) {
@@ -64,7 +68,7 @@ export default function App() {
   const message = confirmed?.inviteDraft ?? '태훈아, 나 지금 AI 서비스 시장 현황 정리하다가 궁금한게 생겼는데 이 사례들을 어떤 기준으로 골랐는지 같이 보면서 공동세션으로 얘기하고 싶어! 오늘 7시 반쯤 괜찮아?';
   return <main className={`session-app screen-${step}${step === 2 && preparingMessage ? ' is-message-loading' : ''}`}>
     <header className="hero">
-      <button className="back-button" aria-label="이전 화면" onClick={() => { setStep(Math.max(0, step - 1)); setSent(false); }}><img src={step === 2 ? '/stage4/assets/13b25.svg' : '/stage4/assets/7531e.svg'} alt="" /></button>
+      <button className="back-button" aria-label="이전 화면" onClick={() => { setSent(false); appBack(); }}><img src={step === 2 ? '/stage4/assets/13b25.svg' : '/stage4/assets/7531e.svg'} alt="" /></button>
       <h1 key={step}>{titles[step]}</h1>
       {step !== 2 && <Character key={`character-${step}`} />}
     </header>
@@ -92,7 +96,7 @@ export default function App() {
           </div>
         </div> : <div className="message-preview reveal"><img className="divider" src="/stage4/assets/918af.svg" alt="" /><p className="message-label">메시지 내용을 미리 볼 수 있어요.</p><div className="message-bubble">{message}<img className="bubble-tail" src="/stage4/assets/7f995.svg" alt="" /></div></div>}
       </div>}
-      {!(step === 2 && preparingMessage) && <div className="panel-footer"><button className="primary-button" disabled={step === 0 && !topic.trim() || sent} onClick={() => { if (step < 2) { setStep(step + 1); setEditing(false); } else { setSent(true); window.parent.postMessage({type: 'plotto:navigate', stage: 5, session: {topic, hour, minute, period}}, '*'); } }}>{step < 2 ? '다음' : sent ? '초대 문안을 확정했어요' : '초대 문안 확정'}</button>{sent && <p className="sent-notice" role="status">태훈님께 보낼 문안을 준비했어요. 로컬 데모라 실제 메시지는 보내지 않았어요.</p>}</div>}
+      {!(step === 2 && preparingMessage) && <div className="panel-footer"><button className="primary-button" disabled={step === 0 && !topic.trim() || sent} onClick={() => { if (step < 2) { setStep(step + 1); setEditing(false); } else { recordJourney({sessionTopic: topic, sessionTime: time}); setSent(true); window.parent.postMessage({type: 'plotto:navigate', stage: 5, session: {topic, hour, minute, period}}, '*'); } }}>{step < 2 ? '다음' : sent ? '초대 문안을 확정했어요' : '초대 문안 확정'}</button>{sent && <p className="sent-notice" role="status">태훈님께 보낼 문안을 준비했어요. 로컬 데모라 실제 메시지는 보내지 않았어요.</p>}</div>}
     </section>
   </main>;
 }
