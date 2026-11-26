@@ -89,3 +89,20 @@ Make → GitHub 내보내기는 지원되지만 외부 저장소 수정 사항�
 - [Make 코드 편집·다운로드](https://help.figma.com/hc/en-us/articles/33649966245783-Edit-the-code-of-a-functional-prototype-or-web-app)
 - [Make에서 GitHub로 내보내기](https://help.figma.com/hc/en-us/articles/35463818346647-Push-from-Figma-Make-to-GitHub)
 - [Make 활용 및 외부 코드 변경 제한](https://help.figma.com/hc/en-us/articles/35710574222487-Beyond-the-basics-Using-Figma-Make)
+
+## 데모 시나리오 데이터 (2026-11-25)
+
+시연 데이터는 `public/demo/plotto/scenario.json`과 `public/demo/plotto/files/`(PDF·DOCX 11개, 가상 자료)에서 읽습니다. 화면마다 본문을 따로 적지 않고 아래 한 곳을 거칩니다.
+
+| 경로 | 역할 |
+| --- | --- |
+| `src/demo/scenario.ts` | 시나리오 로딩·검증·타입 변환 (다른 프로젝트 파일을 가리키는 참조는 버리고 경고), 한국 시간 표시 |
+| `src/demo/demoStore.ts` | 화면용 조회(fileId → 문서), 저장 버전·공유·세션·피드백 기록, 제안 입력/출력 검증 |
+| `src/demo/DemoUI.tsx` | 공통 파일 뷰어(`openFile(fileId)`), 확인 대화상자, 로딩·오류 표시 |
+| `src/demo/ProjectFiles.tsx`, `SessionSuggestion.tsx` | 프로젝트 파일·공유 내역 시트, 공동세션 제안 시트 |
+
+- 시연 기준 시각은 `demoNow`(2026-10-15 09:30, 한국 시간)입니다. 저장·공유 기록 시각도 이 시각부터 흐릅니다.
+- 브라우저 저장소 키: 문서 버전 `plotto-demo:v1:{projectId}:{userId}:doc:{documentId}`, 활동 `plotto-demo:v1:{projectId}:{userId}:activity`. 프로젝트 화면의 ‘파일·공유 내역 → 데모 기록 초기화’로 지울 수 있습니다.
+- `includeInInitialSnapshot: false`인 V3 예시는 목록·이력·제안 입력에서 빠지고, 실제 저장은 편집한 본문으로 새 버전(V3부터)을 만듭니다. 저장본은 원본 DOCX가 없어서 본문 .txt만 내려받을 수 있습니다.
+- 공동세션·맞춤 피드백 응답은 이번 데모에서 `mockSuggestions`를 읽습니다. 확정 버튼을 눌러야 기록이 생기며 실제 메시지는 보내지 않습니다.
+- 점검: `npm run build && npm run check:demo` (public·dist 양쪽에 모든 샘플 경로와 형식이 있는지 확인)

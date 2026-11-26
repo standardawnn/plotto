@@ -1,7 +1,17 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+﻿import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { StatusBarIPhone17Pro } from '../intervention/screens/SessionEnteredScreen';
-import { feedback, readRevision, saveRevision, type RevisionState } from './revisionData';
+import type { RevisionState } from './revisionData';
+
+/** 비교 항목 하나 = 기획안의 한 섹션: 현재 버전 문장(passage)과 수정 제안(suggestion) */
+export type ReviewItem = { heading:string; name:string; time:string; source:string; file:string; before:readonly string[]; passage:string; emphasis:string; comment:string; suggestion:string; after:readonly string[] };
+function readState(key:string,n:number):RevisionState {
+  try {
+    const v=JSON.parse(localStorage.getItem(key)||'null');
+    if(v&&['reviewed','applied'].every(k=>Array.isArray(v[k])&&v[k].length===n&&v[k].every((x:unknown)=>typeof x==='boolean')))return {reviewed:v.reviewed,applied:v.applied,completedAt:v.completedAt};
+  } catch { /* 저장소를 못 쓰면 새 상태로 시작 */ }
+  return {reviewed:Array(n).fill(false),applied:Array(n).fill(false)};
+}
 import './revision.css';
 
 const A='/assets/revision/';
@@ -14,10 +24,11 @@ function SourceIcon({kind}:{kind:string}) {
   </>}</span>;
 }
 
-export default function DocumentReview({s,onBack,onSave}:{s:number;onBack:()=>void;onSave:()=>void}) {
+export default function DocumentReview({s,items:feedback,title,stateKey,onBack,onSave}:{s:number;items:ReviewItem[];title:string;stateKey:string;onBack:()=>void;onSave:(applied:boolean[])=>string|null}) {
+  const saveRevision=(next:RevisionState)=>localStorage.setItem(stateKey,JSON.stringify(next));
   const reduced=useReducedMotion();
   const duration=reduced?0:.32;
-  const [state,setState]=useState<RevisionState>(readRevision);
+  const [state,setState]=useState<RevisionState>(()=>readState(stateKey,feedback.length));
   const stateRef=useRef(state); stateRef.current=state;
   const [active,setActive]=useState(0);
   const [expanded,setExpanded]=useState<number|null>(null);
@@ -95,7 +106,10 @@ export default function DocumentReview({s,onBack,onSave}:{s:number;onBack:()=>vo
   };
   const finish=()=>{
     if(applying!==null)return;
-    if(persist({...stateRef.current,completedAt:new Date().toISOString()})){setConfirm(false);onSave();}
+    if(!persist({...stateRef.current,completedAt:new Date().toISOString()}))return;
+    const failed=onSave(stateRef.current.applied);
+    if(failed){setError(failed);setConfirm(false);return;}
+    setConfirm(false);
   };
   const onScroll=()=>{
     if(performance.now()<scrollLock.current)return;
@@ -112,7 +126,7 @@ export default function DocumentReview({s,onBack,onSave}:{s:number;onBack:()=>vo
       <StatusBarIPhone17Pro/>
       <div className="revision-titlebar">
         <button aria-label="뒤로가기" disabled={applying!==null} onClick={()=>{if(persist(stateRef.current))onBack();}}><Asset name="back"/></button>
-        <h1>기획안_수정</h1><span aria-hidden="true"><Asset name="more"/></span>
+        <h1>{title}</h1><span aria-hidden="true"><Asset name="more"/></span>
       </div>
       <div className="revision-toolbar">
         <label className="revision-section-select"><span>{feedback[active].heading}</span><Asset name="down"/>

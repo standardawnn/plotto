@@ -1,0 +1,746 @@
+{
+  "schemaVersion": 1,
+  "fictionalDemo": true,
+  "demoNow": "2026-10-15T09:30:00+09:00",
+  "viewerId": "seoyeon",
+  "people": [
+    {
+      "id": "seoyeon",
+      "name": "서연",
+      "rolesByProject": {
+        "marketing": "기획",
+        "youth": "안내 문구",
+        "recycling": "운영 정리",
+        "camp": "프로그램 기획",
+        "development": "UI 기획"
+      }
+    },
+    {
+      "id": "yujin",
+      "name": "유진",
+      "rolesByProject": {
+        "marketing": "PPT 제작"
+      }
+    },
+    {
+      "id": "taehun",
+      "name": "태훈",
+      "rolesByProject": {
+        "marketing": "자료조사"
+      }
+    },
+    {
+      "id": "minseo",
+      "name": "민서",
+      "rolesByProject": {
+        "youth": "모집 운영"
+      }
+    },
+    {
+      "id": "jiho",
+      "name": "지호",
+      "rolesByProject": {
+        "recycling": "현장 운영"
+      }
+    },
+    {
+      "id": "hayoon",
+      "name": "하윤",
+      "rolesByProject": {
+        "camp": "프로그램 운영"
+      }
+    },
+    {
+      "id": "doyun",
+      "name": "도윤",
+      "rolesByProject": {
+        "development": "프론트엔드"
+      }
+    }
+  ],
+  "projects": [
+    {
+      "id": "marketing",
+      "name": "마케팅 공모전",
+      "members": [
+        "seoyeon",
+        "yujin",
+        "taehun"
+      ]
+    },
+    {
+      "id": "youth",
+      "name": "청년 도움 프로젝트",
+      "members": [
+        "seoyeon",
+        "minseo"
+      ]
+    },
+    {
+      "id": "recycling",
+      "name": "자원순환프로젝트",
+      "members": [
+        "seoyeon",
+        "jiho"
+      ]
+    },
+    {
+      "id": "camp",
+      "name": "아동자립캠프",
+      "members": [
+        "seoyeon",
+        "hayoon"
+      ]
+    },
+    {
+      "id": "development",
+      "name": "개발 프로젝트",
+      "members": [
+        "seoyeon",
+        "doyun"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "id": "plan-v1",
+      "projectId": "marketing",
+      "title": "10.11 1차 기획안",
+      "displayFileName": "10.11 1차 기획안.docx",
+      "filePath": "files/plan-v1.docx",
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "ownerId": "seoyeon",
+      "status": "draft",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "서비스 목표",
+          "body": "소규모 브랜드가 여러 채널에 흩어진 마케팅 사례를 한 곳에서 찾아 게시물 기획에 활용할 수 있게 돕는다."
+        },
+        {
+          "heading": "핵심 타깃",
+          "body": "소규모 브랜드에서 인스타그램 콘텐츠를 직접 기획하고 운영하며, 게시물 주제를 정할 때 유사 브랜드 사례를 찾는 1인 SNS 담당자."
+        },
+        {
+          "heading": "핵심 기능",
+          "body": "키워드로 사례를 검색하고 관심 있는 게시물을 저장한다. 경쟁 서비스가 제공하는 검색·저장 방식은 추가로 비교한다."
+        }
+      ],
+      "documentId": "marketing-plan",
+      "version": 1
+    },
+    {
+      "id": "meeting-1014",
+      "projectId": "marketing",
+      "title": "10.14 회의록",
+      "displayFileName": "10.14 회의록.pdf",
+      "filePath": "files/meeting-1014.pdf",
+      "mimeType": "application/pdf",
+      "ownerId": "yujin",
+      "status": "shared",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "회의 배경",
+          "body": "참석자는 유진과 태훈. 서연이 자리를 비운 동안 10.11 1차 기획안을 검토했다."
+        },
+        {
+          "heading": "합의 사항",
+          "body": "유진은 핵심 타깃의 범위를 유지하고 SNS 담당자가 다음 게시물의 주제를 정하는 장면을 앞에 배치하자고 했다. 태훈은 레퍼런스의 선택 이유와 원문을 확인할 수 있어야 한다고 했다."
+        },
+        {
+          "heading": "남은 결정",
+          "body": "경쟁 시장 슬라이드에 어떤 사례를 대표로 넣을지 정하지 못했다. 태훈이 검증 가능한 원문 출처와 비교 항목을 채우면 유진이 PPT 한 장으로 정리한다."
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "projectId": "marketing",
+      "title": "주제선정_자료조사",
+      "displayFileName": "주제선정_자료조사.pdf",
+      "filePath": "files/research.pdf",
+      "mimeType": "application/pdf",
+      "ownerId": "taehun",
+      "status": "shared",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "조사 기준",
+          "body": "소규모 브랜드 SNS 담당자가 다음 게시물 아이디어를 찾는 흐름에서 검색, 출처 확인, 저장을 비교한다."
+        },
+        {
+          "heading": "가상 서비스 비교",
+          "body": "사례 A는 긴 아티클을 요약하지만 원문 찾기가 번거롭다. 사례 B는 유사 게시물을 묶어주지만 추천 이유가 희미하다. 사례 C는 키워드 검색과 저장을 지원하지만 사례 선택 기준이 제시되지 않는다."
+        },
+        {
+          "heading": "확인이 필요한 부분",
+          "body": "A, B, C는 시연용 가상 사례다. 외부에 발표하려면 실제 원문 링크와 화면 캡처가 필요하다. 대표 사례 두 개에 대해 원문 링크, 캡처 날짜, 비교 결과를 채우기로 했다."
+        }
+      ]
+    },
+    {
+      "id": "plan-v2",
+      "projectId": "marketing",
+      "title": "plotto 수정 기획안",
+      "displayFileName": "plotto 수정 기획안.docx",
+      "filePath": "files/plan-v2.docx",
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "ownerId": "seoyeon",
+      "status": "ai_proposed",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "서비스 목표",
+          "body": "소규모 브랜드의 SNS 담당자가 다음 게시물 주제를 정할 때 유사 브랜드 사례와 선택 이유를 함께 확인하고, 비교 결과를 콘텐츠 기획에 활용하도록 돕는다."
+        },
+        {
+          "heading": "핵심 타깃",
+          "body": "소규모 브랜드에서 인스타그램 콘텐츠를 직접 기획하고 운영하며, 게시물 주제를 정할 때 유사 브랜드 사례를 찾는 1인 SNS 담당자. 주간 콘텐츠 계획을 짜기 전에 참고 사례를 모으는 상황부터 다룬다."
+        },
+        {
+          "heading": "핵심 기능",
+          "body": "키워드로 사례를 찾고, 카드에서 추천 이유와 원문 출처를 확인한 뒤 보드에 저장한다. 경쟁 시장 섹션에는 검색, 출처 확인, 저장 방식의 비교가 필요하다. 실제 출처는 검증 후 추가한다."
+        }
+      ],
+      "documentId": "marketing-plan",
+      "version": 2
+    },
+    {
+      "id": "plan-v3",
+      "projectId": "marketing",
+      "title": "마케팅 기획안_최종 예시",
+      "displayFileName": "마케팅 기획안_최종 예시.docx",
+      "filePath": "files/plan-v3.docx",
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "ownerId": "seoyeon",
+      "status": "post_save_example",
+      "includeInInitialSnapshot": false,
+      "sections": [
+        {
+          "heading": "서비스 목표",
+          "body": "SNS 담당자가 다음 게시물 주제를 정할 때 사례의 선택 이유와 원문을 한 번에 확인하게 한다."
+        },
+        {
+          "heading": "핵심 타깃",
+          "body": "소규모 브랜드에서 인스타그램 콘텐츠를 직접 기획하고 운영하며, 게시물 주제를 정할 때 유사 브랜드 사례를 찾는 1인 SNS 담당자."
+        },
+        {
+          "heading": "핵심 기능",
+          "body": "키워드 탐색, 추천 이유와 출처 확인, 보드 저장을 우선 제공한다. 대표 경쟁 사례는 원문 확인 후 발표 자료에 반영한다."
+        },
+        {
+          "heading": "공유 메모",
+          "body": "유진은 경쟁 시장 슬라이드의 구조를 잡고, 태훈은 대표 사례의 실제 원문 링크와 캡처 날짜를 확인한다."
+        }
+      ],
+      "documentId": "marketing-plan",
+      "version": 3
+    },
+    {
+      "id": "references",
+      "projectId": "marketing",
+      "title": "공모전 수상작 레퍼런스 정리_plotto",
+      "displayFileName": "공모전 수상작 레퍼런스 정리_plotto.pdf",
+      "filePath": "files/references.pdf",
+      "mimeType": "application/pdf",
+      "ownerId": "taehun",
+      "status": "awaiting_share",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "수집 기준",
+          "body": "문제 정의에서 해결안까지 흐름이 드러나는 발표 자료를 가정해 제목, 근거, 화면 배치로 나눠 정리했다."
+        },
+        {
+          "heading": "가상 사례 A와 B",
+          "body": "A는 사용자가 겪는 상황을 한 문장으로 제시하고 전후 화면을 비교한다. B는 대표 이용 장면을 먼저 보여준 뒤 같은 형식의 카드로 조사 근거를 배치한다."
+        },
+        {
+          "heading": "우리 PPT 적용",
+          "body": "콘텐츠 주제 탐색 장면을 먼저 보여주고 사례 비교는 한 페이지에 정리한다. 자료 정리는 완료됐고 유진에게 전달하기 전이다."
+        }
+      ]
+    },
+    {
+      "id": "competition-visual",
+      "projectId": "marketing",
+      "title": "경쟁 시장 슬라이드 구성 초안",
+      "displayFileName": "경쟁 시장 슬라이드 구성 초안.pdf",
+      "filePath": "files/competition-visual.pdf",
+      "mimeType": "application/pdf",
+      "ownerId": "yujin",
+      "status": "shared",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "슬라이드 구성",
+          "body": "왼쪽에는 1인 SNS 담당자가 다음 게시물을 준비하는 장면을, 오른쪽에는 검색·출처 확인·저장 기준의 비교 표를 넣는다."
+        },
+        {
+          "heading": "태훈에게 필요한 자료",
+          "body": "대표 사례 2개의 검증된 원문 링크와 캡처 날짜, 각 사례의 차이 한 문장이 들어오면 가상 예시 칸을 교체한다."
+        }
+      ]
+    },
+    {
+      "id": "youth-recruitment",
+      "projectId": "youth",
+      "title": "참여자 모집 안내문 초안",
+      "displayFileName": "참여자 모집 안내문 초안.pdf",
+      "filePath": "files/youth-recruitment.pdf",
+      "mimeType": "application/pdf",
+      "ownerId": "minseo",
+      "status": "shared",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "프로그램 개요",
+          "body": "청년 참여자를 대상으로 첫 회차에서 관심 직무와 필요한 지원을 확인하는 소규모 모임을 운영한다."
+        },
+        {
+          "heading": "서연에게 공유할 내용",
+          "body": "신청 마감일, 활동 장소, 참여 준비물을 첫 화면에 모으고 지원 자격과 문의 방법은 하단에 배치한다."
+        }
+      ]
+    },
+    {
+      "id": "recycling-map",
+      "projectId": "recycling",
+      "title": "교내 분리배출 동선 점검",
+      "displayFileName": "교내 분리배출 동선 점검.pdf",
+      "filePath": "files/recycling-map.pdf",
+      "mimeType": "application/pdf",
+      "ownerId": "jiho",
+      "status": "shared",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "점검 구역",
+          "body": "학생회관 출입구, 카페 반납대, 작업실 복도 세 곳의 분리배출 동선을 확인했다."
+        },
+        {
+          "heading": "서연에게 공유할 내용",
+          "body": "카페 반납대에 혼합품목이 자주 남으므로 안내물을 먼저 시범 배치한다. 문구 초안은 현장 피드백 이후 수정한다."
+        }
+      ]
+    },
+    {
+      "id": "camp-runbook",
+      "projectId": "camp",
+      "title": "1일차 프로그램 운영안",
+      "displayFileName": "1일차 프로그램 운영안.pdf",
+      "filePath": "files/camp-runbook.pdf",
+      "mimeType": "application/pdf",
+      "ownerId": "hayoon",
+      "status": "shared",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "활동 순서",
+          "body": "체크인, 팀 편성, 보물 찾기, 소감 나누기 순서로 진행한다. 각 팀 출발 간격은 5분으로 잡는다."
+        },
+        {
+          "heading": "서연에게 공유할 내용",
+          "body": "체크인과 팀 편성 사이에 10분의 여유를 두고 소감 나누기 전에 활동지를 회수한다."
+        }
+      ]
+    },
+    {
+      "id": "development-handoff",
+      "projectId": "development",
+      "title": "모바일 홈 GUI 전달 메모",
+      "displayFileName": "모바일 홈 GUI 전달 메모.pdf",
+      "filePath": "files/development-handoff.pdf",
+      "mimeType": "application/pdf",
+      "ownerId": "doyun",
+      "status": "shared",
+      "includeInInitialSnapshot": true,
+      "sections": [
+        {
+          "heading": "개발 범위",
+          "body": "홈 작업 카드에서 바텀시트를 열고 문서 편집 화면에서 본문을 저장하는 흐름을 우선 구현한다."
+        },
+        {
+          "heading": "서연에게 공유할 내용",
+          "body": "팝업 배경과 X 닫기를 확인하고, 작은 화면에서도 편집 본문 끝까지 스크롤되는지 검수한다."
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "e-plan",
+      "projectId": "marketing",
+      "at": "2026-10-11T14:00:00+09:00",
+      "actorId": "seoyeon",
+      "type": "file_created",
+      "summary": "서연이 기획안 1차본을 작성했어요.",
+      "fileIds": [
+        "plan-v1"
+      ]
+    },
+    {
+      "id": "e-youth",
+      "projectId": "youth",
+      "at": "2026-10-14T16:00:00+09:00",
+      "actorId": "minseo",
+      "type": "file_shared",
+      "summary": "프로젝트 초안을 서연에게 공유했어요.",
+      "fileIds": [
+        "youth-recruitment"
+      ]
+    },
+    {
+      "id": "e-recycling",
+      "projectId": "recycling",
+      "at": "2026-10-14T16:00:00+09:00",
+      "actorId": "jiho",
+      "type": "file_shared",
+      "summary": "프로젝트 초안을 서연에게 공유했어요.",
+      "fileIds": [
+        "recycling-map"
+      ]
+    },
+    {
+      "id": "e-camp",
+      "projectId": "camp",
+      "at": "2026-10-14T16:00:00+09:00",
+      "actorId": "hayoon",
+      "type": "file_shared",
+      "summary": "프로젝트 초안을 서연에게 공유했어요.",
+      "fileIds": [
+        "camp-runbook"
+      ]
+    },
+    {
+      "id": "e-development",
+      "projectId": "development",
+      "at": "2026-10-14T16:00:00+09:00",
+      "actorId": "doyun",
+      "type": "file_shared",
+      "summary": "프로젝트 초안을 서연에게 공유했어요.",
+      "fileIds": [
+        "development-handoff"
+      ]
+    },
+    {
+      "id": "e-before",
+      "projectId": "marketing",
+      "at": "2026-10-14T17:20:00+09:00",
+      "actorId": "yujin",
+      "type": "meeting_logged",
+      "summary": "유진·태훈이 기획안을 검토했어요. SNS 담당자가 게시물 주제를 정하는 상황부터 보여주기로 했어요.",
+      "fileIds": [
+        "meeting-1014",
+        "plan-v1"
+      ]
+    },
+    {
+      "id": "e-research",
+      "projectId": "marketing",
+      "at": "2026-10-14T18:00:00+09:00",
+      "actorId": "taehun",
+      "type": "file_shared",
+      "summary": "태훈이 시장 자료를 공유했어요. 사례 두 개의 실제 출처 확인이 남았어요.",
+      "fileIds": [
+        "research"
+      ]
+    },
+    {
+      "id": "e-now",
+      "projectId": "marketing",
+      "at": "2026-10-15T09:05:00+09:00",
+      "actorId": "plotto",
+      "type": "revision_proposed",
+      "summary": "플로토가 회의록을 바탕으로 서비스 목표, 핵심 타깃, 핵심 기능의 수정안을 준비했어요.",
+      "fileIds": [
+        "plan-v1",
+        "plan-v2",
+        "meeting-1014"
+      ]
+    },
+    {
+      "id": "e-references",
+      "projectId": "marketing",
+      "at": "2026-10-15T09:10:00+09:00",
+      "actorId": "taehun",
+      "type": "file_prepared",
+      "summary": "수상작 사례 수집과 파일 정리를 완료했어요. 팀원 전달은 대기 중이에요.",
+      "fileIds": [
+        "references"
+      ]
+    },
+    {
+      "id": "e-visual",
+      "projectId": "marketing",
+      "at": "2026-10-15T09:15:00+09:00",
+      "actorId": "yujin",
+      "type": "file_shared",
+      "summary": "유진이 경쟁 시장 슬라이드 구성 초안을 공유했어요.",
+      "fileIds": [
+        "competition-visual"
+      ]
+    }
+  ],
+  "shares": [
+    {
+      "id": "share-research",
+      "projectId": "marketing",
+      "fileId": "research",
+      "senderId": "taehun",
+      "recipientIds": [
+        "seoyeon",
+        "yujin"
+      ],
+      "sharedAt": "2026-10-14T18:00:00+09:00"
+    },
+    {
+      "id": "share-meeting",
+      "projectId": "marketing",
+      "fileId": "meeting-1014",
+      "senderId": "yujin",
+      "recipientIds": [
+        "seoyeon",
+        "taehun"
+      ],
+      "sharedAt": "2026-10-14T17:20:00+09:00"
+    },
+    {
+      "id": "share-visual",
+      "projectId": "marketing",
+      "fileId": "competition-visual",
+      "senderId": "yujin",
+      "recipientIds": [
+        "seoyeon",
+        "taehun"
+      ],
+      "sharedAt": "2026-10-15T09:15:00+09:00"
+    },
+    {
+      "id": "share-youth",
+      "projectId": "youth",
+      "fileId": "youth-recruitment",
+      "senderId": "minseo",
+      "recipientIds": [
+        "seoyeon"
+      ],
+      "sharedAt": "2026-10-14T16:00:00+09:00"
+    },
+    {
+      "id": "share-recycling",
+      "projectId": "recycling",
+      "fileId": "recycling-map",
+      "senderId": "jiho",
+      "recipientIds": [
+        "seoyeon"
+      ],
+      "sharedAt": "2026-10-14T16:00:00+09:00"
+    },
+    {
+      "id": "share-camp",
+      "projectId": "camp",
+      "fileId": "camp-runbook",
+      "senderId": "hayoon",
+      "recipientIds": [
+        "seoyeon"
+      ],
+      "sharedAt": "2026-10-14T16:00:00+09:00"
+    },
+    {
+      "id": "share-development",
+      "projectId": "development",
+      "fileId": "development-handoff",
+      "senderId": "doyun",
+      "recipientIds": [
+        "seoyeon"
+      ],
+      "sharedAt": "2026-10-14T16:00:00+09:00"
+    }
+  ],
+  "lastSeen": [
+    {
+      "projectId": "marketing",
+      "userId": "seoyeon",
+      "at": "2026-10-14T12:00:00+09:00"
+    }
+  ],
+  "briefing": {
+    "projectId": "marketing",
+    "before": {
+      "eventIds": [
+        "e-before",
+        "e-research"
+      ],
+      "fileIds": [
+        "meeting-1014",
+        "research"
+      ]
+    },
+    "now": {
+      "eventIds": [
+        "e-now",
+        "e-references"
+      ],
+      "fileIds": [
+        "plan-v1",
+        "plan-v2",
+        "references"
+      ]
+    },
+    "next": {
+      "taskIds": [
+        "review-plan",
+        "share-references",
+        "resolve-sources"
+      ]
+    }
+  },
+  "tasks": [
+    {
+      "id": "review-plan",
+      "projectId": "marketing",
+      "title": "기획안 수정하기",
+      "assigneeIds": [
+        "seoyeon"
+      ],
+      "status": "needs_review",
+      "dueAt": "2026-10-15T18:00:00+09:00",
+      "fileIds": [
+        "plan-v1",
+        "plan-v2",
+        "meeting-1014"
+      ],
+      "reviewNoteHeadings": [
+        "서비스 목표",
+        "핵심 타깃",
+        "핵심 기능"
+      ],
+      "shareCandidateIds": [
+        "yujin",
+        "taehun"
+      ]
+    },
+    {
+      "id": "share-references",
+      "projectId": "marketing",
+      "title": "레퍼런스 정리",
+      "assigneeIds": [
+        "taehun"
+      ],
+      "status": "awaiting_share",
+      "fileIds": [
+        "references"
+      ],
+      "progress": 100,
+      "steps": [
+        {
+          "label": "수상작 사례 수집",
+          "state": "done"
+        },
+        {
+          "label": "레퍼런스 파일 정리",
+          "state": "done",
+          "fileId": "references"
+        },
+        {
+          "label": "팀원에게 전달",
+          "state": "pending",
+          "recipientIds": [
+            "yujin"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resolve-sources",
+      "projectId": "marketing",
+      "title": "대표 사례와 원문 출처 확정",
+      "assigneeIds": [
+        "taehun",
+        "yujin"
+      ],
+      "status": "blocked",
+      "reason": "검증 가능한 원문 링크가 아직 없고, 어느 사례를 발표에 넣을지 정해야 해요.",
+      "fileIds": [
+        "research",
+        "competition-visual",
+        "plan-v2"
+      ]
+    }
+  ],
+  "feedbackInput": {
+    "id": "feedback-seed",
+    "projectId": "marketing",
+    "authorId": "seoyeon",
+    "text": "기획안 경쟁 시장 파트에 서비스별 차이가 한눈에 보이는 시각 자료랑, 그 차이를 확인할 수 있는 출처가 필요해.",
+    "fileIds": [
+      "plan-v2",
+      "research",
+      "competition-visual"
+    ]
+  },
+  "availability": [
+    {
+      "userId": "seoyeon",
+      "startAt": "2026-10-15T19:00:00+09:00",
+      "endAt": "2026-10-15T19:20:00+09:00"
+    },
+    {
+      "userId": "taehun",
+      "startAt": "2026-10-15T19:00:00+09:00",
+      "endAt": "2026-10-15T19:20:00+09:00"
+    }
+  ],
+  "mockSuggestions": {
+    "session": {
+      "kind": "session",
+      "status": "proposed",
+      "title": "AI 서비스 사례와 원문 출처 검토",
+      "reason": "태훈이 찾은 자료에서 실제 출처가 비어 있고, 기획안과 PPT에 넣을 사례를 골라야 해요.",
+      "participantIds": [
+        "seoyeon",
+        "taehun"
+      ],
+      "evidenceEventIds": [
+        "e-research",
+        "e-now"
+      ],
+      "evidenceFileIds": [
+        "research",
+        "plan-v2"
+      ],
+      "slot": {
+        "startAt": "2026-10-15T19:00:00+09:00",
+        "endAt": "2026-10-15T19:20:00+09:00"
+      },
+      "agenda": [
+        "대표 사례 2개 선정",
+        "원문과 캡처 날짜 확인 담당 정하기"
+      ],
+      "inviteDraft": "태훈아, 경쟁 시장 슬라이드에 넣을 사례 두 개랑 원문 출처를 오늘 7시에 20분 정도 같이 확인할 수 있을까?"
+    },
+    "feedback": [
+      {
+        "kind": "feedback",
+        "status": "proposed",
+        "recipientId": "taehun",
+        "evidenceFileIds": [
+          "research",
+          "plan-v2"
+        ],
+        "draft": "대표 경쟁 서비스 두 개의 원문 링크, 캡처 날짜, 검색·출처 확인·저장 방식의 차이를 조사표에 추가해 줘."
+      },
+      {
+        "kind": "feedback",
+        "status": "proposed",
+        "recipientId": "yujin",
+        "evidenceFileIds": [
+          "competition-visual",
+          "plan-v2"
+        ],
+        "draft": "대표 사례 두 개를 검색·출처 확인·저장 기준으로 비교하는 PPT 한 장을 만들어 줘. 태훈이 확인한 원문 링크는 각주에 붙일 수 있게 자리를 남겨 줘."
+      }
+    ]
+  }
+}

@@ -5,6 +5,35 @@ import { MATES } from "./DocFlow";
 import { CHAR_SEARCH, type HomeTask } from "./homeData";
 import "./revision.css";
 import "./homeSheets.css";
+import { openFile, useDemo } from "../../demo/useDemo";
+import { ConfirmDialog, DemoGate } from "../../demo/DemoUI";
+import { confirmShare, fileById, nameOf, projectOf, roleOf, saveVersion } from "../../demo/demoStore";
+import { dotOf, dueLabel, relativeOf, stampOf, type DemoFile, type Scenario } from "../../demo/scenario";
+import { planDocs, referenceState } from "./planData";
+
+/* ---------------- 시나리오 연결 (마케팅 공모전 기획안·레퍼런스) ----------------
+   기획안 문서와 수정 제안, 레퍼런스 작업은 모두 public/demo/plotto/scenario.json 에서 온다(src/demo).
+   화면에 본문을 따로 적지 않고, 같은 fileId 는 openFile() 로 같은 뷰어에서 연다. */
+const AVATAR: Record<string, { img: string; crop: string }> = {
+  yujin: { img: MATES[0].img, crop: MATES[0].crop },
+  taehun: { img: MATES[1].img, crop: MATES[1].crop },
+};
+function planTaskData(s: Scenario): TaskData | null {
+  const d = planDocs(s);
+  if (!d) return null;
+  const { task, current, proposal, headings, bodyOf, nowEvent, meetingAt } = d;
+  return {
+    project: projectOf(s, task.projectId)?.name ?? "", due: task.dueAt ? dueLabel(s.demoNow, task.dueAt) : "", title: task.title, label: "수정 제안",
+    desc: `${meetingAt ? `${dotOf(meetingAt)} 회의 내용을 바탕으로 ` : ""}Plotto가 ${current.origin === "local" ? current.title : `${current.title}(V${current.version})`}의 수정할 부분을 정리했어요`,
+    items: headings.map(h => ({
+      title: h, who: "플로토", time: nowEvent ? relativeOf(s.demoNow, nowEvent.at) : "",
+      emphasis: `현재 V${current.version}: `, comment: bodyOf(current, h) || "(해당 항목 없음)", proposal: bodyOf(proposal, h),
+    })),
+    sources: task.fileIds.map(id => fileById(s, id)).filter((f): f is DemoFile => !!f)
+      .map(f => ({ name: f.version ? `${f.title} (V${f.version})` : f.title, kind: f.kind === "pdf" ? "pdf" : "doc", fileId: f.id })),
+    mates: (task.shareCandidateIds ?? []).map(id => ({ name: nameOf(s, id), role: roleOf(s, task.projectId, id), title: "수정 기획안을 확인하고 공유받을 팀원", img: AVATAR[id]?.img ?? "", crop: AVATAR[id]?.crop ?? "" })),
+  };
+}
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const R = "/assets/revision/";
@@ -128,7 +157,7 @@ function SourceIcon({ kind }: { kind: string }) {
 type TaskItem = { title: string; who: string; time: string; emphasis: string; comment: string; proposal: string; original?: string };
 type TaskData = {
   project: string; due: string; title: string; desc: string; label: string;
-  items: TaskItem[]; sources: { name: string; kind: string }[];
+  items: TaskItem[]; sources: { name: string; kind: string; fileId?: string }[];
   mates: { name: string; role: string; title: string; img: string; crop: string }[];
 };
 function TaskSheet({ data, onClose, onToast, onEdit, onViewFile }: { data: TaskData; onClose: () => void; onToast: (t: string) => void; onEdit: () => void; onViewFile: () => void }) {
@@ -156,7 +185,7 @@ function TaskSheet({ data, onClose, onToast, onEdit, onViewFile }: { data: TaskD
       <div className="hs-sec">참고한 자료</div>
       <div className="hs-chips">
         {data.sources.map(s => (
-          <button type="button" key={s.name} className="hs-chip" onClick={() => onToast(`'${s.name}' 원본 파일은 아직 연결되지 않았어요`)}>
+          <button type="button" key={s.name} className="hs-chip" onClick={() => s.fileId ? openFile(s.fileId) : onToast(`'${s.name}'은 시연용 이름만 있고 실제 파일은 없어요`)}>
             <SourceIcon kind={s.kind} />{s.name}
           </button>
         ))}
@@ -165,7 +194,7 @@ function TaskSheet({ data, onClose, onToast, onEdit, onViewFile }: { data: TaskD
       <div className="hs-mates">
         {data.mates.map(m => (
           <div key={m.name} className="hs-mate">
-            <span className="hs-ava"><img alt="" src={m.img} className={m.crop} /></span>
+            <span className="hs-ava">{m.img ? <img alt="" src={m.img} className={m.crop} /> : m.name.slice(0, 1)}</span>
             <div className="hs-mate-txt"><b>{m.name}<small>{m.role}</small></b><p>{m.title}</p></div>
           </div>
         ))}
@@ -253,7 +282,14 @@ function docOriginal(kind: TaskKind): PlanSection[] {
 }
 
 export function DeadlineTaskSheet({ kind, onClose, onToast, onEdit, onViewFile }: { kind: TaskKind; onClose: () => void; onToast: (t: string) => void; onEdit: () => void; onViewFile: () => void }) {
-  return <TaskSheet data={TASK_DOCS[kind].data} onClose={onClose} onToast={onToast} onEdit={onEdit} onViewFile={onViewFile} />;
+  const demo = useDemo();
+  if (kind !== "plan") return <TaskSheet data={TASK_DOCS[kind].data} onClose={onClose} onToast={onToast} onEdit={onEdit} onViewFile={onViewFile} />;
+  // 기획안: 시나리오(V1/V2) 기준. 불러오는 동안·실패 시 상태를 시트 안에 보여 준다.
+  const data = demo.status === "ready" ? planTaskData(demo.s) : null;
+  if (data) return <TaskSheet data={data} onClose={onClose} onToast={onToast} onEdit={onEdit} onViewFile={onViewFile} />;
+  return <BottomSheet title="기획안 수정하기" legacy onClose={onClose}>
+    <DemoGate demo={demo}>{() => <div className="dm-state error" role="alert"><b>기획안 데이터를 찾지 못했어요</b><span>scenario.json 의 review-plan 작업과 V1·V2 파일을 확인해 주세요.</span></div>}</DemoGate>
+  </BottomSheet>;
 }
 
 /* ---------------- 직접 수정: 10.11 1차 기획안 편집 ---------------- */
@@ -266,7 +302,77 @@ function AutoText({ value, onChange, label }: { value: string; onChange: (v: str
   return <textarea ref={ref} className="pe-text" aria-label={label} value={value} rows={1} spellCheck={false} onChange={e => onChange(e.target.value)} />;
 }
 
-export function PlanEditor({ kind = "plan", onBack, onSaved }: { kind?: TaskKind; onBack: () => void; onSaved: () => void }) {
+/** 기획안 직접 수정: 앱에서 현재 버전(마지막 저장본, 없으면 V1)을 열고, 저장하면 새 버전을 만든다. 기존 버전은 남는다. */
+function ScenarioPlanEditor({ s, onBack, onSaved }: { s: Scenario; onBack: () => void; onSaved: (msg: string) => void }) {
+  const reduced = useReducedMotion();
+  const docs = planDocs(s);
+  const [base] = useState(() => docs?.current);
+  const [draft, setDraft] = useState(() => base?.sections.map(x => ({ ...x })) ?? []);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const busy = useRef(false); // 빠른 연속 클릭: 첫 저장이 끝나기 전·끝난 뒤의 클릭은 무시
+  const [confirm, setConfirm] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const dirty = !!base && JSON.stringify(draft) !== JSON.stringify(base.sections);
+  useEffect(() => { if (confirm) dialog.current?.showModal(); else if (dialog.current?.open) dialog.current.close(); }, [confirm]);
+  if (!base) return <div className="pe-screen" data-no-lift><div className="dm-state error" role="alert" style={{ marginTop: 120 }}><b>편집할 기획안을 찾지 못했어요</b><button type="button" onClick={onBack}>돌아가기</button></div></div>;
+  const save = () => {
+    if (busy.current) return;
+    busy.current = true; setSaving(true);
+    const r = saveVersion(s, { baseFileId: base.id, sections: draft, source: "edit" });
+    setSaving(false);
+    if (!r.ok) { busy.current = false; setError(r.error); return; }
+    setError("");
+    onSaved(r.duplicate ? `바뀐 내용이 없어 새 버전을 만들지 않았어요 (현재 V${r.value.version})` : `V${r.value.version} 버전으로 저장했어요 · V${base.version} 버전도 남아 있어요`);
+  };
+  const back = () => (dirty ? setConfirm(true) : onBack());
+  return (
+    <motion.div className="pe-screen" data-no-lift initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ duration: reduced ? 0 : .45, ease: EASE }}>
+      <div className="integration-status" style={{ position: "absolute", zIndex: 5 }} aria-hidden="true"><span>9:41</span><i /><img src="/assets/intervention/8b917.svg" alt="" /></div>
+      <header className="pe-head">
+        <div className="pe-bar">
+          <button type="button" className="pe-back" aria-label="뒤로가기" onClick={back}><img src={`${R}back.svg`} alt="" /></button>
+          <h1>{base.title}</h1>
+          <button type="button" className="pe-more" aria-label="파일 정보 보기" onClick={() => openFile(base.id)}><img src={`${R}more.svg`} alt="" /></button>
+        </div>
+        <div className="pe-info">
+          <button type="button" className="pe-chip" onClick={() => openFile(base.id)}><DocIcon />{base.displayFileName} · V{base.version}</button>
+          <span className="pe-state" aria-live="polite"><i aria-hidden="true" />{saving ? "저장 중" : dirty ? `V${base.version} 기준 수정중` : `V${base.version}`}</span>
+        </div>
+      </header>
+      <div className="pe-scroll">
+        <div className="pe-doc">
+          {draft.map((sec, si) => (
+            <section key={sec.heading} className="pe-section">
+              <h2>{si + 1}. {sec.heading}</h2>
+              <AutoText label={`${sec.heading} 본문`} value={sec.body} onChange={v => setDraft(d => d.map((x, i) => (i === si ? { ...x, body: v } : x)))} />
+            </section>
+          ))}
+        </div>
+      </div>
+      <div className="pe-foot">
+        {error && <p className="revision-error" role="alert" style={{ position: "static", margin: "0 auto 8px", maxWidth: 720, pointerEvents: "auto" }}>{error}</p>}
+        <button type="button" onClick={save} disabled={saving} aria-busy={saving}>{saving ? "저장하는 중…" : "저장하기"}</button>
+      </div>
+      <dialog ref={dialog} className="revision-confirm" aria-labelledby="pe-confirm-title" onCancel={e => { e.preventDefault(); setConfirm(false); }}>
+        <p id="pe-confirm-title">저장하지 않은 수정 내용이 있어요.</p>
+        <div><button type="button" autoFocus onClick={() => setConfirm(false)}>계속 수정하기</button><button type="button" onClick={() => { setConfirm(false); onBack(); }}>저장 안 하고 나가기</button></div>
+      </dialog>
+    </motion.div>
+  );
+}
+
+export function PlanEditor({ kind = "plan", onBack, onSaved }: { kind?: TaskKind; onBack: () => void; onSaved: (msg?: string) => void }) {
+  const demo = useDemo();
+  if (kind === "plan") {
+    if (demo.status === "ready") return <ScenarioPlanEditor s={demo.s} onBack={onBack} onSaved={onSaved} />;
+    return <div className="pe-screen" data-no-lift><div style={{ marginTop: 120 }}><DemoGate demo={demo}>{() => null}</DemoGate></div>
+      <div className="pe-foot"><button type="button" onClick={onBack}>돌아가기</button></div></div>;
+  }
+  return <LegacyEditor kind={kind} onBack={onBack} onSaved={() => onSaved()} />;
+}
+
+function LegacyEditor({ kind, onBack, onSaved }: { kind: TaskKind; onBack: () => void; onSaved: () => void }) {
   const reduced = useReducedMotion();
   const doc = TASK_DOCS[kind];
   const [saved] = useState<PlanSection[]>(() => readDoc(doc.key, docOriginal(kind)));
@@ -359,7 +465,7 @@ export function TaskFileView({ kind, onBack }: { kind: Exclude<TaskKind, "plan">
 
 /** 진행 중인 작업 팝업. 레퍼런스 정리 · 디자인 시안 수정이 같은 틀을 쓴다.
     done = 완료(파란 체크), wait = 대기 중(모래시계), active = 진행 중, todo = 예정. */
-type Step = { status: "done" | "wait" | "active" | "todo"; title: string; desc: string; file?: string };
+type Step = { status: "done" | "wait" | "active" | "todo"; title: string; desc: string; file?: string; fileId?: string; action?: { label: string; run: () => void }; note?: string };
 type ProgressData = { project: string; title: string; pct: number; label: string; message: string; char: string; charAlt: string; steps: Step[] };
 const BADGE: Record<Step["status"], string> = { done: "", wait: "대기 중", active: "진행 중", todo: "예정" };
 
@@ -385,9 +491,11 @@ function ProgressSheet({ data, onClose, onToast }: { data: ProgressData; onClose
             <div className="hs-step-main">
               <div className="hs-step-row"><b>{s.title}</b>{BADGE[s.status] && <span className="hs-badge">{BADGE[s.status]}</span>}</div>
               <p>{s.desc}</p>
-              {s.file && <button type="button" className="hs-file" onClick={() => onToast(`'${s.file}' 원본 파일은 아직 연결되지 않았어요`)}>
+              {s.file && <button type="button" className="hs-file" onClick={() => s.fileId ? openFile(s.fileId) : onToast(`'${s.file}'은 시연용 이름만 있고 실제 파일은 없어요`)}>
                 <i><img src={`${R}pdf.svg`} alt="PDF" /></i><span>{s.file}</span>
               </button>}
+              {s.note && <p className="hs-step-note">{s.note}</p>}
+              {s.action && <button type="button" className="hs-step-action" onClick={s.action.run}>{s.action.label}</button>}
             </div>
           </li>
         ))}
@@ -429,8 +537,51 @@ export function TaskProgressSheet({ task, onClose, onToast }: { task: HomeTask; 
   return <ProgressSheet data={data} onClose={onClose} onToast={onToast} />;
 }
 
+/** 레퍼런스 정리: 사례 수집 완료 → 파일 정리 완료(PDF 열기) → 팀원 전달 대기. PDF 열기와 공유 확정은 서로 다른 행동이다. */
+function ScenarioReferenceSheet({ s, onClose, onToast }: { s: Scenario; onClose: () => void; onToast: (t: string) => void }) {
+  const st = referenceState(s);
+  const [asking, setAsking] = useState(false);
+  const [error, setError] = useState("");
+  if (!st) return <ProgressSheet data={REFERENCE_PROGRESS} onClose={onClose} onToast={onToast} />;
+  const { task, fileId, recipients, share } = st;
+  const file = fileById(s, fileId);
+  const who = recipients.map(r => `${nameOf(s, r)}님`).join("·");
+  const descs = REFERENCE_PROGRESS.steps.map(x => x.desc);
+  const data: ProgressData = {
+    ...REFERENCE_PROGRESS,
+    project: projectOf(s, task.projectId)?.name ?? REFERENCE_PROGRESS.project, title: task.title, pct: task.progress ?? REFERENCE_PROGRESS.pct,
+    message: share ? `${who}에게 전달했어요` : REFERENCE_PROGRESS.message,
+    steps: (task.steps ?? []).map((x, i) => {
+      const isLast = i === (task.steps?.length ?? 0) - 1;
+      const done = x.state === "done" || (isLast && !!share);
+      return {
+        status: done ? "done" : "wait", title: x.label,
+        desc: isLast ? (share ? `${who}에게 전달했어요` : `${who}에게 전달하기 전이에요`) : (descs[i] ?? ""),
+        ...(x.fileId && fileById(s, x.fileId) ? { file: fileById(s, x.fileId)!.displayFileName, fileId: x.fileId } : {}),
+        ...(isLast && share ? { note: `공유 이력 · ${stampOf(share.sharedAt)} · ${nameOf(s, share.senderId)} → ${share.recipientIds.map(r => nameOf(s, r)).join(", ")}` } : {}),
+        ...(isLast && !share && recipients.length ? { action: { label: `${who}에게 전달하기`, run: () => { setError(""); setAsking(true); } } } : {}),
+      };
+    }),
+  };
+  return <>
+    <ProgressSheet data={data} onClose={onClose} onToast={onToast} />
+    {asking && <ConfirmDialog title={`${who}에게 전달할까요?`} confirmLabel="전달 확정" error={error} onCancel={() => setAsking(false)}
+      onConfirm={() => {
+        const r = confirmShare(s, { fileId, recipientIds: recipients });
+        if (!r.ok) { setError(r.error); return; }
+        setAsking(false);
+        onToast(`${who}에게 공유 이력을 남겼어요`);
+      }}>
+      <p>{file?.displayFileName}을(를) {recipients.map(r => `${nameOf(s, r)}(${roleOf(s, task.projectId, r)})`).join(", ")}에게 공유해요.</p>
+      <p>확정하면 프로젝트 공유 이력에 기록돼요. 로컬 데모라 실제 메시지는 보내지 않아요.</p>
+    </ConfirmDialog>}
+  </>;
+}
+
 export function ReferenceSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
-  return <ProgressSheet data={REFERENCE_PROGRESS} onClose={onClose} onToast={onToast} />;
+  const demo = useDemo();
+  if (demo.status === "ready") return <ScenarioReferenceSheet s={demo.s} onClose={onClose} onToast={onToast} />;
+  return <BottomSheet title="레퍼런스 정리" onClose={onClose} tight><DemoGate demo={demo}>{() => null}</DemoGate></BottomSheet>;
 }
 export function DesignProgressSheet({ onClose, onToast }: { onClose: () => void; onToast: (t: string) => void }) {
   return <ProgressSheet data={DESIGN_PROGRESS} onClose={onClose} onToast={onToast} />;

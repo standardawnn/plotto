@@ -87,3 +87,21 @@ strong { color: #536ffa; font-weight: 700; }
 /* The prototype viewport always remains exactly 402 × 874 CSS px. */
 html,body,#root {width:402px;height:874px;min-height:874px;overflow:hidden;}
 .experience {height:874px;min-height:874px;} .actions {position:absolute;top:786px;left:0;right:0;margin:0;} .sent-message {margin-top:4px;}
+
+/* 시나리오 연결: 초안의 근거 파일 */
+.recipient-body .evidence { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; color: #8a93a6; }
+.recipient-body .evidence button { border: 1px solid #d5dbff; background: #fff; color: #3b4fd8; border-radius: 12px; padding: 3px 9px; font: inherit; font-size: 12px; cursor: pointer; }
+.actions .send:disabled { opacity: .5; }
+
+/* 시나리오 초안은 원래 문구보다 길어서(원문 링크·캡처 날짜·각주 등) 펼친 카드 높이를 늘리고 근거 칩 자리를 둔다 */
+.recipient.expanded { height: 262px; }
+.recipient-1.expanded { top: 620px; }
+.message { margin-top: 12px; }
+.message p, .message textarea { font-size: 14px; line-height: 1.5; }
+.message textarea { height: 86px; }
+.experience { height: 990px; min-height: 990px; }
+.actions { top: 900px; }
+@media (min-width: 768px) { .recipient-1.expanded { top: 345px; } .actions { top: 640px; } .experience { height: 874px; min-height: 874px; } }
+/* public/responsive.css 가 .experience 최소 높이를 860px 로 고정하므로, 늘린 카드가 버튼과 겹치지 않게 더 높은 우선순위로 덮는다 */
+html[data-flow="classification"] main.experience.experience { min-height: max(1000px, 100dvh) !important; }
+@media (min-width: 768px) { html[data-flow="classification"] main.experience.experience { min-height: max(860px, 100dvh) !important; } }

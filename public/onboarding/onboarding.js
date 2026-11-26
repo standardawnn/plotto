@@ -479,7 +479,7 @@ function scene03(root) {
  * ================================================================= */
 const stage = document.getElementById('stage');
 const stageWrap = document.getElementById('stageWrap');
-const factories = [scene01, scene03, scene02];
+const factories = [scene01, scene02, scene03];
 const scenes = factories.map((f, i) => {
   const root = el('div', 'scene', stage);
   root.style.display = 'none';
@@ -502,7 +502,7 @@ function nav(to, T) {
   state.dir = to > state.cur ? 1 : -1;
   state.dotFrom = state.cur; state.lastDotT = T;
   state.cur = to;
-  try { sessionStorage.setItem('plotto-tour-step', String(to)); } catch (e) { /* storage unavailable */ }
+  
   scenes[to].enter = T + DELAY;
 }
 
@@ -515,7 +515,8 @@ function resize() {
   const k = Math.min(W, avail) / 2048;
   stage.style.transform = `translate(${((W - 2048 * k) / 2).toFixed(2)}px,0) scale(${k})`;
 }
-new ResizeObserver(resize).observe(stageWrap);
+let resizeQ = 0;
+new ResizeObserver(() => { if (resizeQ) return; resizeQ = requestAnimationFrame(() => { resizeQ = 0; resize(); }); }).observe(stageWrap);
 resize();
 
 const schedule = [];   // scripted navigation (video render)
@@ -577,7 +578,7 @@ const now = () => (performance.now() - clock0) / 1000;
 addEventListener('message', e => {if(e.origin===location.origin && e.source===parent && e.data?.type==='plotto:start'){
   /* Resume the scene the visitor was on if the page was reloaded (for example after a memory reset). */
   let saved = 0;
-  try { saved = Number(sessionStorage.getItem('plotto-tour-step')) || 0; } catch (err) { saved = 0; }
+  saved = 0; /* no resume */
   if (saved > 0 && saved < scenes.length) {
     state.cur = saved; state.prev = null; state.dir = 1;
     clock0 = performance.now() - (scenes[saved].enter + IN) * 1000;
@@ -613,7 +614,9 @@ if (!RECORD) {
     clock0 = performance.now();
     renderAt(0);
     parent.postMessage({type:'plotto:ready'},location.origin);
-    const loop = () => { renderAt(now()); requestAnimationFrame(loop); };
+    /* don't animate while the tour is hidden behind the name / project / done steps (saves memory and battery on iPhone) */
+    const hiddenFrame = () => { try { return !!(window.frameElement && window.frameElement.hidden); } catch (e) { return false; } };
+    const loop = () => { if (!hiddenFrame()) renderAt(now()); requestAnimationFrame(loop); };
     loop();
   });
 }

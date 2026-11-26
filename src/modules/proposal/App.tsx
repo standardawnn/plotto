@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { SessionSuggestionSheet, slotLabel } from '../../demo/SessionSuggestion'
+import { recordJourney } from '../../journey'
 
 const asset = (name: string) => `/stage3/assets/${name}`
 
@@ -7,6 +9,8 @@ export default function App() {
   const [message, setMessage] = useState('')
   const [sentMessages, setSentMessages] = useState<string[]>([])
   const [dismissed, setDismissed] = useState(false)
+  // '공동세션 하러가기' → 제안 시트(참여자·이유·근거·안건·초대 문안·후보 시간). 확정한 뒤에만 기존 예약 화면으로 이어진다.
+  const [suggesting, setSuggesting] = useState(false)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -58,10 +62,15 @@ export default function App() {
           <div className="final-character"><img src={asset('b021f.png')} alt="의문이 생긴 플로토 캐릭터" /></div>
           <h1 className="reveal-title">해당 작업에 대한 의문이 생겼어요.</h1>
           <p className="reveal-description">자료를 전달한 태훈님과 함께<br />추후에 공동세션을 진행할까요?</p>
-          <button className="reserve-button flex items-center justify-center" onClick={() => window.parent.postMessage({type: 'plotto:navigate', stage: 4}, '*')}>공동세션 하러가기</button>
+          <button className="reserve-button flex items-center justify-center" onClick={() => setSuggesting(true)}>공동세션 하러가기</button>
         </section>
         <img className="pull-character" src={asset('c40a6.png')} alt="상단 박스를 잡아 끌어내리는 플로토 캐릭터" />
       </div>
+      {suggesting && <SessionSuggestionSheet onClose={() => setSuggesting(false)} onConfirmed={rec => {
+        recordJourney({ sessionTopic: rec.title, sessionTime: slotLabel(rec.slot) })
+        setSuggesting(false)
+        window.parent.postMessage({ type: 'plotto:navigate', stage: 4 }, '*')
+      }} />}
       <button className="close-button" type="button" aria-label="닫기" onClick={() => { setDismissed(true); setPhase('idle') }}><img src={asset('7fe7a.svg')} alt="" /></button>
     </main>
   )

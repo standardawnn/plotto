@@ -52,3 +52,19 @@ input,textarea{font-size:16px!important}
 /* Do not crop the tails: the box clipped them once the art was centred. */
 .splash-character{overflow:visible!important}
 .splash-character{left:calc(50% - 147px)!important}
+
+/* full-bleed to the very bottom (home indicator area) */
+html:has(body[data-page=launcher]){background:#3a0a1e}html,body{height:100lvh;min-height:100lvh}
+
+/* device top safe area: content starts below the status bar, the photo shows behind it */
+body{background:#f4f7fd url(assets/bg.png) center top/cover no-repeat}
+#canvas{overflow:visible}
+/* these layers live on <body> (launch.js moves them out of #canvas): start below the status bar, run to the very bottom */
+#tour,#done{top:env(safe-area-inset-top,0px)!important;bottom:0!important;height:auto!important}
+#name,#projects{top:calc(-40px + env(safe-area-inset-top,0px))!important;bottom:0!important;height:auto!important;padding-top:0}
+/* iframes do not stretch with top+bottom: give the tour an explicit height */
+#tour{height:calc(100% - env(safe-area-inset-top,0px))!important}
+
+html,body{overscroll-behavior:none}
+
+#launcher{display:none!important}

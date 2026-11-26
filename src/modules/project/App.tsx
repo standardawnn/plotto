@@ -5,6 +5,15 @@ import { dayDifference, getScheduleDates, projectToday, shiftDate } from './sche
 import ProjectPicker from './ProjectPicker'
 import { useProjects } from './useProjects'
 import type { HomeTask } from './projectHomeData'
+import { useDemo } from '../../demo/useDemo'
+import { DemoGate } from '../../demo/DemoUI'
+import { ProjectFilesSheet } from '../../demo/ProjectFiles'
+import { eventsOf, nameOf, resolveProjectId } from '../../demo/demoStore'
+import { relativeOf } from '../../demo/scenario'
+
+// 시나리오 팀원 → 프로젝트 홈 프로필 사진
+const PERSON_PORTRAIT: Record<string, string> = { seoyeon: 'me', taehun: 'tae', yujin: 'yu' }
+const SHARE_EVENTS = new Set(['file_shared', 'meeting_logged', 'file_prepared'])
 
 const assets = '/stage1/assets'
 const portraits: Record<string, string> = {
@@ -43,6 +52,15 @@ export default function App() {
   const projectLabel = useRef<HTMLButtonElement>(null)
   const home = projects.home
   const dates = getScheduleDates(selectedDate)
+  // 파일·공유·활동은 시나리오에서, 현재 프로젝트 ID 에 해당하는 것만 가져온다
+  const demo = useDemo()
+  const sc = demo.status === 'ready' ? demo.s : null
+  const projectName = projects.current?.name ?? 'AI분석프로젝트'
+  const demoProjectId = sc ? resolveProjectId(sc, projectName) : null
+  const demoActivities = sc && demoProjectId
+    ? eventsOf(sc, demoProjectId).filter(e => e.actorId !== sc.viewerId && e.actorId !== 'plotto' && SHARE_EVENTS.has(e.type) && e.fileIds.length).reverse()
+    : []
+  const [filesSheet, setFilesSheet] = useState<null | { title?: string; fileIds?: string[] }>(null)
 
   function closePicker() {
     setPickerOpen(false)
@@ -96,15 +114,20 @@ export default function App() {
       </header>
 
       <section className="activity" aria-labelledby="activity-title">
-        <h2 id="activity-title">새로운 활동 <span>{home.activities.length}</span></h2>
-        {home.activities.map((activity, i) => {
-          const actor = home.members.find((member) => member.id === activity.actorId)
-          if (!actor) return null
+        <h2 id="activity-title">새로운 활동 <span>{sc ? demoActivities.length : home.activities.length}</span>
+          <button type="button" className="activity-files-button" onClick={() => setFilesSheet({})}>파일·공유 내역</button></h2>
+        {demo.status !== 'ready' && <DemoGate demo={demo} compact>{() => null}</DemoGate>}
+        {sc && !demoProjectId && <p className="activity-empty">이 프로젝트에는 아직 공유된 파일이 없어요.</p>}
+        {sc && demoActivities.map(event => {
+          const kind = PERSON_PORTRAIT[event.actorId]
+          const name = nameOf(sc, event.actorId)
+          // 마케팅 공모전에서 태훈이 공유한 자료조사는 기존 '자료 확인 → 의견' 흐름으로 이어진다
+          const toFeedback = demoProjectId === 'marketing' && event.actorId === 'taehun' && event.type === 'file_shared'
           return (
-            <button key={i} className="activity-card" onClick={() => go('feedback')} aria-label={`${actor.name}님이 전달한 파일 ${activity.fileCount}개 보기`}>
-              <Avatar name={actor.name} kind={actor.avatar} />
-              <p className="activity-copy">{`${actor.name}님이`}<br /><span>{`${activity.fileCount}개의 파일`}</span>을 전달했어요.</p>
-              <p className="activity-time">{activity.timeLabel}</p>
+            <button key={event.id} className="activity-card" onClick={() => toFeedback ? go('feedback') : setFilesSheet({ title: `${name}님이 전달한 파일`, fileIds: event.fileIds })} aria-label={`${name}님이 전달한 파일 ${event.fileIds.length}개 보기`}>
+              {kind ? <Avatar name={name} kind={kind} /> : <span className="avatar avatar-initial" aria-hidden="true">{name.slice(0, 1)}</span>}
+              <p className="activity-copy">{`${name}님이`}<br /><span>{`${event.fileIds.length}개의 파일`}</span>을 전달했어요.</p>
+              <p className="activity-time">{relativeOf(sc.demoNow, event.at)}</p>
               <div className="file-art" aria-hidden="true">
                 <img src={`${assets}/0ffc9.png`} alt="" />
               </div>
@@ -224,6 +247,7 @@ export default function App() {
           }}
         />
       )}
+      {filesSheet && <ProjectFilesSheet projectId={demoProjectId} title={filesSheet.title} focusFileIds={filesSheet.fileIds} onClose={() => setFilesSheet(null)} />}
       {notice && <div className="toast" role="status" onClick={() => setNotice('')}>{notice}<button aria-label="알림 닫기" onClick={() => setNotice('')}><img src="/brand/icon-close.svg" width="24" height="24" alt="" /></button></div>}
       {showFiles && <div className="modal-backdrop" onClick={() => setShowFiles(false)}>
         <section className="file-dialog" role="dialog" aria-modal="true" aria-labelledby="files-title" onClick={(event) => event.stopPropagation()}>

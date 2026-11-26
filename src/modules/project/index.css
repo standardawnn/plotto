@@ -134,3 +134,10 @@ h2 { color: #111; font-size: 18px; font-weight: 600; line-height: 1.445; letter-
 .bottom-nav{bottom:max(24px,env(safe-area-inset-bottom));z-index:100}.bottom-nav img{width:24px;height:24px;object-fit:contain}.bottom-nav button{transition:transform .16s ease,background-color .16s ease;border-radius:50%}.bottom-nav button:active{transform:scale(.87);background:#edf0ff}.bottom-nav button:focus-visible{outline:2px solid #536ffa;outline-offset:3px}.activity-card,.continue-button,.task{transition:transform .18s ease,box-shadow .18s ease}.activity-card:active,.continue-button:active,.task:active{transform:scale(.98)}
 
 .bottom-nav{width:208px;height:56px;padding:8px 12px;gap:8px}.bottom-nav button{width:40px;height:40px;flex:0 0 40px}.bottom-nav .home-icon>img:first-child{width:21px;height:23px}.bottom-nav .home-icon>.home-detail{width:6px;height:8px;left:10px;top:15px}
+
+/* 시나리오 연결: 파일·공유 내역 버튼, 여러 활동 카드, 빈 프로젝트 */
+.activity h2 { display: flex; align-items: center; gap: 6px; }
+.activity-files-button { margin-left: auto; height: 30px; padding: 0 12px; border: 1.2px solid #c9d1ff; border-radius: 15px; background: #fff; color: #3b4fd8; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.activity-card + .activity-card { margin-top: 10px; }
+.activity-empty { margin: 0; padding: 18px 16px; border-radius: 16px; background: #fff; color: #7c8494; font-size: 14px; }
+.avatar-initial { display: grid !important; place-items: center; background: #dfe4ff; color: #3b4fd8; font-weight: 600; font-size: 15px; }

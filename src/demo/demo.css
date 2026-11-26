@@ -1,0 +1,109 @@
+/* 데모 공통 UI (파일 뷰어 · 확인 대화상자 · 상태 표시). 모든 모듈에서 같은 모양으로 쓰도록 접두사 dm- 만 사용 */
+.dm-viewer, .dm-modal, .dm-sheet-layer { font-family: "Pretendard", system-ui, -apple-system, sans-serif; color: #1e2838; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+.dm-viewer *, .dm-modal *, .dm-sheet-layer * { box-sizing: border-box; }
+
+.dm-viewer { position: fixed; inset: 0; z-index: 2147482000; background: #f4f7fd; display: flex; flex-direction: column; }
+.dm-viewer-head { flex: none; display: flex; align-items: center; gap: 8px; padding: max(14px, env(safe-area-inset-top)) 12px 10px; background: #fff; border-bottom: 1px solid #e6eaf3; }
+.dm-viewer-head h1 { flex: 1; min-width: 0; margin: 0; font-size: 16px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm-back { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border: 0; background: none; border-radius: 12px; color: #1e2838; cursor: pointer; }
+.dm-back img { width: 24px; height: 24px; }
+.dm-back:active { background: #eef1f8; }
+.dm-viewer-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; padding: 16px 16px calc(40px + env(safe-area-inset-bottom)); }
+.dm-viewer-body > * { max-width: 720px; margin-left: auto; margin-right: auto; }
+
+.dm-meta, .dm-block { background: #fff; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 0 4px rgba(0, 0, 0, .06); }
+.dm-meta-top { display: flex; gap: 12px; align-items: center; }
+.dm-meta-top b { display: block; font-size: 17px; font-weight: 600; line-height: 1.4; }
+.dm-meta-top span { display: block; font-size: 13px; color: #7b899e; margin-top: 2px; }
+.dm-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.dm-tag { display: inline-flex; align-items: center; height: 24px; padding: 0 9px; border-radius: 12px; background: #eef1f8; color: #556075; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.dm-tag.strong { background: #e3e8ff; color: #3b4fd8; font-weight: 600; }
+.dm-tag.warn { background: #fff1e8; color: #d9531e; }
+.dm-tag.ok { background: #e6f6ee; color: #1f8a54; }
+.dm-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.dm-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 12px; font: inherit; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; border: 1.4px solid transparent; transition: transform .15s; }
+.dm-btn:active { transform: scale(.97); }
+.dm-btn:disabled { opacity: .45; cursor: default; transform: none; }
+.dm-btn.primary { background: #536ffa; color: #fff; }
+.dm-btn.ghost { background: #fff; color: #1f2b3b; border-color: #dde4ee; }
+.dm-btn.block { width: 100%; }
+.dm-link { flex: none; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; color: #4b3bff; padding: 8px; margin: -8px -4px -8px 0; cursor: pointer; }
+.dm-note { margin: 10px 0 0; font-size: 12.5px; line-height: 1.5; color: #7b899e; }
+.dm-error { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #fff1ef; color: #c2361d; font-size: 13px; line-height: 1.5; word-break: break-all; }
+.dm-foot-note { text-align: center; font-size: 12px; color: #a9b1c1; margin: 8px 0 0; }
+
+.dm-block h3 { margin: 0 0 10px; font-size: 15px; font-weight: 600; }
+.dm-block h3 small { font-size: 12px; font-weight: 500; color: #a9b1c1; }
+.dm-sec + .dm-sec { margin-top: 14px; }
+.dm-sec h4 { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #3b4fd8; }
+.dm-sec p { margin: 0; font-size: 14.5px; line-height: 1.65; color: #3f4450; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; }
+
+.dm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.dm-list li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #f6f8fc; font-size: 14px; }
+.dm-list li.on { background: #eef1ff; outline: 1.2px solid #c9d1ff; }
+.dm-grow { flex: 1; min-width: 0; }
+.dm-grow small { display: block; font-size: 12px; color: #8a93a6; margin-top: 2px; }
+.dm-grow b { display: block; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.dm-ava { flex: none; display: inline-grid; place-items: center; border-radius: 50%; overflow: hidden; background: #dfe4ff; color: #3b4fd8; font-weight: 600; }
+.dm-ava img { width: 100%; height: 133%; object-fit: cover; object-position: top; }
+
+.dm-ficon { flex: none; display: inline-grid; place-items: center; width: 34px; height: 42px; border-radius: 6px; font-size: 9px; font-weight: 700; color: #fff; background: #e5484d; }
+.dm-ficon.docx { background: #2f6fe4; }
+.dm-ficon.saved { background: #6c63ff; }
+
+.dm-frow { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid #e4e9f3; border-radius: 14px; background: #fff; text-align: left; }
+.dm-frow + .dm-frow { margin-top: 8px; }
+
+.dm-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 28px 16px; text-align: center; font-size: 14px; color: #7b899e; }
+.dm-state.compact { padding: 12px; flex-direction: row; }.dm-state.error { color: #c2361d; }
+.dm-state.error span { font-size: 12px; color: #8a93a6; word-break: break-all; }
+.dm-state button { border: 0; background: #536ffa; color: #fff; border-radius: 10px; padding: 8px 14px; font: inherit; font-size: 13px; cursor: pointer; }
+.dm-spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #c9d1ff; border-top-color: #536ffa; animation: dm-spin .8s linear infinite; }
+@keyframes dm-spin { to { transform: rotate(360deg); } }
+
+.dm-modal { position: fixed; inset: 0; z-index: 2147482500; background: rgba(12, 12, 30, .45); display: grid; place-items: center; padding: 20px; }
+.dm-dialog { width: min(100%, 380px); max-height: calc(100% - 40px); overflow-y: auto; background: #fff; border-radius: 20px; padding: 22px 20px 18px; outline: none; touch-action: pan-y; }
+.dm-dialog h2 { margin: 0 0 10px; font-size: 18px; font-weight: 600; line-height: 1.4; }
+.dm-dialog p { margin: 0 0 8px; font-size: 14px; line-height: 1.55; color: #556075; }
+.dm-dialog-actions { display: flex; gap: 8px; margin-top: 16px; }
+.dm-dialog-actions .dm-btn { flex: 1; }
+
+/* 제안 시트 (공동세션 · 레퍼런스 공유 등) */
+.dm-sheet-layer { position: fixed; inset: 0; z-index: 2147481000; display: flex; flex-direction: column; justify-content: flex-end; }
+.dm-sheet-dim { position: absolute; inset: 0; background: rgba(12, 12, 30, .5); }
+.dm-sheet { position: relative; max-height: 92%; display: flex; flex-direction: column; background: #f4f7fd; border-radius: 26px 26px 0 0; width: 100%; max-width: 760px; margin: 0 auto; outline: none; }
+.dm-sheet-head { flex: none; padding: 20px 20px 12px; display: flex; gap: 10px; align-items: flex-start; }
+.dm-sheet-head > div { flex: 1; min-width: 0; }
+.dm-sheet-head small { display: block; font-size: 13px; color: #536ffa; font-weight: 600; margin-bottom: 4px; }
+.dm-sheet-head h2 { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
+.dm-sheet-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 0 16px 16px; }
+.dm-sheet-foot { flex: none; display: flex; gap: 8px; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid #e6eaf3; }
+.dm-sheet-foot .dm-btn { flex: 1; }
+.dm-people { display: flex; flex-wrap: wrap; gap: 8px; }
+.dm-person { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 20px; background: #f6f8fc; font-size: 14px; }
+.dm-person small { color: #8a93a6; font-size: 12px; }
+.dm-field { width: 100%; min-height: 96px; resize: vertical; border: 1.4px solid #dde4ee; border-radius: 12px; padding: 12px; font: inherit; font-size: 14.5px; line-height: 1.55; color: #1e2838; background: #fff; }
+.dm-field:focus { outline: none; border-color: #536ffa; }
+.dm-input { width: 100%; border: 1.4px solid #dde4ee; border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 14.5px; background: #fff; color: #1e2838; }
+.dm-input:focus { outline: none; border-color: #536ffa; }
+.dm-agenda { display: flex; flex-direction: column; gap: 8px; }
+.dm-reason { font-size: 14.5px; line-height: 1.6; color: #3f4450; margin: 0; }
+.dm-done { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: #e6f6ee; color: #1f6b45; font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
+.dm-done b { display: block; }
+
+/* 프로젝트 파일 시트 */
+.dm-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+.dm-tabs button { flex: 1; min-height: 38px; border: 1.2px solid #dde4ee; border-radius: 19px; background: #fff; font: inherit; font-size: 13.5px; font-weight: 500; color: #556075; cursor: pointer; }
+.dm-tabs button.on { border-color: #536ffa; background: rgba(83, 111, 250, .12); color: #1d2a8a; font-weight: 600; }
+.dm-share-line { display: block; font-size: 12px; color: #1f8a54; margin-top: 3px; }
+.dm-share-line.muted { color: #a9b1c1; }
+.dm-reset { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: center; margin-top: 18px; font-size: 12.5px; color: #8a93a6; }
+.dm-reset .dm-link { margin: 0; color: #8a93a6; font-weight: 500; text-decoration: underline; }
+
+/* 제안 입력 요약 */
+.dm-input-summary { margin: 4px 0 12px; padding: 12px 14px; border-radius: 14px; background: #fff; font-size: 13px; color: #556075; }
+.dm-input-summary summary { cursor: pointer; font-weight: 600; color: #3b4fd8; }
+.dm-input-summary ul { margin: 10px 0 0; padding-left: 18px; line-height: 1.6; }
+.dm-input-summary p { margin: 8px 0 0; color: #8a93a6; font-size: 12px; }
+.dm-block h3 small { font-weight: 500; color: #a9b1c1; font-size: 12px; margin-left: 4px; }
