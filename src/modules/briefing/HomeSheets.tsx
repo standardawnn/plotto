@@ -123,10 +123,25 @@ function BottomSheet({ title, sub, left, head, legacy, onClose, footer, tight, c
   closeRef.current = onClose;
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
+    /* remember every scrolled position now, so the home behind the sheet can be put back exactly where it was */
+    const scrolled = [...document.querySelectorAll<HTMLElement>("*")].filter((el) => el.scrollTop > 0).map((el) => [el, el.scrollTop] as const);
+    const scrollY = window.scrollY, docTop = document.scrollingElement?.scrollTop ?? 0;
+    const restore = () => {
+      scrolled.forEach(([el, top]) => { if (el.scrollTop !== top) el.scrollTop = top; });
+      if (window.scrollY !== scrollY) window.scrollTo(0, scrollY);
+      if (document.scrollingElement && document.scrollingElement.scrollTop !== docTop) document.scrollingElement.scrollTop = docTop;
+    };
     sheet.current?.focus({ preventScroll: true });
+    restore();
+    const frame = requestAnimationFrame(restore);
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeRef.current(); };
     addEventListener("keydown", onKey);
-    return () => { removeEventListener("keydown", onKey); prev?.focus?.({ preventScroll: true }); };
+    return () => {
+      cancelAnimationFrame(frame);
+      removeEventListener("keydown", onKey);
+      prev?.focus?.({ preventScroll: true });
+      restore();
+    };
   }, []);
   return (
     <div className="hs-layer" data-no-lift>
