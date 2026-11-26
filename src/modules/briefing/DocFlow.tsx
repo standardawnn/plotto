@@ -159,7 +159,7 @@ export const MATES = [
 const MATE_IMG: Record<string, { img: string; crop: string }> = { yujin: { img: imgAvatarYujin, crop: "top-[-2.22%]" }, taehun: { img: imgAvatarTaehun, crop: "top-[-6.66%]" } };
 
 /** 저장한 버전을 공유 후보(같은 프로젝트 팀원)에게 공유. 확인(공유하기)을 눌러야 공유 이력이 생기고, 같은 공유는 한 번만 기록된다. */
-function Share({ s, sc, file, candidates, onBack, onFinish }: { s: number; sc: Scenario; file: DemoFile; candidates: string[]; onBack: () => void; onFinish: () => void }) {
+export function Share({ s, sc, file, candidates, onBack, onFinish }: { s: number; sc: Scenario; file: DemoFile; candidates: string[]; onBack: () => void; onFinish: () => void }) {
   const MATES = candidates.map(id => ({ id, name: nameOf(sc, id), role: roleOf(sc, file.projectId, id), title: `${file.title} 확인 요청`, sub: `${roleOf(sc, file.projectId, id)} 작업에 반영할 수 있도록`, img: MATE_IMG[id]?.img ?? "", crop: MATE_IMG[id]?.crop ?? "" }));
   const [picked, setPicked] = useState(() => candidates.map(() => true));
   const [sent, setSent] = useState(false);
@@ -279,4 +279,13 @@ function Share({ s, sc, file, candidates, onBack, onFinish }: { s: number; sc: S
       </AnimatePresence>
     </div>
   );
+}
+
+/** merge: the share step on its own (dial Next -> 공유하기). Same data as the step above: current plan version and the task's share candidates. */
+export function ShareStep({ s, onBack, onFinish }: { s: number; onBack: () => void; onFinish: () => void }) {
+  const demo = useDemo();
+  if (demo.status !== "ready") return <div className="absolute inset-0 bg-white"><div style={{ paddingTop: 120 }}><DemoGate demo={demo}>{() => null}</DemoGate></div><BackButton s={s} onClick={onBack} /></div>;
+  const docs = planDocs(demo.s);
+  if (!docs) return <div className="absolute inset-0 bg-white"><div className="dm-state error" role="alert" style={{ marginTop: 120 }}><b>공유할 기획안을 찾지 못했어요</b><button type="button" onClick={onBack}>닫기</button></div></div>;
+  return <Share s={s} sc={demo.s} file={docs.current} candidates={docs.task.shareCandidateIds ?? []} onBack={onBack} onFinish={onFinish} />;
 }

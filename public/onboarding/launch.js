@@ -82,3 +82,27 @@ if(current==='launcher'){try{$('open').click();}catch(e){}}
     if(n>=5){n=0;var d=document.createElement('pre');d.style.cssText='position:fixed;inset:0;z-index:9999;margin:0;padding:50px 12px 12px;background:#000d;color:#9f9;font:11px/1.4 monospace;white-space:pre-wrap;overflow:auto';d.textContent=get().join('\n');d.onclick=function(){d.remove()};document.body.appendChild(d)}
   });
 })();
+
+/* merge: onboarding pages are history entries (history.state.onbStack = pages up to this one), so the back
+   buttons and the browser back always go to the page the person actually came from. A back button that shows the
+   previous page goes back in history instead of adding an entry. On "시작하기" the onboarding entries are rewound
+   first, so back from the app home does not land in the middle of the onboarding again. */
+(function(){
+  const PAGES=['tour','consent','login','signup','name','source','projects','done'];
+  const raw=show;let applying=false,finishing=false;const BASE=history.length;
+  const stackOf=()=>(history.state&&history.state.onbStack)||[current];
+  show=function(id){
+    if(applying||!PAGES.includes(id)||!PAGES.includes(current))return raw(id);
+    if(id===current)return;
+    const st=stackOf();
+    if(st.length>=2&&st[st.length-2]===id){history.back();return;}
+    raw(id);try{history.pushState({onbStack:st.concat(id)},'');}catch(e){}
+  };
+  const start=$('start').onclick;
+  addEventListener('popstate',()=>{
+    if(finishing){start();return;}
+    const st=history.state&&history.state.onbStack;const id=st?st[st.length-1]:'tour';
+    if(PAGES.includes(current)&&id!==current){applying=true;raw(id);applying=false;}
+  });
+  $('start').onclick=()=>{const n=history.length-BASE;if(n>0&&!finishing){finishing=true;history.go(-n);setTimeout(()=>{if(finishing)start();},800);}else start();};
+})();

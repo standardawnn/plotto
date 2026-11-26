@@ -585,15 +585,25 @@ addEventListener('message', e => {if(e.origin===location.origin && e.source===pa
     renderAt(now());
   } else { clock0 = performance.now(); renderAt(0); }
 }});
-function next() { const T = now(); if(clock0 === null || T < scenes[state.cur].enter + IN)return; state.pressAt = T; if (state.cur < scenes.length - 1) nav(state.cur + 1, T); else finish(); }
+/* Steps are history entries (history.state.onbStep): the back button, swipe back and the browser back all
+   return to the previous step the same way. */
+function pushStep() { try { history.pushState({ onbStep: state.cur }, ''); } catch (e) { /* ignore */ } }
+function userNav(to) { const b = state.cur; nav(to, now()); if (state.cur !== b) pushStep(); }
+function userBack() { if (history.state && history.state.onbStep > 0) history.back(); else nav(state.cur - 1, now()); }
+addEventListener('popstate', () => {
+  const want = (history.state && history.state.onbStep) || 0;
+  let tries = 0; /* nav() ignores calls while a step is still entering, so retry briefly */
+  (function apply() { if (state.cur === want) return; nav(want, now()); if (state.cur !== want && ++tries < 40) setTimeout(apply, 50); })();
+});
+function next() { const T = now(); if(clock0 === null || T < scenes[state.cur].enter + IN)return; state.pressAt = T; if (state.cur < scenes.length - 1) { const b = state.cur; nav(state.cur + 1, T); if (state.cur !== b) pushStep(); } else finish(); }
 function finish() { parent.postMessage({type:'plotto:name'},location.origin); }
 cta.addEventListener('click', next);
 document.getElementById('skip-forward').addEventListener('click', finish);
-document.getElementById('skip').addEventListener('click',()=>{if(state.cur>0)nav(state.cur-1,now());else parent.postMessage({type:'plotto:launcher'},location.origin);});
-dotEls.forEach((d, i) => d.addEventListener('click', () => nav(i, now())));
+document.getElementById('skip').addEventListener('click',()=>{if(state.cur>0)userBack();else parent.postMessage({type:'plotto:launcher'},location.origin);});
+dotEls.forEach((d, i) => d.addEventListener('click', () => userNav(i)));
 addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') next();
-  if (e.key === 'ArrowLeft') nav(state.cur - 1, now());
+  if (e.key === 'ArrowLeft') userBack();
 });
 let sx0 = null;
 const scr = document.getElementById('screen');
@@ -601,7 +611,7 @@ scr.addEventListener('pointerdown', e => { sx0 = e.clientX; });
 scr.addEventListener('pointerup', e => {
   if (sx0 == null) return;
   const dx = e.clientX - sx0; sx0 = null;
-  if (Math.abs(dx) > 50) { if(dx < 0) next(); else nav(state.cur - 1, now()); }
+  if (Math.abs(dx) > 50) { if(dx < 0) next(); else userBack(); }
 });
 
 const ready = Promise.all(IMGS.map(i => i.decode().catch(() => {})));

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './shell.css';
 import { flows } from './journey';
+import { markCrossNavigation } from './navHistory';
 import { ErrorBoundary } from './ErrorBoundary';
 
 // Full-screen host. The prototype always fills the device it runs on — phone,
@@ -20,6 +21,7 @@ function App() {
       if (e.data?.type === 'plotto:navigate') {
         const map: Record<number, string> = e.data.stage ? { 2: 'intervention', 3: 'proposal', 4: 'booking', 5: 'session' } : { 1: 'project', 2: 'feedback', 3: 'classification' };
         const next = map[e.data.stage || e.data.screen];
+        if (next && frame.current) markCrossNavigation();
         if (next && frame.current) frame.current.src = `./mobile.html?flow=${next}&entry=chat`;
         return;
       }

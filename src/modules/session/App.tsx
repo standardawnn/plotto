@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { mmddCompact, mmddDay } from '../../today'
-import { go } from '../../journey'
+import { go, recordJourney } from '../../journey'
 
 const assetPathPrefix = "/stage5/assets"
 
@@ -303,7 +303,8 @@ function Home({
             }}
           >
             <span className="home-icon">
-              <img src="/brand/nav-home-active.svg" alt="" className="asset home-icon-shape" draggable={false} />
+              <img src="/assets/briefing/49e20.svg" alt="" className="asset home-icon-door" style={{ width: 2, height: 8 }} draggable={false} />
+              <img src="/assets/briefing/e4e8a.svg" alt="" className="asset home-icon-shape" style={{ width: 18.7999, height: 19.1705 }} draggable={false} />
             </span>
           </button>
           <button
@@ -314,24 +315,20 @@ function Home({
               go("project")
             }}
           >
-            <img src="/brand/nav-project.svg" alt="" className="asset" draggable={false} />
+            <img src="/assets/briefing/de536.svg" alt="" className="asset" draggable={false} />
           </button>
           <button
             className="icon-button"
-            aria-label="공동세션"
-            onClick={onReminder}
+            aria-label="메시지"
+            onClick={() => go("briefing", "messages")}
           >
-            <img src="/brand/nav-chat.svg" alt="" className="asset" draggable={false} />
+            <img src="/assets/briefing/fdd84.svg" alt="" className="asset" draggable={false} />
           </button>
           <button
             className="icon-button"
-            aria-label="내 작업"
-            onClick={() => {
-              setActiveNav("내 작업")
-              deadlinesRef.current?.scrollIntoView({ behavior: "smooth" })
-            }}
+            aria-label="내 정보"
           >
-            <img src="/brand/nav-profile.svg" alt="" className="asset" draggable={false} />
+            <img src="/assets/briefing/d609e.svg" alt="" className="asset" draggable={false} />
           </button>
         </nav>
       )}
@@ -884,11 +881,17 @@ export default function App() {
   }, [])
 
   function navigate(to: "home" | "session") {
+    // Leaving the session room returns to the entry it was opened from (history.back), instead of pushing a new
+    // home entry; otherwise the browser back would open the room again.
+    if (to === "home" && location.hash === "#session" && history.state?.sessionFromHome) {
+      history.back()
+      return
+    }
     setReminderOpen(false)
     setBriefingOpen(false)
     setScreen(to)
     history.pushState(
-      null,
+      to === "session" ? { ...(history.state || {}), sessionFromHome: true } : null,
       "",
       to === "session" ? "#session" : location.pathname + location.search,
     )
@@ -907,7 +910,7 @@ export default function App() {
           onBriefing={() => go("briefing", "briefing")}
         />
       ) : (
-        <Session onBack={() => navigate("home")} />
+        <Session onBack={() => { recordJourney({ sessionFinished: true }); navigate("home") }} />
       )}
       {cue && !reminderOpen && screen === "home" && (
         <button
