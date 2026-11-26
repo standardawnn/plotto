@@ -12,6 +12,12 @@ loginPage.querySelector('.back').onclick = () => show('consent');
 const consentInputs = ['terms-check','privacy-check','notice-check'].map(id => document.getElementById(id));
 consentInputs.forEach(input => input.onchange = () => { document.getElementById('consent-next').disabled = !consentInputs[0].checked || !consentInputs[1].checked; });
 document.getElementById('consent-next').onclick = () => { sessionStorage.setItem('plotto-consent-pending', JSON.stringify({version:'draft', terms:true, privacy:true, marketing:consentInputs[2].checked, acceptedAt:new Date().toISOString()})); show('login'); };
+// 로그인에서 돌아왔는지 SDK가 주소를 정리하기 전에 기록해 둔다 (launch.js·account-session.js 가 사용)
+window.PLOTTO_AUTH_RETURN = (() => {
+ const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1));
+ const error = q.get('error') || h.get('error');
+ return error || q.has('code') ? { error, code: q.has('code') } : null;
+})();
 const authConfig = window.PLOTTO_AUTH;
 // supabase-client.js 를 못 불러왔거나 설정이 비어 있으면 로그인만 막고 나머지 화면은 그대로 만든다
 const authClient = authConfig && authConfig.url && authConfig.publishableKey && window.supabase ? window.supabase.createClient(authConfig.url, authConfig.publishableKey, {auth:{flowType:'pkce'}}) : null;
@@ -20,7 +26,9 @@ async function socialLogin(provider) {
  if (!authClient) { error.textContent = '로그인 서비스가 아직 연결되지 않았어요.'; return; }
  error.textContent = '';
  try {
-  const { data, error: authError } = await authClient.auth.signInWithOAuth({provider, options:{redirectTo:location.origin + location.pathname, skipBrowserRedirect:true}});
+  // 앱 시작 주소(/)로 돌아오게 한다. 앱(shell.tsx)이 로그인 결과를 온보딩 화면에 넘겨 이어서 처리한다.
+  // 지금 열려 있는 주소(Preview·운영·localhost)의 도메인을 그대로 쓴다. Supabase Redirect URLs 에 등록돼 있어야 한다.
+  const { data, error: authError } = await authClient.auth.signInWithOAuth({provider, options:{redirectTo:`${location.origin}/`, skipBrowserRedirect:true}});
   if (authError || !data.url) { error.textContent = '로그인 연결을 확인해 주세요. 잠시 후 다시 시도할 수 있어요.'; return; }
   window.top.location.assign(data.url);
  } catch { error.textContent = '연결하지 못했어요. 잠시 후 다시 시도해 주세요.'; }

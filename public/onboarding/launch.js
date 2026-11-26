@@ -50,7 +50,12 @@ if (/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'
 }
 /* no resume: always start from the first screen (after a Kakao login, account-session.js moves on to the name step) */try{sessionStorage.removeItem('plotto-launch-page');sessionStorage.removeItem('plotto-tour-step');localStorage.removeItem('plotto-ss-plotto-launch-page');localStorage.removeItem('plotto-ss-plotto-tour-step');}catch(e){}
 /* no fake iPhone home screen: go straight into the app splash */
-if(current==='launcher'){try{$('open').click();}catch(e){}}
+/* back from Kakao login: don't start the splash/tour (it would cover the result). Stay on the login screen while
+   account-session.js checks the session; the tour still loads in the background for the back button. */
+if(current==='launcher'){
+  if(window.PLOTTO_AUTH_RETURN){$('tour').src='index.html';show('login');}
+  else{try{$('open').click();}catch(e){}}
+}
 
 /* Warm the browser cache for the home screen while the visitor is still on onboarding (no decoding, so no extra memory). */
 (function(){

@@ -10,8 +10,15 @@ import { ErrorBoundary } from './ErrorBoundary';
 function App() {
   const frame = useRef<HTMLIFrameElement>(null);
   const [initial] = useState(() => {
-    const p = new URLSearchParams(location.hash.slice(1));
-    return (flows as readonly string[]).includes(p.get('flow') || '') ? `./mobile.html?${p}` : './onboarding/launch.html';
+    // 카카오(Supabase) 로그인에서 돌아온 경우: 결과(?code= / ?error=)를 온보딩 화면에 그대로 넘긴다.
+    // 넘기지 않으면 결과가 사라지고 온보딩 첫 화면부터 다시 시작된다. 주소창에서는 결과를 지운다.
+    const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1));
+    if (q.has('code') || q.has('error') || h.has('error')) {
+      const src = `./onboarding/launch.html${location.search}${location.hash}`;
+      history.replaceState(null, '', location.pathname);
+      return src;
+    }
+    return (flows as readonly string[]).includes(h.get('flow') || '') ? `./mobile.html?${h}` : './onboarding/launch.html';
   });
 
   useEffect(() => {
