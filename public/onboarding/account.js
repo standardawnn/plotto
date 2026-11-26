@@ -13,7 +13,8 @@ const consentInputs = ['terms-check','privacy-check','notice-check'].map(id => d
 consentInputs.forEach(input => input.onchange = () => { document.getElementById('consent-next').disabled = !consentInputs[0].checked || !consentInputs[1].checked; });
 document.getElementById('consent-next').onclick = () => { sessionStorage.setItem('plotto-consent-pending', JSON.stringify({version:'draft', terms:true, privacy:true, marketing:consentInputs[2].checked, acceptedAt:new Date().toISOString()})); show('login'); };
 const authConfig = window.PLOTTO_AUTH;
-const authClient = authConfig.url && authConfig.publishableKey ? window.supabase.createClient(authConfig.url, authConfig.publishableKey, {auth:{flowType:'pkce'}}) : null;
+// supabase-client.js 를 못 불러왔거나 설정이 비어 있으면 로그인만 막고 나머지 화면은 그대로 만든다
+const authClient = authConfig && authConfig.url && authConfig.publishableKey && window.supabase ? window.supabase.createClient(authConfig.url, authConfig.publishableKey, {auth:{flowType:'pkce'}}) : null;
 async function socialLogin(provider) {
  const error = document.getElementById('login-error');
  if (!authClient) { error.textContent = '로그인 서비스가 아직 연결되지 않았어요.'; return; }
