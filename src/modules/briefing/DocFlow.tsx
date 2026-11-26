@@ -108,7 +108,7 @@ function Done({ s, onNext }: { s: number; onNext: () => void }) {
 
 /* ---------- 팀원에게 전달 (13:1464) ---------- */
 
-const MATES = [
+export const MATES = [
   { name: "유진", role: "PPT 제작", title: "변경된 사용자와 추가 기능 전달", sub: "발표 자료에 반영할 수 있도록", img: imgAvatarYujin, crop: "top-[-2.22%]" },
   { name: "태훈", role: "자료조사", title: "새 사용자에 맞는 조사 내용 전달", sub: "관련 AI 서비스 사례를 보완할 수 있도록", img: imgAvatarTaehun, crop: "top-[-6.66%]" },
 ];
