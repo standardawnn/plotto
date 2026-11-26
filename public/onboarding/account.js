@@ -34,6 +34,17 @@ async function socialLogin(provider) {
  } catch { error.textContent = '연결하지 못했어요. 잠시 후 다시 시도해 주세요.'; }
 }
 document.getElementById('login-kakao').onclick = () => socialLogin('kakao');
+// 이 기기에서 카카오로 로그인한 적이 있으면: "카카오로 로그인하기" + 버튼 위 "최근 로그인" 표시
+(() => {
+ let last = null;
+ try { last = JSON.parse(localStorage.getItem('plotto-last-login') || 'null'); } catch { last = null; }
+ if (!last || last.provider !== 'kakao') return;
+ const button = document.getElementById('login-kakao');
+ button.innerHTML = '<strong aria-hidden="true">●</strong> 카카오로 로그인하기';
+ button.setAttribute('aria-describedby', 'recent-kakao');
+ button.insertAdjacentHTML('beforebegin', '<span class="recent-login" id="recent-kakao">최근 로그인</span>');
+ button.parentElement.classList.add('has-recent');
+})();
 
 // 이 화면은 연결 전 시연용입니다. 입력한 자격 증명은 저장하거나 전송하지 않습니다.
 const loginContent = loginPage.querySelector('.account-content');
