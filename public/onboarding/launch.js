@@ -24,9 +24,11 @@ function show(id){clearTimeout(timer);$(current).getAnimations().forEach(a=>a.ca
 $('open').onclick=()=>{if(current!=='launcher')return;show('splash');splashElapsed=false;tourReady=false;$('tour').src='index.html';timer=setTimeout(()=>{splashElapsed=true;enterTour();},reduced?300:2400);};
 addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('tour').contentWindow)return;if(e.data?.type==='plotto:ready'){tourReady=true;enterTour();}if(e.data?.type==='plotto:name'){if(typeof afterTour==='function')afterTour();else show('login');}});
 $('name-back').onclick=()=>show('login');$('nickname').oninput=()=>{$('name-next').disabled=!$('nickname').value.trim();};
-$('name-form').onsubmit=e=>{e.preventDefault();const name=$('nickname').value.trim();if(!name)return;try{localStorage.setItem('plotto-nickname',name);}catch{}document.getElementById("done-name").textContent=name;$('projects').querySelector('h1').innerHTML='<span id="projects-name"></span>님을 위한<br>예시 프로젝트를 준비했어요.';$('projects-name').textContent=name;show('source');};
-$('projects-next').onclick=()=>{try{localStorage.setItem('plotto-projects',JSON.stringify([...document.querySelectorAll('.project-choice[aria-pressed="true"]')].map(b=>b.dataset.name)));}catch{}show('done');if(reduced){$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha&record';$('spin-fallback').onload=()=>{const w=$('spin-fallback').contentWindow;w.PlottoSpin.ready.then(()=>w.PlottoSpin.renderAt(3));};}else { const v=$('spin'); if (v.play) v.play().catch(()=>{$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha';}); }};
-$('start').onclick=()=>{
+$('name-form').onsubmit=e=>{e.preventDefault();const name=$('nickname').value.trim();if(!name)return;try{localStorage.setItem('plotto-nickname',name);}catch{}saveOnboarding({step:'source',name});document.getElementById("done-name").textContent=name;$('projects').querySelector('h1').innerHTML='<span id="projects-name"></span>님을 위한<br>예시 프로젝트를 준비했어요.';$('projects-name').textContent=name;show('source');};
+$('projects-next').onclick=()=>{try{localStorage.setItem('plotto-projects',JSON.stringify([...document.querySelectorAll('.project-choice[aria-pressed="true"]')].map(b=>b.dataset.name)));}catch{}saveOnboarding({step:'done'});show('done');if(reduced){$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha&record';$('spin-fallback').onload=()=>{const w=$('spin-fallback').contentWindow;w.PlottoSpin.ready.then(()=>w.PlottoSpin.renderAt(3));};}else { const v=$('spin'); if (v.play) v.play().catch(()=>{$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha';}); }};
+$('start').onclick=async()=>{
+  /* the onboarding is complete: save it first so the next login goes straight to the app home */
+  await saveOnboarding({step:'done',done:true},3000);
   /* onboarding is finished: remember the app route first, so if iPhone reloads the page during the switch it opens the app home, not the first onboarding screen */
   const route='flow=briefing&entry=';
   try{sessionStorage.setItem('plotto-route',route);}catch(e){}
@@ -88,3 +90,6 @@ if(current==='launcher'){
     if(n>=5){n=0;var d=document.createElement('pre');d.style.cssText='position:fixed;inset:0;z-index:9999;margin:0;padding:50px 12px 12px;background:#000d;color:#9f9;font:11px/1.4 monospace;white-space:pre-wrap;overflow:auto';d.textContent=get().join('\n');d.onclick=function(){d.remove()};document.body.appendChild(d)}
   });
 })();
+
+/* home for a user who already finished consent and onboarding (used after login, account.js) */
+window.PLOTTO_GO_HOME=()=>{try{sessionStorage.setItem('plotto-route','flow=briefing&entry=');}catch(e){}location.replace('../mobile.html?flow=briefing');};
