@@ -3,6 +3,7 @@ import "./demo.css";
 import { onOpenFile, useDemo, type DemoState } from "./useDemo";
 import { fileById, nameOf, projectOf, roleOf, sharesOfFile, versionsOf } from "./demoStore";
 import { stampOf, type DemoFile, type Scenario } from "./scenario";
+import { openSavedDocx } from "./realFile";
 
 // ---------------------------------------------------------------- 작은 공통 요소
 
@@ -29,7 +30,7 @@ export const statusOf = (s: Scenario, f: DemoFile) => (f.status === "awaiting_sh
 export const shownName = (f: DemoFile) => (f.origin === "local" ? f.title : f.displayFileName);
 
 export function FileIcon({ kind }: { kind: DemoFile["kind"] }) {
-  return <span className={`dm-ficon ${kind}`} aria-hidden="true">{kind === "pdf" ? "PDF" : kind === "docx" ? "DOCX" : "TXT"}</span>;
+  return <span className={`dm-ficon ${kind}`} aria-hidden="true">{kind === "pdf" ? "PDF" : "DOCX"}</span>;
 }
 
 /** 로딩·오류 상태를 화면에 보여 준다. ready 일 때는 children 을 그린다. */
@@ -78,24 +79,17 @@ function usePathCheck(url: string | null): PathState {
   return state;
 }
 
-/** 원본 문서를 새 페이지(viewer.html)로 연다. 새 창이 막히면 같은 창에서 열고, 문서 페이지의 뒤로가기로 돌아온다. */
-function openOriginal(fileId: string) {
-  const url = `/viewer.html?file=${encodeURIComponent(fileId)}`;
-  const w = window.open(url, "_blank");
-  if (!w) (window.top ?? window).location.href = url;
-}
-
-function downloadText(file: DemoFile) {
-  const text = `${file.title}\n\n${file.sections.map(x => `${x.heading}\n${x.body}`).join("\n\n")}\n`;
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
-  a.download = file.displayFileName;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-}
-
 function FileBody({ s, file, onOpen }: { s: Scenario; file: DemoFile; onOpen: (id: string) => void }) {
   const path = usePathCheck(file.url);
+  const [making, setMaking] = useState(false);
+  const [makeError, setMakeError] = useState("");
+  const openSaved = async () => {
+    if (making) return;
+    setMaking(true); setMakeError("");
+    try { await openSavedDocx(file); }
+    catch (e) { setMakeError(`DOCX 파일을 만들지 못했어요: ${e instanceof Error ? e.message : String(e)}`); }
+    finally { setMaking(false); }
+  };
   const project = projectOf(s, file.projectId);
   const versions = file.documentId ? versionsOf(s, file.projectId, file.documentId) : [];
   const shares = sharesOfFile(s, file);
@@ -110,11 +104,13 @@ function FileBody({ s, file, onOpen }: { s: Scenario; file: DemoFile; onOpen: (i
       {file.origin === "sample" && path === "checking" && <p className="dm-note" role="status">파일 경로를 확인하는 중이에요…</p>}
       {file.origin === "sample" && path === "missing" && <p className="dm-error" role="alert">파일 경로를 열 수 없어요: {file.url}<br />본문은 아래에서 읽을 수 있어요.</p>}
       {file.origin === "sample" && path === "ok" && file.url && <div className="dm-actions">
-        <button type="button" className="dm-btn primary" onClick={() => openOriginal(file.id)}>{file.kind === "pdf" ? "PDF 열기" : "DOCX로 열기"}</button>
+        {/* 실제 파일 주소를 연다: PDF 는 브라우저의 PDF 뷰어, DOCX 는 기기의 문서 앱(Word·Pages, iPhone 은 미리보기) */}
+        <a className="dm-btn primary" href={file.url} target="_blank" rel="noopener" type={file.mimeType}>{file.kind === "pdf" ? "PDF 열기" : "DOCX로 열기"}</a>
       </div>}
       {file.origin === "local" && <>
-        <p className="dm-note">이 브라우저에 저장한 버전이에요. 원본 DOCX 파일은 없고, 저장한 본문만 있어요.</p>
-        <div className="dm-actions"><button type="button" className="dm-btn ghost" onClick={() => downloadText(file)}>저장한 본문 .txt로 내려받기</button></div>
+        <div className="dm-actions"><button type="button" className="dm-btn primary" disabled={making} onClick={openSaved}>{making ? "파일을 만드는 중…" : "DOCX로 열기"}</button></div>
+        <p className="dm-note">이 브라우저에 저장한 버전이에요. 누르면 저장한 내용으로 DOCX 파일을 만들어 Word·Pages 같은 앱에서 열 수 있어요.</p>
+        {makeError && <p className="dm-error" role="alert">{makeError}</p>}
       </>}
     </section>
     {versions.length > 1 && <section className="dm-block">

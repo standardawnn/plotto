@@ -105,7 +105,7 @@ export const isMember = (s: Scenario, projectId: string, id: string) => !!projec
 function savedToFile(s: Scenario, v: SavedVersion): DemoFile {
   return {
     id: v.id, projectId: v.projectId, documentId: v.documentId, version: v.version, title: v.title,
-    displayFileName: `${v.title}.txt`, url: null, mimeType: "text/plain", kind: "saved", ownerId: v.authorId,
+    displayFileName: `${v.title}.docx`, url: null, mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", kind: "saved", ownerId: v.authorId,
     status: v.source === "apply" ? "saved_applied" : "saved_edit", includeInInitialSnapshot: true, sections: v.sections,
     origin: "local", createdAt: v.at, baseFileId: v.baseFileId,
   };
