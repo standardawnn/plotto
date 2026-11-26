@@ -52,8 +52,12 @@ function App() {
     if (!vv) return;
     let last = -1;
     const send = () => {
-      const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
-      if (debug) setDbg(`shell: innerH=${Math.round(window.innerHeight)} vvH=${Math.round(vv.height)} vvTop=${Math.round(vv.offsetTop)} inset=${inset}`);
+      // How far the bottom edge of the screen frame lies below the bottom of the visible area (above the keyboard).
+      // Measured from the frame's own bottom edge, not window.innerHeight, which on iOS can differ from the frame's
+      // height (toolbars) and then left the composer under the keyboard.
+      const bottom = frame.current ? frame.current.getBoundingClientRect().bottom : window.innerHeight;
+      const inset = Math.max(0, Math.round(bottom - (vv.offsetTop + vv.height)));
+      if (debug) setDbg(`shell: innerH=${Math.round(window.innerHeight)} frameBottom=${Math.round(bottom)} vvH=${Math.round(vv.height)} vvTop=${Math.round(vv.offsetTop)} inset=${inset}`);
       if (inset === last) return;
       last = inset;
       frame.current?.contentWindow?.postMessage({ type: 'plotto:kb', inset }, location.origin);
