@@ -28,13 +28,7 @@
       return;
     }
     clean(); busy(false); message.textContent = '';
-    // 이 기기에서 카카오로 로그인한 적이 있다는 것만 기억한다(계정 정보는 남기지 않음). 다음에 버튼이 "로그인하기"로 바뀐다.
-    try { localStorage.setItem('plotto-last-login', JSON.stringify({ provider: 'kakao', at: Date.now() })); } catch { /* ignore */ }
-    // 카카오 프로필 이름이 있으면 이름 칸에 미리 채운다(사용자가 고칠 수 있음)
-    const meta = data.session.user && data.session.user.user_metadata || {};
-    const suggested = meta.name || meta.full_name || meta.nickname || meta.preferred_username || '';
-    const input = document.getElementById('nickname');
-    if (suggested && !input.value) { input.value = String(suggested).slice(0, 30); document.getElementById('name-next').disabled = false; }
-    show('name');
+    // 처음 로그인한 계정이면 동의 화면, 이미 동의한 계정이면 이름 입력으로 (account.js)
+    continueAfterLogin(data.session);
   }).catch(() => fail('로그인 연결을 확인해 주세요. 잠시 후 다시 시도할 수 있어요.'));
 })();

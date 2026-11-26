@@ -7,11 +7,27 @@ const loginPage = document.createElement('section');
 loginPage.id = 'login'; loginPage.className = 'page gradient'; loginPage.hidden = true;
 loginPage.innerHTML = `${accountStatus}${accountBack}<div class="account-content"><h1>Plotto와 함께할<br>계정으로 시작해요</h1><p>간편하게 로그인하고 프로젝트를 이어가세요.</p><div class="social-list"><button class="social-button kakao" id="login-kakao" type="button"><strong aria-hidden="true">●</strong> 카카오로 시작하기</button></div><p class="account-error" id="login-error" role="status"></p></div><div class="home-indicator"></div>`;
 document.body.append(consentPage, loginPage);
-consentPage.querySelector('.back').onclick = () => show('tour');
-loginPage.querySelector('.back').onclick = () => show('consent');
+// 순서: 소개 → 로그인 → (처음 로그인한 계정만) 동의 → 이름 → 출처 → 프로젝트 → 홈
+consentPage.querySelector('.account-content').insertAdjacentHTML('beforeend', '<p class="account-error" id="consent-error" role="status"></p>');
+// 동의 화면에서 뒤로 가면 동의 없이 로그인된 상태로 남지 않게 로그아웃하고 로그인 화면으로
+consentPage.querySelector('.back').onclick = async () => { try { if (authClient) await authClient.auth.signOut(); } catch { /* ignore */ } show('login'); };
+loginPage.querySelector('.back').onclick = () => show('tour');
 const consentInputs = ['terms-check','privacy-check','notice-check'].map(id => document.getElementById(id));
-consentInputs.forEach(input => input.onchange = () => { document.getElementById('consent-next').disabled = !consentInputs[0].checked || !consentInputs[1].checked; });
-document.getElementById('consent-next').onclick = () => { sessionStorage.setItem('plotto-consent-pending', JSON.stringify({version:'draft', terms:true, privacy:true, marketing:consentInputs[2].checked, acceptedAt:new Date().toISOString()})); show('login'); };
+const consentReady = () => consentInputs[0].checked && consentInputs[1].checked;
+consentInputs.forEach(input => input.onchange = () => { document.getElementById('consent-next').disabled = !consentReady(); });
+// 동의 내용은 계정(Supabase 사용자 정보)에 저장한다. 다른 기기에서 로그인해도 다시 묻지 않는다.
+document.getElementById('consent-next').onclick = async () => {
+ const button = document.getElementById('consent-next'), error = document.getElementById('consent-error');
+ const consent = {version:'draft', terms:true, privacy:true, marketing:consentInputs[2].checked, acceptedAt:new Date().toISOString()};
+ button.disabled = true; error.textContent = '';
+ try {
+  if (!authClient) throw new Error('no auth');
+  const { error: saveError } = await authClient.auth.updateUser({ data: { plotto_consent: consent } });
+  if (saveError) throw saveError;
+  show('name');
+ } catch { error.textContent = '동의 내용을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.'; }
+ finally { button.disabled = !consentReady(); }
+};
 // 로그인에서 돌아왔는지 SDK가 주소를 정리하기 전에 기록해 둔다 (launch.js·account-session.js 가 사용)
 window.PLOTTO_AUTH_RETURN = (() => {
  const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.slice(1));
@@ -34,11 +50,36 @@ async function socialLogin(provider) {
  } catch { error.textContent = '연결하지 못했어요. 잠시 후 다시 시도해 주세요.'; }
 }
 document.getElementById('login-kakao').onclick = () => socialLogin('kakao');
+
+// ---- 로그인 후 이어가기 (account-session.js 와 launch.js 가 사용) ----
+const hasConsent = user => { const c = user && user.user_metadata && user.user_metadata.plotto_consent; return !!(c && c.terms && c.privacy); };
+/** 로그인이 확인된 뒤: 처음 로그인한 계정이면 동의, 이미 동의한 계정이면 바로 이름 입력 */
+async function continueAfterLogin(session) {
+ try { localStorage.setItem('plotto-last-login', JSON.stringify({ provider: 'kakao', at: Date.now() })); } catch { /* ignore */ }
+ // 동의 여부는 서버의 최신 사용자 정보로 확인 (다른 기기에서 동의했을 수 있음). 실패하면 저장된 정보로.
+ let user = session.user;
+ try { const { data } = await authClient.auth.getUser(); if (data && data.user) user = data.user; } catch { /* ignore */ }
+ const input = document.getElementById('nickname');
+ let saved = ''; try { saved = localStorage.getItem('plotto-nickname') || ''; } catch { /* ignore */ }
+ const meta = user && user.user_metadata || {};
+ const suggested = saved || meta.name || meta.full_name || meta.nickname || meta.preferred_username || '';
+ if (suggested && !input.value) { input.value = String(suggested).slice(0, 30); document.getElementById('name-next').disabled = false; }
+ show(hasConsent(user) ? 'name' : 'consent');
+}
+// 이 기기에 저장된 로그인(Supabase 가 자동으로 유지). 로그인 결과를 처리하는 중이면 그쪽에 맡긴다.
+const savedSession = authClient && !window.PLOTTO_AUTH_RETURN
+ ? authClient.auth.getSession().then(r => (r.data && r.data.session) || null).catch(() => null)
+ : Promise.resolve(null);
+/** 소개 화면의 "시작하기" 뒤: 저장된 로그인이 있으면 로그인 화면을 건너뛴다 */
+function afterTour() { savedSession.then(s => (s ? continueAfterLogin(s) : show('login'))); }
+
 // 이 기기에서 카카오로 로그인한 적이 있으면: "카카오로 로그인하기" + 버튼 위 "최근 로그인" 표시
 (() => {
  let last = null;
  try { last = JSON.parse(localStorage.getItem('plotto-last-login') || 'null'); } catch { last = null; }
- if (!last || last.provider !== 'kakao') return;
+ let stored = false;
+ try { stored = Object.keys(localStorage).some(k => /^sb-.+-auth-token$/.test(k)); } catch { /* ignore */ }
+ if (!stored && (!last || last.provider !== 'kakao')) return;
  const button = document.getElementById('login-kakao');
  button.innerHTML = '<strong aria-hidden="true">●</strong> 카카오로 로그인하기';
  button.setAttribute('aria-describedby', 'recent-kakao');
