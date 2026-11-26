@@ -225,16 +225,16 @@ export default function App() {
       <div className="bottom-fade" aria-hidden="true" />
       <nav className="bottom-nav" aria-label="주 메뉴">
         <button aria-label="홈" onClick={() => go('briefing')}>
-          <span className="home-icon"><img src="/brand/nav-home.svg" alt="" /></span>
+          <span className="home-icon"><img src="/assets/project/ee9b8.svg" alt="" /><img className="home-detail" src="/assets/project/49e20.svg" alt="" /></span>
         </button>
         <button aria-label="프로젝트" aria-current="page" onClick={() => schedule.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}>
-          <img src="/brand/nav-project-active.svg" alt="" />
+          <img src="/assets/project/5b188.svg" alt="" />
         </button>
-        <button aria-label="채팅" onClick={() => go('intervention','chat')}>
-          <img src="/brand/nav-chat.svg" alt="" />
+        <button aria-label="메시지" onClick={() => go('briefing','messages')}>
+          <img src="/assets/project/08642.svg" alt="" />
         </button>
         <button aria-label="내 정보" onClick={() => setNotice('내 정보 · ' + (localStorage.getItem('plotto-nickname') || '서연') + '님 · 기획 담당')}>
-          <img src="/brand/nav-profile.svg" alt="" />
+          <img src="/assets/project/935f9.svg" alt="" />
         </button>
       </nav>
       {pickerOpen && (

@@ -5,7 +5,7 @@ consentPage.id = 'consent'; consentPage.className = 'page gradient'; consentPage
 consentPage.innerHTML = `${accountStatus}${accountBack}<div class="account-content"><h1>안전하게 함께하기 위해<br>확인해 주세요</h1><p>Plotto에서 사용하는 정보와 서비스 내용을 확인해 주세요.</p><p class="account-note">아래 내용은 시연을 위한 초안이며 실제 서비스 적용 전 운영 정보와 함께 확정해야 합니다.</p><div class="account-card"><label class="account-check"><input id="terms-check" type="checkbox"><span>서비스 이용약관 확인 (필수)</span></label><details><summary>내용 보기</summary><p>Plotto는 프로젝트 일정, 회의와 문서, 팀원 간 소통을 돕는 서비스입니다. 사용자는 접근 권한이 있는 자료만 연결해야 하며 AI 결과는 확인 후 활용합니다. 제공 범위, 책임, 탈퇴 및 분쟁 처리 기준은 운영 전 확정됩니다.</p></details></div><div class="account-card"><label class="account-check"><input id="privacy-check" type="checkbox"><span>개인정보 수집·이용 안내 확인 (필수)</span></label><details><summary>내용 보기</summary><p>로그인 시 제공자의 계정 식별자와 제공에 동의한 프로필 정보, 사용자가 설정한 이름을 계정 관리에 사용합니다. 프로젝트 이용 시 선택한 프로젝트와 팀원·일정·회의·문서·메시지에 포함된 정보가 기능 제공에 사용될 수 있습니다.</p><p>수집 항목, 보유 기간, 운영자 연락처, 열람·삭제 요청 방법은 실제 운영 전에 확정해야 합니다.</p></details></div><div class="account-card"><label class="account-check"><input id="notice-check" type="checkbox"><span>서비스 소식 및 마케팅 알림 수신 (선택)</span></label><details><summary>내용 보기</summary><p>서비스 소식과 이벤트 알림에 관한 선택 항목입니다. 수신 수단과 철회 방법은 실제 발송 기능을 도입할 때 안내합니다.</p></details></div><p class="account-note">AI 처리, 외부 서비스 연결과 알림 권한은 실제 기능 이용 전에 대상과 범위를 별도로 안내합니다.</p></div><button class="primary" id="consent-next" disabled>다음</button><div class="home-indicator"></div>`;
 const loginPage = document.createElement('section');
 loginPage.id = 'login'; loginPage.className = 'page gradient'; loginPage.hidden = true;
-loginPage.innerHTML = `${accountStatus}${accountBack}<div class="account-content"><h1>Plotto와 함께할<br>계정으로 시작해요</h1><p>간편하게 로그인하고 프로젝트를 이어가세요.</p><div class="social-list"><button class="social-button kakao" id="login-kakao" type="button"><strong aria-hidden="true">●</strong> 카카오로 시작하기</button></div><p class="account-error" id="login-error" role="status"></p></div><div class="home-indicator"></div>`;
+loginPage.innerHTML = `${accountStatus}${accountBack}<div class="account-content"><h1>Plotto와 함께할<br>계정으로 시작해요</h1><p>간편하게 로그인하고 프로젝트를 이어가세요.</p><div class="social-list"><button class="social-button kakao" id="login-kakao" type="button"><strong aria-hidden="true">●</strong> 카카오톡으로 시작하기</button></div><p class="account-error" id="login-error" role="status"></p></div><div class="home-indicator"></div>`;
 document.body.append(consentPage, loginPage);
 // 순서: 소개 → 로그인 → (처음 로그인한 계정만) 동의 → 이름 → 출처 → 프로젝트 → 홈
 consentPage.querySelector('.account-content').insertAdjacentHTML('beforeend', '<p class="account-error" id="consent-error" role="status"></p>');
@@ -51,20 +51,45 @@ async function socialLogin(provider) {
 }
 document.getElementById('login-kakao').onclick = () => socialLogin('kakao');
 
+// ---- 온보딩 진행 상태: 사용자 정보(user_metadata.plotto_onboarding)에 저장한다. 동의 저장과 같은 방식이라 다른 기기에서도 이어진다 ----
+let onboardingState = { step: 'name', done: false };
+/** 진행 단계를 저장한다. 저장이 실패하거나 늦어도 화면은 멈추지 않는다 (다음 로그인 때 마지막으로 저장된 단계부터). */
+async function saveOnboarding(patch, timeoutMs = 4000) {
+ onboardingState = { ...onboardingState, ...patch };
+ if (!authClient) return false;
+ const save = authClient.auth.updateUser({ data: { plotto_onboarding: onboardingState } }).then(({ error }) => !error, () => false);
+ return Promise.race([save, new Promise(resolve => setTimeout(() => resolve(false), timeoutMs))]);
+}
+window.PLOTTO_SAVE_ONBOARDING = saveOnboarding;
+/** 저장된 단계로 화면을 연다. 이름이 있으면 뒤의 화면 문구에도 쓴다. */
+function resumeAt(step, name) {
+ if (name) {
+  try { localStorage.setItem('plotto-nickname', name); } catch { /* ignore */ }
+  const p = document.getElementById('projects-name'); if (p) p.textContent = name;
+  const d = document.getElementById('done-name'); if (d) d.textContent = name;
+ }
+ show(step);
+}
+
 // ---- 로그인 후 이어가기 (account-session.js 와 launch.js 가 사용) ----
 const hasConsent = user => { const c = user && user.user_metadata && user.user_metadata.plotto_consent; return !!(c && c.terms && c.privacy); };
-/** 로그인이 확인된 뒤: 처음 로그인한 계정이면 동의, 이미 동의한 계정이면 바로 이름 입력 */
+/** 로그인이 확인된 뒤 (인증 → 동의 → 온보딩 순서에 맞춰 이동)
+ *  동의 없음 → 동의 화면 / 동의 있음·온보딩 미완료 → 저장된 다음 단계 / 동의·온보딩 완료 → 홈 */
 async function continueAfterLogin(session) {
  try { localStorage.setItem('plotto-last-login', JSON.stringify({ provider: 'kakao', at: Date.now() })); } catch { /* ignore */ }
- // 동의 여부는 서버의 최신 사용자 정보로 확인 (다른 기기에서 동의했을 수 있음). 실패하면 저장된 정보로.
+ // 상태는 서버의 최신 사용자 정보로 확인 (다른 기기에서 진행했을 수 있음). 실패하면 로그인 때 받은 정보로.
  let user = session.user;
  try { const { data } = await authClient.auth.getUser(); if (data && data.user) user = data.user; } catch { /* ignore */ }
- const input = document.getElementById('nickname');
+ const meta = (user && user.user_metadata) || {};
+ onboardingState = { step: 'name', done: false, ...(meta.plotto_onboarding || {}) };
+ if (!hasConsent(user)) { show('consent'); return; }
+ if (onboardingState.done) { window.PLOTTO_GO_HOME(); return; }
  let saved = ''; try { saved = localStorage.getItem('plotto-nickname') || ''; } catch { /* ignore */ }
- const meta = user && user.user_metadata || {};
- const suggested = saved || meta.name || meta.full_name || meta.nickname || meta.preferred_username || '';
- if (suggested && !input.value) { input.value = String(suggested).slice(0, 30); document.getElementById('name-next').disabled = false; }
- show(hasConsent(user) ? 'name' : 'consent');
+ const name = onboardingState.name || saved || meta.name || meta.full_name || meta.nickname || meta.preferred_username || '';
+ const input = document.getElementById('nickname');
+ if (name && !input.value) { input.value = String(name).slice(0, 30); document.getElementById('name-next').disabled = false; }
+ const step = ['name', 'source', 'projects', 'done'].includes(onboardingState.step) ? onboardingState.step : 'name';
+ resumeAt(step, onboardingState.name || (step !== 'name' ? name : ''));
 }
 // 이 기기에 저장된 로그인(Supabase 가 자동으로 유지). 로그인 결과를 처리하는 중이면 그쪽에 맡긴다.
 const savedSession = authClient && !window.PLOTTO_AUTH_RETURN
@@ -77,11 +102,9 @@ function afterTour() { savedSession.then(s => (s ? continueAfterLogin(s) : show(
 (() => {
  let last = null;
  try { last = JSON.parse(localStorage.getItem('plotto-last-login') || 'null'); } catch { last = null; }
- let stored = false;
- try { stored = Object.keys(localStorage).some(k => /^sb-.+-auth-token$/.test(k)); } catch { /* ignore */ }
- if (!stored && (!last || last.provider !== 'kakao')) return;
+ if (!last || last.provider !== 'kakao') return;
  const button = document.getElementById('login-kakao');
- button.innerHTML = '<strong aria-hidden="true">●</strong> 카카오로 로그인하기';
+ button.innerHTML = '<strong aria-hidden="true">●</strong> 카카오톡으로 로그인하기';
  button.setAttribute('aria-describedby', 'recent-kakao');
  button.insertAdjacentHTML('beforebegin', '<span class="recent-login" id="recent-kakao">최근 로그인</span>');
  button.parentElement.classList.add('has-recent');
@@ -114,4 +137,4 @@ sourcePage.id = 'source'; sourcePage.className = 'page gradient'; sourcePage.hid
 sourcePage.innerHTML = `${accountStatus}${accountBack}<div class="account-content"><h1>어디에서 프로젝트를<br>가져올까요?</h1><p>함께할 프로젝트의 출처를 선택해 주세요.</p><div class="source-list"><label class="source-choice"><input type="radio" name="source" value="demo" checked><span><strong>예시 프로젝트</strong><small>연결 없이 Plotto를 둘러볼 수 있어요</small></span></label><label class="source-choice unavailable"><input type="radio" name="source" value="notion" disabled><span><strong>Notion</strong><small>연결 준비 중</small></span></label><label class="source-choice unavailable"><input type="radio" name="source" value="figma" disabled><span><strong>Figma</strong><small>연결 준비 중</small></span></label></div><p class="account-note">시연에서는 예시 데이터만 사용해요. 외부 서비스는 실제로 연결되지 않습니다.</p></div><button class="primary" id="source-next">다음</button><div class="home-indicator"></div>`;
 document.body.append(sourcePage);
 sourcePage.querySelector('.back').onclick = () => show('name');
-document.getElementById('source-next').onclick = () => show('projects');
+document.getElementById('source-next').onclick = () => { saveOnboarding({ step: 'projects' }); show('projects'); };

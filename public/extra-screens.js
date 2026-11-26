@@ -149,10 +149,20 @@
     requestAnimationFrame(function () { t.classList.add('on'); });
     setTimeout(function () { t.classList.remove('on'); setTimeout(function () { t.remove(); }, 300); }, 1800);
   }
-  function pop() {
+  function closeTop() {
     var s = stack.pop(); if (!s) return;
     s.classList.remove('in'); setTimeout(function () { s.remove(); }, 300);
   }
+  /* Each overlay is a history entry (window.history.state.pxLayer = how many are open), so the in-app back
+     and the browser back both close the top overlay first and never skip past it. */
+  function pop() {
+    var layer = (window.history.state && window.history.state.pxLayer) || 0;
+    if (stack.length && layer >= stack.length) window.history.back(); else closeTop();
+  }
+  addEventListener('popstate', function () {
+    var want = (window.history.state && window.history.state.pxLayer) || 0;
+    while (stack.length > want) closeTop();
+  });
   function push(title, bodyHtml, cta) {
     var s = el('div', 'px-screen'), hd = el('div', 'px-head'), b = el('button', 'px-back', BACK);
     b.setAttribute('aria-label', '뒤로'); b.type = 'button';
@@ -161,6 +171,7 @@
     s.appendChild(hd); s.appendChild(c);
     if (cta) s.appendChild(el('div', 'px-cta', cta));
     document.body.appendChild(s); stack.push(s);
+    try { window.history.pushState(Object.assign({}, window.history.state || {}, { pxLayer: stack.length }), ''); } catch (e) { /* ignore */ } /* window.: this file has its own history() screen */
     requestAnimationFrame(function () { requestAnimationFrame(function () { s.classList.add('in'); }); });
     b.onclick = function () { pop(); };
     return { s: s, c: c, hd: hd };
@@ -169,6 +180,12 @@
     return '<div class="px-item' + (isNew ? ' new' : '') + '"><div class="px-ava ' + cls + '">' + img(av) + '</div><div class="px-txt"><div class="px-main">' + main + '</div><div class="px-sub">' + sub + '</div></div>' + (isNew ? '<span class="px-dot"></span>' : '') + '</div>';
   }
 
+  /* merge: '모두 읽음' also marks the work status notifications read (src/workStatus.ts, sessionStorage), so the home bell dot follows */
+  function markWorkRead() {
+    try { var k = 'plotto-work-status-v1', s = JSON.parse(sessionStorage.getItem(k) || '{}') || {}, ids = s.readNotificationIds || [];
+      if (ids.indexOf('taehun-files') < 0) ids.push('taehun-files'); s.readNotificationIds = ids; sessionStorage.setItem(k, JSON.stringify(s));
+      window.dispatchEvent(new Event('plotto:work-status')); } catch (e) { /* storage unavailable */ }
+  }
   function notifications() {
     var r = push('알림',
       '<div class="px-banner"><b>안 읽은 알림이 2개 있어요</b><span>오른쪽 위 \'모두 읽음\'을 누르면 한꺼번에 읽음 처리돼요</span>' + img('q1') + '</div>' +
@@ -188,7 +205,7 @@
       r.c.querySelectorAll('.px-dot').forEach(function (d) { d.remove(); });
       r.c.querySelectorAll('.px-item.new').forEach(function (d) { d.classList.remove('new'); });
       var bn = r.c.querySelector('.px-banner'); bn.querySelector('b').textContent = '안 읽은 알림이 없어요'; bn.querySelector('span').textContent = '모두 읽음으로 표시했어요';
-      hb.disabled = true; toast('모든 알림을 읽음으로 표시했어요');
+      hb.disabled = true; toast('모든 알림을 읽음으로 표시했어요'); markWorkRead();
     };
   }
 
@@ -272,12 +289,12 @@
 
   document.addEventListener('click', function (e) {
     var flow = document.documentElement.getAttribute('data-flow');
-    if (flow !== 'briefing' && flow !== 'project') return;
+    if (flow !== 'briefing' && flow !== 'project' && flow !== 'session') return;
     var t = e.target;
     if (t.closest && t.closest('.px-screen')) return;
     if (stack.length) return;
-    if (flow === 'project') {
-      var pn = t.closest && t.closest('.bottom-nav');
+    if (flow === 'project' || flow === 'session') { /* session: GNB 4th = 내 정보 (merge) */
+      var pn = t.closest && t.closest(flow === 'session' ? '.home-navigation' : '.bottom-nav');
       if (!pn) return;
       var btns = pn.querySelectorAll('button'), lastBtn = btns[btns.length - 1];
       if (lastBtn && lastBtn.contains(t)) { e.stopPropagation(); e.preventDefault(); mypage(); }

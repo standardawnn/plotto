@@ -24,9 +24,11 @@ function show(id){clearTimeout(timer);$(current).getAnimations().forEach(a=>a.ca
 $('open').onclick=()=>{if(current!=='launcher')return;show('splash');splashElapsed=false;tourReady=false;$('tour').src='index.html';timer=setTimeout(()=>{splashElapsed=true;enterTour();},reduced?300:2400);};
 addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('tour').contentWindow)return;if(e.data?.type==='plotto:ready'){tourReady=true;enterTour();}if(e.data?.type==='plotto:name'){if(typeof afterTour==='function')afterTour();else show('login');}});
 $('name-back').onclick=()=>show('login');$('nickname').oninput=()=>{$('name-next').disabled=!$('nickname').value.trim();};
-$('name-form').onsubmit=e=>{e.preventDefault();const name=$('nickname').value.trim();if(!name)return;try{localStorage.setItem('plotto-nickname',name);}catch{}document.getElementById("done-name").textContent=name;$('projects').querySelector('h1').innerHTML='<span id="projects-name"></span>님을 위한<br>예시 프로젝트를 준비했어요.';$('projects-name').textContent=name;show('source');};
-$('projects-next').onclick=()=>{try{localStorage.setItem('plotto-projects',JSON.stringify([...document.querySelectorAll('.project-choice[aria-pressed="true"]')].map(b=>b.dataset.name)));}catch{}show('done');if(reduced){$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha&record';$('spin-fallback').onload=()=>{const w=$('spin-fallback').contentWindow;w.PlottoSpin.ready.then(()=>w.PlottoSpin.renderAt(3));};}else { const v=$('spin'); if (v.play) v.play().catch(()=>{$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha';}); }};
-$('start').onclick=()=>{
+$('name-form').onsubmit=e=>{e.preventDefault();const name=$('nickname').value.trim();if(!name)return;try{localStorage.setItem('plotto-nickname',name);}catch{}saveOnboarding({step:'source',name});document.getElementById("done-name").textContent=name;$('projects').querySelector('h1').innerHTML='<span id="projects-name"></span>님을 위한<br>예시 프로젝트를 준비했어요.';$('projects-name').textContent=name;show('source');};
+$('projects-next').onclick=()=>{try{localStorage.setItem('plotto-projects',JSON.stringify([...document.querySelectorAll('.project-choice[aria-pressed="true"]')].map(b=>b.dataset.name)));}catch{}saveOnboarding({step:'done'});show('done');if(reduced){$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha&record';$('spin-fallback').onload=()=>{const w=$('spin-fallback').contentWindow;w.PlottoSpin.ready.then(()=>w.PlottoSpin.renderAt(3));};}else { const v=$('spin'); if (v.play) v.play().catch(()=>{$('spin').hidden=true;$('spin-fallback').hidden=false;$('spin-fallback').src='spin/spin.html?alpha';}); }};
+$('start').onclick=async()=>{
+  /* the onboarding is complete: save it first so the next login goes straight to the app home */
+  await saveOnboarding({step:'done',done:true},3000);
   /* onboarding is finished: remember the app route first, so if iPhone reloads the page during the switch it opens the app home, not the first onboarding screen */
   const route='flow=briefing&entry=';
   try{sessionStorage.setItem('plotto-route',route);}catch(e){}
@@ -87,4 +89,30 @@ if(current==='launcher'){
     var now=Date.now(); n=now-t0<1500?n+1:1; t0=now;
     if(n>=5){n=0;var d=document.createElement('pre');d.style.cssText='position:fixed;inset:0;z-index:9999;margin:0;padding:50px 12px 12px;background:#000d;color:#9f9;font:11px/1.4 monospace;white-space:pre-wrap;overflow:auto';d.textContent=get().join('\n');d.onclick=function(){d.remove()};document.body.appendChild(d)}
   });
+})();
+
+/* home for a user who already finished consent and onboarding (used after login, account.js) */
+window.PLOTTO_GO_HOME=()=>{try{sessionStorage.setItem('plotto-route','flow=briefing&entry=');}catch(e){}location.replace('../mobile.html?flow=briefing');};
+/* merge: onboarding pages are history entries (history.state.onbStack = pages up to this one), so the back
+   buttons and the browser back always go to the page the person actually came from. A back button that shows the
+   previous page goes back in history instead of adding an entry. On "시작하기" the onboarding entries are rewound
+   first, so back from the app home does not land in the middle of the onboarding again. */
+(function(){
+  const PAGES=['tour','consent','login','signup','name','source','projects','done'];
+  const raw=show;let applying=false,finishing=false;const BASE=history.length;
+  const stackOf=()=>(history.state&&history.state.onbStack)||[current];
+  show=function(id){
+    if(applying||!PAGES.includes(id)||!PAGES.includes(current))return raw(id);
+    if(id===current)return;
+    const st=stackOf();
+    if(st.length>=2&&st[st.length-2]===id){history.back();return;}
+    raw(id);try{history.pushState({onbStack:st.concat(id)},'');}catch(e){}
+  };
+  const start=$('start').onclick;
+  addEventListener('popstate',()=>{
+    if(finishing){start();return;}
+    const st=history.state&&history.state.onbStack;const id=st?st[st.length-1]:'tour';
+    if(PAGES.includes(current)&&id!==current){applying=true;raw(id);applying=false;}
+  });
+  $('start').onclick=()=>{const n=history.length-BASE;if(n>0&&!finishing){finishing=true;history.go(-n);setTimeout(()=>{if(finishing)start();},800);}else start();};
 })();
