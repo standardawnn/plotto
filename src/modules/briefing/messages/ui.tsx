@@ -84,3 +84,16 @@ export function useKeyboardInset() {
   }, [own, fromShell]);
   return fromShell ?? own;
 }
+
+/** Inside the shell iframe: ask the shell to size the frame to the visible area while this chat screen is shown. */
+export function useShellKeyboardFit() {
+  useEffect(() => {
+    if (window.parent === window) return;
+    const tell = (on: boolean) => window.parent.postMessage({ type: "plotto:kbfit", on }, location.origin);
+    tell(true);
+    /* a full page navigation (go()) does not unmount React, so also release the frame when this page goes away */
+    const off = () => tell(false);
+    addEventListener("pagehide", off);
+    return () => { removeEventListener("pagehide", off); off(); };
+  }, []);
+}

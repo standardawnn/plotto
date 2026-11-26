@@ -14,6 +14,8 @@ function App() {
   const debug = /[?&#]kbdebug/.test(location.search + location.hash);
   const [dbg, setDbg] = useState('');
   const [dbgFrame, setDbgFrame] = useState('');
+  const [fit, setFit] = useState(false);
+  const [box, setBox] = useState<{ top: number; height: number } | null>(null);
   const [initial] = useState(() => {
     // 카카오(Supabase) 로그인에서 돌아온 경우: 결과(?code= / ?error=)를 온보딩 화면에 그대로 넘긴다.
     // 넘기지 않으면 결과가 사라지고 온보딩 첫 화면부터 다시 시작된다. 주소창에서는 결과를 지운다.
@@ -29,6 +31,7 @@ function App() {
   useEffect(() => {
     const message = (e: MessageEvent) => {
       if (e.origin !== location.origin || e.source !== frame.current?.contentWindow) return;
+      if (e.data?.type === 'plotto:kbfit') { setFit(!!e.data.on); return; }
       if (e.data?.type === 'plotto:kbdebug') { setDbgFrame(`screen: own=${e.data.own} fromShell=${e.data.fromShell}`); return; }
       if (e.data?.type === 'plotto:navigate') {
         const map: Record<number, string> = e.data.stage ? { 2: 'intervention', 3: 'proposal', 4: 'booking', 5: 'session' } : { 1: 'project', 2: 'feedback', 3: 'classification' };
@@ -47,29 +50,36 @@ function App() {
 
   // iOS Safari does not report the on-screen keyboard to a page inside an iframe, so the chat composer could stay
   // hidden behind it. Measure the keyboard here, on the top-level page, and tell the screen how tall it is.
+  // Chat screens ask for the frame to be sized to the visible area (above the on-screen keyboard) while they are
+  // shown. iOS otherwise pans the whole page, so the header scrolls off the top and the composer stays hidden.
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
     let last = -1;
     const send = () => {
+      if (fit) {
+        setBox({ top: Math.round(vv.offsetTop), height: Math.round(vv.height) });
+        if (last !== 0) { last = 0; frame.current?.contentWindow?.postMessage({ type: 'plotto:kb', inset: 0 }, location.origin); }
+        return;
+      }
+      setBox(null);
       // How far the bottom edge of the screen frame lies below the bottom of the visible area (above the keyboard).
-      // Measured from the frame's own bottom edge, not window.innerHeight, which on iOS can differ from the frame's
-      // height (toolbars) and then left the composer under the keyboard.
       const bottom = frame.current ? frame.current.getBoundingClientRect().bottom : window.innerHeight;
       const inset = Math.max(0, Math.round(bottom - (vv.offsetTop + vv.height)));
-      if (debug) setDbg(`shell: innerH=${Math.round(window.innerHeight)} frameBottom=${Math.round(bottom)} vvH=${Math.round(vv.height)} vvTop=${Math.round(vv.offsetTop)} inset=${inset}`);
+      if (debug) setDbg(`shell: innerH=${Math.round(window.innerHeight)} frameBottom=${Math.round(bottom)} vvH=${Math.round(vv.height)} vvTop=${Math.round(vv.offsetTop)} inset=${inset} fit=${fit}`);
       if (inset === last) return;
       last = inset;
       frame.current?.contentWindow?.postMessage({ type: 'plotto:kb', inset }, location.origin);
     };
     vv.addEventListener('resize', send);
     vv.addEventListener('scroll', send);
+    send();
     return () => { vv.removeEventListener('resize', send); vv.removeEventListener('scroll', send); };
-  }, []);
+  }, [fit, debug]);
 
   return (
     <>
-      <iframe className="app-frame" ref={frame} title="Plotto" src={initial} allow="microphone; camera; autoplay" />
+      <iframe className="app-frame" ref={frame} title="Plotto" src={initial} allow="microphone; camera; autoplay" style={box ? { top: box.top, height: box.height, bottom: 'auto' } : undefined} />
       {debug && <div style={{ position: 'fixed', top: 54, left: 8, right: 8, zIndex: 99999, background: '#000c', color: '#9f9', font: '11px/1.4 monospace', padding: 6, pointerEvents: 'none', whiteSpace: 'pre-wrap' }}>{dbg || 'shell: waiting for keyboard'}{'\n'}{dbgFrame || 'screen: no message yet'}</div>}
     </>
   );

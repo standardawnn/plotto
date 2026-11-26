@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
-import { BackChevron, type ChromeRender } from "./ui";
+import { BackChevron, useShellKeyboardFit, type ChromeRender } from "./ui";
 
 const P = (n: string) => `/assets/proposal/${n}`;
 
@@ -17,6 +17,7 @@ export default function ChatShell({
   endRef: RefObject<HTMLDivElement | null>;
 }) {
   const bottom = useRef<HTMLDivElement>(null);
+  useShellKeyboardFit();
   const [h, setH] = useState(96);
   useEffect(() => {
     const el = bottom.current;
