@@ -55,15 +55,27 @@ export function SendIcon({ active }: { active: boolean }) {
 
 /** Height covered by the on-screen keyboard (visualViewport), so inputs and the latest message stay visible. */
 export function useKeyboardInset() {
-  const [inset, setInset] = useState(0);
+  const [own, setOwn] = useState(0);
+  const [fromShell, setFromShell] = useState<number | null>(null);
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const update = () => setInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
+    const update = () => setOwn(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)));
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     update();
     return () => { vv.removeEventListener("resize", update); vv.removeEventListener("scroll", update); };
   }, []);
-  return inset;
+  /* Inside the shell iframe iOS Safari does not report the keyboard to the frame's own visualViewport, so the shell
+     measures it on the top-level page and sends it here (shell.tsx). Once it has, that value wins. */
+  useEffect(() => {
+    if (window.parent === window) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== location.origin || e.source !== window.parent || e.data?.type !== "plotto:kb") return;
+      setFromShell(Math.max(0, Number(e.data.inset) || 0));
+    };
+    addEventListener("message", onMessage);
+    return () => removeEventListener("message", onMessage);
+  }, []);
+  return fromShell ?? own;
 }

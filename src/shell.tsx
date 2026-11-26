@@ -40,6 +40,23 @@ function App() {
     return () => removeEventListener('message', message);
   }, []);
 
+  // iOS Safari does not report the on-screen keyboard to a page inside an iframe, so the chat composer could stay
+  // hidden behind it. Measure the keyboard here, on the top-level page, and tell the screen how tall it is.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    let last = -1;
+    const send = () => {
+      const inset = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+      if (inset === last) return;
+      last = inset;
+      frame.current?.contentWindow?.postMessage({ type: 'plotto:kb', inset }, location.origin);
+    };
+    vv.addEventListener('resize', send);
+    vv.addEventListener('scroll', send);
+    return () => { vv.removeEventListener('resize', send); vv.removeEventListener('scroll', send); };
+  }, []);
+
   return <iframe className="app-frame" ref={frame} title="Plotto" src={initial} allow="microphone; camera; autoplay" />;
 }
 

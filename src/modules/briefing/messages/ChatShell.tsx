@@ -43,7 +43,7 @@ export default function ChatShell({
         <div className="flex flex-col" style={{ minHeight: "100%" }}>{children}</div>
         <div ref={endRef} />
       </div>
-      <div ref={bottom} className="absolute inset-x-0 z-20" style={{ bottom: 43 + kb, padding: "0 20px" }}>
+      <div ref={bottom} className="absolute inset-x-0 z-20" style={{ bottom: kb > 0 ? kb + 10 : 43, padding: "0 20px" }}>
         {above}
         <form className="flex items-center" style={{ gap: 12, height: 50 }} onSubmit={(e) => { e.preventDefault(); onSend(); }}>
           <span aria-hidden className="shrink-0"><img alt="" src={P("d9333.svg")} style={{ width: 48, height: 48 }} /></span>
