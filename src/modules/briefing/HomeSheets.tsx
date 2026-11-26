@@ -117,13 +117,17 @@ export function useToast(): [string, (t: string) => void] {
 function BottomSheet({ title, sub, left, head, legacy, onClose, footer, tight, children }: { title: string; sub?: string; left?: ReactNode; head?: ReactNode; legacy?: boolean; onClose: () => void; footer?: ReactNode; tight?: boolean; children: ReactNode }) {
   const reduced = useReducedMotion();
   const sheet = useRef<HTMLDivElement>(null);
+  /* The home behind the sheet must stay exactly where it is: focus without scrolling, and keep the effect from
+     re-running (it re-focused the card behind the sheet on every home re-render) by reading onClose through a ref. */
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
-    sheet.current?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    sheet.current?.focus({ preventScroll: true });
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeRef.current(); };
     addEventListener("keydown", onKey);
-    return () => { removeEventListener("keydown", onKey); prev?.focus?.(); };
-  }, [onClose]);
+    return () => { removeEventListener("keydown", onKey); prev?.focus?.({ preventScroll: true }); };
+  }, []);
   return (
     <div className="hs-layer" data-no-lift>
       <motion.div className="hs-dim" onClick={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduced ? 0 : .25 }} />

@@ -2,6 +2,8 @@
    Matched to design refs: 홈_기획안 수정하기 클릭, 홈_레퍼런스 정리 클릭, 직접 수정 (402×874). */
 .hs-layer{position:absolute;inset:0;z-index:50;font-family:Pretendard,sans-serif;color:#363636}
 .hs-layer *{box-sizing:border-box}
+/* background stays put while the sheet is open: no scroll chaining into the home, no touch scrolling on the dim */
+.hs-layer{overscroll-behavior:contain}.hs-dim{touch-action:none}
 .hs-layer button{cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit}
 .hs-layer button:focus-visible{outline:2px solid #536ffa;outline-offset:2px}
 .hs-dim{position:absolute;inset:0;background:rgba(17,17,17,.45)}
