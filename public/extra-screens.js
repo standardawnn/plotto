@@ -156,8 +156,11 @@
   /* Each overlay is a history entry (window.history.state.pxLayer = how many are open), so the in-app back
      and the browser back both close the top overlay first and never skip past it. */
   function pop() {
-    var layer = (window.history.state && window.history.state.pxLayer) || 0;
-    if (stack.length && layer >= stack.length) window.history.back(); else closeTop();
+    /* close the overlay in place. history.back() could land on an earlier page of the onboarding (the splash) */
+    if (!stack.length) return;
+    var st = window.history.state || {};
+    closeTop();
+    if (st.pxLayer) { try { window.history.replaceState(Object.assign({}, st, { pxLayer: stack.length }), ''); } catch (e) { /* ignore */ } }
   }
   addEventListener('popstate', function () {
     var want = (window.history.state && window.history.state.pxLayer) || 0;
