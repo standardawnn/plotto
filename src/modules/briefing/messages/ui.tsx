@@ -77,5 +77,10 @@ export function useKeyboardInset() {
     addEventListener("message", onMessage);
     return () => removeEventListener("message", onMessage);
   }, []);
+  useEffect(() => {
+    if (window.parent === window) return;
+    try { if (!/kbdebug/.test(window.parent.location.search + window.parent.location.hash)) return; } catch { return; }
+    window.parent.postMessage({ type: "plotto:kbdebug", own, fromShell }, location.origin);
+  }, [own, fromShell]);
   return fromShell ?? own;
 }
